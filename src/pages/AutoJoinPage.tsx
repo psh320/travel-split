@@ -31,7 +31,7 @@ const AutoJoinPage = () => {
       } else {
         setError("Trip not found. Please check the room code.");
       }
-    } catch (error) {
+    } catch (error: unknown) {
       console.error("Error loading trip:", error);
       setError("Failed to load trip. Please try again.");
     } finally {
@@ -46,43 +46,53 @@ const AutoJoinPage = () => {
       return;
     }
 
+    // Check for duplicate names (case-insensitive)
+    const existingUser = trip.participants.find(
+      (p: User) => p.name.toLowerCase() === userName.trim().toLowerCase()
+    );
+
+    if (existingUser) {
+      // User already exists, log them in
+      handleExistingUserJoin(existingUser);
+      return;
+    }
+
     setJoining(true);
     setError("");
 
     try {
-      // Check if user name already exists in trip
-      const existingUser = trip.participants.find(
-        (p: User) => p.name.toLowerCase() === userName.toLowerCase()
+      // Add new user to trip
+      const newUser = await FirebaseService.addUserToTrip(
+        trip.id,
+        userName.trim()
       );
 
-      if (existingUser) {
-        // User already exists, just log them in
-        localStorage.setItem("currentTripId", trip.id);
-        localStorage.setItem("currentUserId", existingUser.id);
-        localStorage.setItem("currentUserName", existingUser.name);
-        localStorage.setItem("roomCode", trip.roomCode);
+      localStorage.setItem("currentTripId", trip.id);
+      localStorage.setItem("currentUserId", newUser.id);
+      localStorage.setItem("currentUserName", newUser.name);
+      localStorage.setItem("roomCode", trip.roomCode);
 
-        navigate(`/trip/${trip.id}`);
-      } else {
-        // Add new user to trip
-        const newUser = await FirebaseService.addUserToTrip(
-          trip.id,
-          userName.trim()
-        );
-
-        localStorage.setItem("currentTripId", trip.id);
-        localStorage.setItem("currentUserId", newUser.id);
-        localStorage.setItem("currentUserName", newUser.name);
-        localStorage.setItem("roomCode", trip.roomCode);
-
-        navigate(`/trip/${trip.id}`);
-      }
-    } catch (error) {
+      navigate(`/trip/${trip.id}`);
+    } catch (error: unknown) {
       console.error("Error joining trip:", error);
       setError("Failed to join trip. Please try again.");
     } finally {
       setJoining(false);
     }
+  };
+
+  const handleExistingUserJoin = (user: User) => {
+    localStorage.setItem("currentTripId", trip!.id);
+    localStorage.setItem("currentUserId", user.id);
+    localStorage.setItem("currentUserName", user.name);
+    localStorage.setItem("roomCode", trip!.roomCode);
+
+    navigate(`/trip/${trip!.id}`);
+  };
+
+  const handleParticipantClick = (participant: User) => {
+    if (joining) return; // Prevent clicks during join process
+    handleExistingUserJoin(participant);
   };
 
   if (loading) {
@@ -195,35 +205,81 @@ const AutoJoinPage = () => {
           </div>
         </div>
 
-        {/* Participants Preview */}
+        {/* Participants - Clickable to Join */}
         <div className="card">
           <h3>Current Participants</h3>
+          <p
+            style={{
+              fontSize: "0.875rem",
+              color: "#6b7280",
+              marginBottom: "1rem",
+            }}
+          >
+            Click on your name if you've joined this trip before:
+          </p>
           <div className="list">
-            {trip.participants.slice(0, 5).map((participant: User) => (
-              <div key={participant.id} className="list-item">
+            {trip.participants.map((participant: User) => (
+              <div
+                key={participant.id}
+                className="list-item"
+                onClick={() => handleParticipantClick(participant)}
+                style={{
+                  cursor: "pointer",
+                  transition: "all 0.2s ease",
+                  backgroundColor: "#f9fafb",
+                  border: "1px solid #e5e7eb",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = "#f3f4f6";
+                  e.currentTarget.style.borderColor = "#667eea";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = "#f9fafb";
+                  e.currentTarget.style.borderColor = "#e5e7eb";
+                }}
+              >
                 <div className="list-item-content">
-                  <div className="list-item-title">{participant.name}</div>
+                  <div className="list-item-title">
+                    {participant.name}
+                    <span
+                      style={{
+                        marginLeft: "0.5rem",
+                        fontSize: "0.75rem",
+                        color: "#667eea",
+                        fontWeight: "500",
+                      }}
+                    >
+                      (Click to join)
+                    </span>
+                  </div>
+                </div>
+                <div
+                  style={{
+                    fontSize: "1.25rem",
+                    color: "#667eea",
+                    opacity: 0.6,
+                  }}
+                >
+                  →
                 </div>
               </div>
             ))}
-            {trip.participants.length > 5 && (
-              <div
-                style={{
-                  fontSize: "0.875rem",
-                  color: "#6b7280",
-                  textAlign: "center",
-                  marginTop: "0.5rem",
-                }}
-              >
-                and {trip.participants.length - 5} more...
-              </div>
-            )}
           </div>
         </div>
 
-        {/* Join Form */}
+        {/* Join Form - New Users */}
         <div className="card">
-          <h3>Enter Your Name to Join</h3>
+          <h3>Or Enter Your Name as New Participant</h3>
+          <p
+            style={{
+              fontSize: "0.875rem",
+              color: "#6b7280",
+              marginBottom: "1rem",
+            }}
+          >
+            If this is your first time joining this trip, enter your name below:
+          </p>
+
           {error && (
             <div
               style={{
@@ -246,7 +302,11 @@ const AutoJoinPage = () => {
                 type="text"
                 id="userName"
                 value={userName}
-                onChange={(e) => setUserName(e.target.value)}
+                onChange={(e) => {
+                  setUserName(e.target.value);
+                  // Clear error when user starts typing
+                  if (error) setError("");
+                }}
                 placeholder="Enter your name"
                 required
                 autoFocus
@@ -258,8 +318,17 @@ const AutoJoinPage = () => {
                   marginTop: "0.5rem",
                 }}
               >
-                If you've joined this trip before, use the same name to access
-                your previous data
+                {trip &&
+                trip.participants.some(
+                  (p) => p.name.toLowerCase() === userName.toLowerCase()
+                ) ? (
+                  <span style={{ color: "#dc2626" }}>
+                    ⚠️ This name already exists. Click on "{userName}" above to
+                    join as existing user.
+                  </span>
+                ) : (
+                  "Choose a unique name that others can recognize"
+                )}
               </div>
             </div>
 
