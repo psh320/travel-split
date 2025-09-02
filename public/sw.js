@@ -1,6 +1,6 @@
 // Split Expense - Service Worker
-const CACHE_NAME = "split-expense-v1";
-const STATIC_CACHE_NAME = "split-expense-static-v1";
+const CACHE_NAME = "split-expense-v2";
+const STATIC_CACHE_NAME = "split-expense-static-v2";
 
 // Files to cache immediately (App Shell)
 const STATIC_FILES = [
@@ -9,11 +9,13 @@ const STATIC_FILES = [
   "/manifest.json",
   "/coin.svg",
   "/icons/app-icon.svg",
+  "/sitemap.xml",
+  "/robots.txt",
   // Add your CSS and JS files here - they'll be generated with hash names
 ];
 
 // Runtime cache for dynamic content
-const RUNTIME_CACHE = "split-expense-runtime-v1";
+const RUNTIME_CACHE = "split-expense-runtime-v2";
 
 // Install event - cache static assets
 self.addEventListener("install", (event) => {
