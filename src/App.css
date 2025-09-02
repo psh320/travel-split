@@ -71,14 +71,46 @@ body {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
 }
 
-/* Container for mobile-first design */
+/* Responsive Container - 2024 Design Trends */
 .container {
-  max-width: 400px;
+  width: 100%;
+  max-width: 400px; /* Mobile */
   margin: 0 auto;
   background: #ffffff;
   min-height: 100vh;
   box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
   position: relative;
+}
+
+/* Tablet breakpoint */
+@media (min-width: 768px) {
+  .container {
+    max-width: 768px;
+    margin: 2rem auto;
+    border-radius: 1rem;
+    box-shadow: 0 20px 60px rgba(102, 126, 234, 0.15);
+    min-height: calc(100vh - 4rem);
+    overflow: hidden;
+  }
+}
+
+/* Desktop breakpoint */
+@media (min-width: 1024px) {
+  .container {
+    max-width: 1200px;
+    margin: 2rem auto;
+    border-radius: 1.5rem;
+    box-shadow: 0 25px 80px rgba(102, 126, 234, 0.12),
+      0 0 0 1px rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(20px);
+  }
+}
+
+/* Large desktop */
+@media (min-width: 1440px) {
+  .container {
+    max-width: 1400px;
+  }
 }
 
 /* Header styles */
@@ -124,6 +156,56 @@ body {
 .content {
   padding: 1.5rem 1rem;
   min-height: calc(100vh - 120px);
+}
+
+/* Desktop content layouts */
+@media (min-width: 1024px) {
+  .content {
+    padding: 2rem 3rem;
+    min-height: calc(100vh - 200px);
+  }
+
+  /* Desktop grid layouts */
+  .content-grid {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+    margin: 2rem 0;
+  }
+
+  .content-grid-3 {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 2rem;
+    margin: 2rem 0;
+  }
+
+  /* Desktop hero sections */
+  .hero-section {
+    display: block !important;
+    margin-bottom: 3rem;
+  }
+
+  /* Desktop buttons side by side */
+  .hero-section .card-featured > div:last-child {
+    display: flex !important;
+    flex-direction: row !important;
+    gap: 1rem !important;
+  }
+
+  .hero-section .card-featured > div:last-child > * {
+    flex: 1;
+  }
+}
+
+/* Tablet adjustments */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .content-grid {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+    margin: 2rem 0;
+  }
 }
 
 /* Form styles */
@@ -215,7 +297,7 @@ body {
   width: 100%;
 }
 
-/* Card styles */
+/* Card styles - Modern 2024 Design */
 .card {
   background: white;
   border-radius: 1rem;
@@ -223,6 +305,47 @@ body {
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
   border: 1px solid #f3f4f6;
   margin-bottom: 1rem;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Desktop card enhancements */
+@media (min-width: 1024px) {
+  .card {
+    border-radius: 1.25rem;
+    padding: 2rem;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05),
+      0 2px 4px -1px rgba(0, 0, 0, 0.03);
+    border: 1px solid rgba(0, 0, 0, 0.05);
+  }
+
+  .card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 20px 25px -5px rgba(102, 126, 234, 0.08),
+      0 10px 10px -5px rgba(102, 126, 234, 0.04);
+    border-color: rgba(102, 126, 234, 0.1);
+  }
+
+  /* Trending glass morphism cards */
+  .card-glass {
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 8px 32px rgba(102, 126, 234, 0.12),
+      inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  }
+
+  /* Featured cards */
+  .card-featured {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+  }
+
+  .card-featured:hover {
+    transform: translateY(-4px) scale(1.02);
+    box-shadow: 0 25px 50px rgba(102, 126, 234, 0.25);
+  }
 }
 
 .card h3 {
