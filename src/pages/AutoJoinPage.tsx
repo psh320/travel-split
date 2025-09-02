@@ -72,7 +72,7 @@ const AutoJoinPage = () => {
       localStorage.setItem("currentUserName", newUser.name);
       localStorage.setItem("roomCode", trip.roomCode);
 
-      navigate(`/trip/${trip.id}`);
+      navigate(`/group/${trip.id}`);
     } catch (error: unknown) {
       console.error("Error joining trip:", error);
       setError("Failed to join group. Please try again.");
@@ -87,7 +87,7 @@ const AutoJoinPage = () => {
     localStorage.setItem("currentUserName", user.name);
     localStorage.setItem("roomCode", trip!.roomCode);
 
-    navigate(`/trip/${trip!.id}`);
+    navigate(`/group/${trip!.id}`);
   };
 
   const handleParticipantClick = (participant: User) => {
@@ -129,7 +129,7 @@ const AutoJoinPage = () => {
             <h3>Error</h3>
             <p style={{ color: "#dc2626", marginBottom: "1rem" }}>{error}</p>
             <div style={{ display: "flex", gap: "1rem" }}>
-              <Link to="/join-trip" className="btn btn-primary">
+              <Link to="/join-group" className="btn btn-primary">
                 Enter Code Manually
               </Link>
               <Link to="/" className="btn btn-secondary">
@@ -160,7 +160,7 @@ const AutoJoinPage = () => {
               found.
             </p>
             <div style={{ display: "flex", gap: "1rem" }}>
-              <Link to="/join-trip" className="btn btn-primary">
+              <Link to="/join-group" className="btn btn-primary">
                 Enter Code Manually
               </Link>
               <Link to="/" className="btn btn-secondary">

@@ -1,31 +1,22 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { FirebaseService } from "../services/firebase";
 import type { Trip } from "../types";
 import { formatCurrency, formatDate, timeAgo } from "../utils";
 
 const TripDashboard = () => {
-  const { tripId } = useParams<{ tripId: string }>();
+  const { groupId } = useParams<{ groupId: string }>();
   const navigate = useNavigate();
   const [trip, setTrip] = useState<Trip | null>(null);
   const [loading, setLoading] = useState(true);
   const [currentUserId, setCurrentUserId] = useState<string>("");
 
-  useEffect(() => {
-    const userId = localStorage.getItem("currentUserId");
-    if (userId) {
-      setCurrentUserId(userId);
-    }
-
-    loadTrip();
-  }, [tripId]);
-
-  const loadTrip = async () => {
-    if (!tripId) return;
+  const loadTrip = useCallback(async () => {
+    if (!groupId) return;
 
     setLoading(true);
     try {
-      const tripData = await FirebaseService.getTripById(tripId);
+      const tripData = await FirebaseService.getTripById(groupId);
       if (tripData) {
         setTrip(tripData);
       } else {
@@ -38,7 +29,16 @@ const TripDashboard = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [groupId, navigate]);
+
+  useEffect(() => {
+    const userId = localStorage.getItem("currentUserId");
+    if (userId) {
+      setCurrentUserId(userId);
+    }
+
+    loadTrip();
+  }, [groupId, loadTrip]);
 
   const handleDeleteExpense = async (expenseId: string) => {
     if (
@@ -205,14 +205,14 @@ const TripDashboard = () => {
         {/* Quick Actions */}
         <div style={{ display: "flex", gap: "1rem", marginBottom: "1rem" }}>
           <Link
-            to={`/trip/${trip.id}/add-expense`}
+            to={`/group/${trip.id}/add-expense`}
             className="btn btn-primary"
             style={{ flex: 1 }}
           >
             Add Expense
           </Link>
           <Link
-            to={`/trip/${trip.id}/balance`}
+            to={`/group/${trip.id}/balance`}
             className="btn btn-secondary"
             style={{ flex: 1 }}
           >

@@ -1,0 +1,18 @@
+User-agent: *
+Allow: /
+
+# Important pages to crawl
+Allow: /create-group
+Allow: /join-group
+Allow: /privacy
+Allow: /terms
+
+# Block group-specific dynamic URLs from indexing (they're user-specific)
+Disallow: /group/*
+Disallow: /join/*
+
+# Sitemap location
+Sitemap: https://splitexpense.web.app/sitemap.xml
+
+# Crawl-delay for respectful crawling
+Crawl-delay: 1

@@ -6,7 +6,7 @@ import { calculateBalances } from "../utils/balanceCalculator";
 import { formatCurrency } from "../utils";
 
 const BalancePage = () => {
-  const { tripId } = useParams<{ tripId: string }>();
+  const { groupId } = useParams<{ groupId: string }>();
   const navigate = useNavigate();
   const [trip, setTrip] = useState<Trip | null>(null);
   const [balanceSummary, setBalanceSummary] = useState<BalanceSummary | null>(
@@ -22,14 +22,14 @@ const BalancePage = () => {
     }
 
     loadTrip();
-  }, [tripId]);
+  }, [groupId]);
 
   const loadTrip = async () => {
-    if (!tripId) return;
+    if (!groupId) return;
 
     setLoading(true);
     try {
-      const tripData = await FirebaseService.getTripById(tripId);
+      const tripData = await FirebaseService.getTripById(groupId);
       if (tripData) {
         setTrip(tripData);
         const summary = calculateBalances(tripData);
@@ -59,7 +59,7 @@ const BalancePage = () => {
       <div className="content">
         <div className="card">
           <h3>Unable to load balance</h3>
-          <Link to={`/trip/${tripId}`} className="btn btn-primary">
+          <Link to={`/group/${groupId}`} className="btn btn-primary">
             Go Back
           </Link>
         </div>
@@ -81,7 +81,7 @@ const BalancePage = () => {
   return (
     <>
       <div className="header">
-        <Link to={`/trip/${tripId}`} className="back-button">
+        <Link to={`/group/${groupId}`} className="back-button">
           ←
         </Link>
         <h1>Balance Summary</h1>
@@ -328,7 +328,7 @@ const BalancePage = () => {
                 Add some expenses to see the balance summary
               </p>
               <Link
-                to={`/trip/${tripId}/add-expense`}
+                to={`/group/${groupId}/add-expense`}
                 className="btn btn-primary"
               >
                 Add First Expense

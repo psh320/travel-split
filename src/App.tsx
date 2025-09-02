@@ -18,15 +18,15 @@ function App() {
         <Router>
           <Routes>
             <Route path="/" element={<HomePage />} />
-            <Route path="/create-trip" element={<CreateTripPage />} />
-            <Route path="/join-trip" element={<JoinTripPage />} />
+            <Route path="/create-group" element={<CreateTripPage />} />
+            <Route path="/join-group" element={<JoinTripPage />} />
             <Route path="/join/:roomCode" element={<AutoJoinPage />} />
-            <Route path="/trip/:tripId" element={<TripDashboard />} />
+            <Route path="/group/:groupId" element={<TripDashboard />} />
             <Route
-              path="/trip/:tripId/add-expense"
+              path="/group/:groupId/add-expense"
               element={<AddExpensePage />}
             />
-            <Route path="/trip/:tripId/balance" element={<BalancePage />} />
+            <Route path="/group/:groupId/balance" element={<BalancePage />} />
             <Route path="/privacy" element={<PrivacyPage />} />
             <Route path="/terms" element={<TermsPage />} />
           </Routes>

@@ -4,7 +4,7 @@ import { FirebaseService } from "../services/firebase";
 import type { Trip, AddExpenseForm } from "../types";
 
 const AddExpensePage = () => {
-  const { tripId } = useParams<{ tripId: string }>();
+  const { groupId } = useParams<{ groupId: string }>();
   const navigate = useNavigate();
   const [trip, setTrip] = useState<Trip | null>(null);
   const [loading, setLoading] = useState(false);
@@ -23,7 +23,7 @@ const AddExpensePage = () => {
     }
 
     loadTrip();
-  }, [tripId]);
+  }, [groupId]);
 
   useEffect(() => {
     // Set current user as default payer and select all participants by default
@@ -37,10 +37,10 @@ const AddExpensePage = () => {
   }, [trip, currentUserId]);
 
   const loadTrip = async () => {
-    if (!tripId) return;
+    if (!groupId) return;
 
     try {
-      const tripData = await FirebaseService.getTripById(tripId);
+      const tripData = await FirebaseService.getTripById(groupId);
       if (tripData) {
         setTrip(tripData);
       } else {
@@ -124,7 +124,7 @@ const AddExpensePage = () => {
       );
 
       alert("Expense added successfully!");
-      navigate(`/trip/${trip.id}`);
+      navigate(`/group/${trip.id}`);
     } catch (error) {
       console.error("Error adding expense:", error);
       alert("Failed to add expense. Please try again.");
@@ -149,7 +149,7 @@ const AddExpensePage = () => {
   return (
     <>
       <div className="header">
-        <Link to={`/trip/${tripId}`} className="back-button">
+        <Link to={`/group/${groupId}`} className="back-button">
           ←
         </Link>
         <h1>Add Expense</h1>

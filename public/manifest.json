@@ -1,7 +1,7 @@
 {
-  "name": "Split Expense",
+  "name": "Split Expenses Online Free - Bill Splitting Calculator",
   "short_name": "Split Expense",
-  "description": "Split any shared expenses easily with friends. Track group costs, calculate who owes whom, and settle up with minimal transactions.",
+  "description": "Split expenses online free with friends and groups. Easy bill splitting calculator for shared costs, travel expenses, and group spending. No registration required - start splitting expenses instantly!",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",

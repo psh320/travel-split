@@ -1,32 +1,37 @@
 import { Link } from "react-router-dom";
 import GoogleAd from "../components/GoogleAd";
+import SEOContent from "../components/SEOContent";
 import { ADSENSE_CONFIG } from "../config/adsense";
 
 const HomePage = () => {
   return (
     <>
       <div className="header">
-        <h1>Split Expense</h1>
-        <p>Split any shared costs easily with friends</p>
+        <h1>Split Expenses Online Free</h1>
+        <p>
+          Split expenses online with friends - The easiest bill splitting
+          calculator
+        </p>
       </div>
 
       <div className="content">
         <div className="card">
-          <h3>Welcome to Split Expense</h3>
+          <h3>Free Online Expense Splitter</h3>
           <p style={{ marginBottom: "1.5rem", color: "#6b7280" }}>
-            Keep track of any shared expenses with your group and see who owes
-            whom. No registration required - just create a room and share the
-            code with your friends!
+            Split expenses online free with your group and see who owes whom.
+            Our bill splitting calculator makes it easy to divide shared costs
+            for travel, dining, and group activities. No registration required -
+            just create a room and share the code with your friends!
           </p>
 
           <div
             style={{ display: "flex", flexDirection: "column", gap: "1rem" }}
           >
-            <Link to="/create-trip" className="btn btn-primary btn-full">
+            <Link to="/create-group" className="btn btn-primary btn-full">
               Create New Group
             </Link>
 
-            <Link to="/join-trip" className="btn btn-secondary btn-full">
+            <Link to="/join-group" className="btn btn-secondary btn-full">
               Join Existing Group
             </Link>
           </div>
@@ -126,6 +131,134 @@ const HomePage = () => {
             </div>
           </div>
         </div>
+
+        <div className="card">
+          <h3>Why Choose Our Bill Splitting Calculator?</h3>
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
+              gap: "1.5rem",
+              marginTop: "1rem",
+            }}
+          >
+            <div>
+              <h4
+                style={{
+                  fontSize: "1rem",
+                  fontWeight: "600",
+                  marginBottom: "0.5rem",
+                  color: "#374151",
+                }}
+              >
+                💰 Split Expenses Online Free
+              </h4>
+              <p style={{ fontSize: "0.875rem", color: "#6b7280", margin: 0 }}>
+                Completely free expense splitting tool. No hidden fees, no
+                premium plans - just split costs online instantly.
+              </p>
+            </div>
+            <div>
+              <h4
+                style={{
+                  fontSize: "1rem",
+                  fontWeight: "600",
+                  marginBottom: "0.5rem",
+                  color: "#374151",
+                }}
+              >
+                📱 Works on Any Device
+              </h4>
+              <p style={{ fontSize: "0.875rem", color: "#6b7280", margin: 0 }}>
+                Access your expense splitter from phone, tablet, or computer. No
+                app download needed.
+              </p>
+            </div>
+            <div>
+              <h4
+                style={{
+                  fontSize: "1rem",
+                  fontWeight: "600",
+                  marginBottom: "0.5rem",
+                  color: "#374151",
+                }}
+              >
+                🚀 No Registration Required
+              </h4>
+              <p style={{ fontSize: "0.875rem", color: "#6b7280", margin: 0 }}>
+                Start splitting expenses immediately. No sign-ups, no personal
+                information needed.
+              </p>
+            </div>
+            <div>
+              <h4
+                style={{
+                  fontSize: "1rem",
+                  fontWeight: "600",
+                  marginBottom: "0.5rem",
+                  color: "#374151",
+                }}
+              >
+                🧮 Smart Calculations
+              </h4>
+              <p style={{ fontSize: "0.875rem", color: "#6b7280", margin: 0 }}>
+                Our bill splitting calculator optimizes payments to minimize
+                transactions between group members.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div className="card">
+          <h3>Perfect for Every Occasion</h3>
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              gap: "0.75rem",
+              marginTop: "1rem",
+            }}
+          >
+            <div
+              style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}
+            >
+              <span style={{ fontSize: "1.25rem" }}>✈️</span>
+              <span style={{ fontSize: "0.9rem" }}>
+                <strong>Travel Expenses:</strong> Split hotel, flights, and
+                activities with travel companions
+              </span>
+            </div>
+            <div
+              style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}
+            >
+              <span style={{ fontSize: "1.25rem" }}>🍕</span>
+              <span style={{ fontSize: "0.9rem" }}>
+                <strong>Group Dining:</strong> Easily divide restaurant bills
+                and food delivery costs
+              </span>
+            </div>
+            <div
+              style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}
+            >
+              <span style={{ fontSize: "1.25rem" }}>🏠</span>
+              <span style={{ fontSize: "0.9rem" }}>
+                <strong>Roommate Expenses:</strong> Track shared household costs
+                and utilities
+              </span>
+            </div>
+            <div
+              style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}
+            >
+              <span style={{ fontSize: "1.25rem" }}>🎉</span>
+              <span style={{ fontSize: "0.9rem" }}>
+                <strong>Events & Parties:</strong> Split costs for celebrations,
+                gifts, and entertainment
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <SEOContent />
 
         {/* Strategic Ad Placement - After main content, before footer */}
         <div style={{ marginTop: "2rem", marginBottom: "1rem" }}>

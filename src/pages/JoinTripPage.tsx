@@ -56,7 +56,7 @@ const JoinTripPage = () => {
         localStorage.setItem("currentUserName", existingUser.name);
         localStorage.setItem("roomCode", trip.roomCode);
 
-        navigate(`/trip/${trip.id}`);
+        navigate(`/group/${trip.id}`);
       } else {
         // Add new user to trip
         const newUser = await FirebaseService.addUserToTrip(
@@ -70,7 +70,7 @@ const JoinTripPage = () => {
         localStorage.setItem("roomCode", trip.roomCode);
 
         alert(`Welcome to ${trip.name}!`);
-        navigate(`/trip/${trip.id}`);
+        navigate(`/group/${trip.id}`);
       }
     } catch (error) {
       console.error("Error joining trip:", error);

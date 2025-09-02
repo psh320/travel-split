@@ -65,7 +65,7 @@ const CreateTripPage = () => {
       }
 
       // Navigate to trip dashboard
-      navigate(`/trip/${trip.id}`);
+      navigate(`/group/${trip.id}`);
     } catch (error) {
       console.error("Error creating trip:", error);
       alert("Failed to create group. Please try again.");
