@@ -6,6 +6,9 @@ import AutoJoinPage from "./pages/AutoJoinPage";
 import TripDashboard from "./pages/TripDashboard";
 import AddExpensePage from "./pages/AddExpensePage";
 import BalancePage from "./pages/BalancePage";
+import PrivacyPage from "./pages/PrivacyPage";
+import TermsPage from "./pages/TermsPage";
+import Footer from "./components/Footer";
 import "./App.css";
 
 function App() {
@@ -24,7 +27,10 @@ function App() {
               element={<AddExpensePage />}
             />
             <Route path="/trip/:tripId/balance" element={<BalancePage />} />
+            <Route path="/privacy" element={<PrivacyPage />} />
+            <Route path="/terms" element={<TermsPage />} />
           </Routes>
+          <Footer />
         </Router>
       </div>
     </div>

@@ -1,18 +1,22 @@
 import { Link } from "react-router-dom";
+import GoogleAd from "../components/GoogleAd";
+import AdSenseScript from "../components/AdSenseScript";
+import { ADSENSE_CONFIG } from "../config/adsense";
 
 const HomePage = () => {
   return (
     <>
+      <AdSenseScript publisherId={ADSENSE_CONFIG.publisherId} />
       <div className="header">
-        <h1>Travel Split</h1>
-        <p>Split expenses easily with friends</p>
+        <h1>Split Expense</h1>
+        <p>Split any shared costs easily with friends</p>
       </div>
 
       <div className="content">
         <div className="card">
-          <h3>Welcome to Travel Split</h3>
+          <h3>Welcome to Split Expense</h3>
           <p style={{ marginBottom: "1.5rem", color: "#6b7280" }}>
-            Keep track of shared expenses during your travels and see who owes
+            Keep track of any shared expenses with your group and see who owes
             whom. No registration required - just create a room and share the
             code with your friends!
           </p>
@@ -122,6 +126,25 @@ const HomePage = () => {
               </div>
             </div>
           </div>
+        </div>
+
+        {/* Strategic Ad Placement - After main content, before footer */}
+        <div style={{ marginTop: "2rem", marginBottom: "1rem" }}>
+          <GoogleAd
+            client={ADSENSE_CONFIG.publisherId}
+            slot={ADSENSE_CONFIG.adSlots.banner}
+            style={{
+              display: "block",
+              textAlign: "center",
+              minHeight: "100px",
+              backgroundColor: "#f9fafb",
+              border: "1px solid #e5e7eb",
+              borderRadius: "0.5rem",
+              padding: "1rem",
+            }}
+            format="auto"
+            responsive={true}
+          />
         </div>
       </div>
     </>

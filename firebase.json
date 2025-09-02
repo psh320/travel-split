@@ -1,6 +1,6 @@
 {
   "hosting": {
-    "site": "travel-split-78317",
+    "site": "splitexpense",
     "public": "dist",
     "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
     "rewrites": [
