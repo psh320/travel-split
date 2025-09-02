@@ -1,0 +1,30 @@
+{
+  "name": "Split Expense",
+  "short_name": "Split Expense",
+  "description": "Split any shared expenses easily with friends. Track group costs, calculate who owes whom, and settle up with minimal transactions.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#667eea",
+  "orientation": "portrait-primary",
+  "scope": "/",
+  "lang": "en",
+  "categories": ["finance", "productivity", "utilities"],
+  "icons": [
+    {
+      "src": "/icons/app-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/coin.svg",
+      "sizes": "32x32",
+      "type": "image/svg+xml",
+      "purpose": "favicon"
+    }
+  ],
+
+  "prefer_related_applications": false,
+  "related_applications": []
+}

@@ -5,12 +5,65 @@
   box-sizing: border-box;
 }
 
+/* PWA Specific Variables */
+:root {
+  --safe-area-inset-top: 0px;
+  --safe-area-inset-bottom: 0px;
+  --pwa-status-bar-height: 44px;
+}
+
 body {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto",
     sans-serif;
   background-color: #ffffff;
   color: #1a1a1a;
   line-height: 1.6;
+}
+
+/* PWA Standalone Mode Styles */
+@media (display-mode: standalone) {
+  body {
+    /* Handle iOS notch and safe areas */
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+
+    /* Prevent overscroll bounce on iOS */
+    overscroll-behavior-y: none;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .app {
+    /* Adjust for standalone mode */
+    min-height: calc(
+      100vh - env(safe-area-inset-top) - env(safe-area-inset-bottom)
+    );
+  }
+
+  .header {
+    /* Add extra padding for status bar in standalone mode */
+    padding-top: calc(1rem + env(safe-area-inset-top));
+  }
+}
+
+/* iOS Specific PWA Styles */
+@supports (-webkit-touch-callout: none) {
+  /* iOS Safari specific styles */
+  body {
+    -webkit-user-select: none;
+    -webkit-touch-callout: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  input,
+  textarea,
+  button {
+    -webkit-user-select: auto;
+  }
+
+  /* Fix iOS viewport issues */
+  .app {
+    min-height: -webkit-fill-available;
+  }
 }
 
 .app {
