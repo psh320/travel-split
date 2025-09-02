@@ -1,12 +1,10 @@
 import { Link } from "react-router-dom";
 import GoogleAd from "../components/GoogleAd";
-import AdSenseScript from "../components/AdSenseScript";
 import { ADSENSE_CONFIG } from "../config/adsense";
 
 const HomePage = () => {
   return (
     <>
-      <AdSenseScript publisherId={ADSENSE_CONFIG.publisherId} />
       <div className="header">
         <h1>Split Expense</h1>
         <p>Split any shared costs easily with friends</p>
