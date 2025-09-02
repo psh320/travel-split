@@ -65,6 +65,29 @@ const TripDashboard = () => {
     }
   };
 
+  const copyShareableLink = async () => {
+    const roomCode = localStorage.getItem("roomCode") || trip?.roomCode;
+    if (roomCode) {
+      const shareableLink = `${window.location.origin}/join/${roomCode}`;
+      if (navigator.clipboard) {
+        try {
+          await navigator.clipboard.writeText(shareableLink);
+          alert(
+            `Shareable link copied to clipboard!\nSend this to friends so they can join instantly: ${shareableLink}`
+          );
+        } catch {
+          alert(
+            `Shareable link: ${shareableLink}\n\nCopy and send this to your friends!`
+          );
+        }
+      } else {
+        alert(
+          `Shareable link: ${shareableLink}\n\nCopy and send this to your friends!`
+        );
+      }
+    }
+  };
+
   if (loading) {
     return (
       <div className="loading">
@@ -116,13 +139,22 @@ const TripDashboard = () => {
             }}
           >
             <h3>Trip Details</h3>
-            <button
-              onClick={copyRoomCode}
-              className="btn btn-secondary"
-              style={{ padding: "0.5rem 1rem", fontSize: "0.875rem" }}
-            >
-              Copy Code
-            </button>
+            <div style={{ display: "flex", gap: "0.5rem" }}>
+              <button
+                onClick={copyShareableLink}
+                className="btn btn-primary"
+                style={{ padding: "0.5rem 1rem", fontSize: "0.875rem" }}
+              >
+                Share Link
+              </button>
+              <button
+                onClick={copyRoomCode}
+                className="btn btn-secondary"
+                style={{ padding: "0.5rem 1rem", fontSize: "0.875rem" }}
+              >
+                Copy Code
+              </button>
+            </div>
           </div>
           <div style={{ fontSize: "0.875rem", color: "#6b7280" }}>
             <p>

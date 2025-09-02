@@ -43,10 +43,26 @@ const CreateTripPage = () => {
       localStorage.setItem("currentUserName", trip.participants[0].name);
       localStorage.setItem("roomCode", roomCode);
 
-      // Show success message with room code
-      alert(
-        `Trip created successfully! Room code: ${roomCode}\nShare this code with your friends so they can join.`
-      );
+      // Show success message with shareable link
+      const shareableLink = `${window.location.origin}/join/${roomCode}`;
+
+      // Try to copy to clipboard
+      if (navigator.clipboard) {
+        try {
+          await navigator.clipboard.writeText(shareableLink);
+          alert(
+            `Trip created successfully!\n\nShareable link copied to clipboard:\n${shareableLink}\n\nSend this link to your friends so they can join instantly!`
+          );
+        } catch {
+          alert(
+            `Trip created successfully!\n\nShare this link with your friends:\n${shareableLink}\n\nRoom code: ${roomCode}`
+          );
+        }
+      } else {
+        alert(
+          `Trip created successfully!\n\nShare this link with your friends:\n${shareableLink}\n\nRoom code: ${roomCode}`
+        );
+      }
 
       // Navigate to trip dashboard
       navigate(`/trip/${trip.id}`);
