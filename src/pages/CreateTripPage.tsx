@@ -25,7 +25,7 @@ const CreateTripPage = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.name.trim() || !formData.creatorName.trim()) {
-      alert("Trip name and your name are required");
+      alert("Group name and your name are required");
       return;
     }
 
@@ -51,16 +51,16 @@ const CreateTripPage = () => {
         try {
           await navigator.clipboard.writeText(shareableLink);
           alert(
-            `Trip created successfully!\n\nShareable link copied to clipboard:\n${shareableLink}\n\nSend this link to your friends so they can join instantly!`
+            `Group created successfully!\n\nShareable link copied to clipboard:\n${shareableLink}\n\nSend this link to your friends so they can join instantly!`
           );
         } catch {
           alert(
-            `Trip created successfully!\n\nShare this link with your friends:\n${shareableLink}\n\nRoom code: ${roomCode}`
+            `Group created successfully!\n\nShare this link with your friends:\n${shareableLink}\n\nRoom code: ${roomCode}`
           );
         }
       } else {
         alert(
-          `Trip created successfully!\n\nShare this link with your friends:\n${shareableLink}\n\nRoom code: ${roomCode}`
+          `Group created successfully!\n\nShare this link with your friends:\n${shareableLink}\n\nRoom code: ${roomCode}`
         );
       }
 
@@ -68,7 +68,7 @@ const CreateTripPage = () => {
       navigate(`/trip/${trip.id}`);
     } catch (error) {
       console.error("Error creating trip:", error);
-      alert("Failed to create trip. Please try again.");
+      alert("Failed to create group. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -80,21 +80,21 @@ const CreateTripPage = () => {
         <Link to="/" className="back-button">
           ←
         </Link>
-        <h1>Create Trip</h1>
-        <p>Start a new expense sharing trip</p>
+        <h1>Create Group</h1>
+        <p>Start a new expense sharing group</p>
       </div>
 
       <div className="content">
         <form onSubmit={handleSubmit} className="form">
           <div className="form-group">
-            <label htmlFor="name">Trip Name *</label>
+            <label htmlFor="name">Group Name *</label>
             <input
               type="text"
               id="name"
               name="name"
               value={formData.name}
               onChange={handleInputChange}
-              placeholder="e.g., Tokyo Adventure 2024"
+              placeholder="e.g., Weekend Getaway, Roommate Expenses"
               required
             />
           </div>
@@ -106,7 +106,7 @@ const CreateTripPage = () => {
               name="description"
               value={formData.description}
               onChange={handleInputChange}
-              placeholder="Brief description of your trip..."
+              placeholder="Brief description of your group..."
             />
           </div>
 
@@ -134,7 +134,7 @@ const CreateTripPage = () => {
                 style={{ width: "1rem", height: "1rem", margin: "0 auto" }}
               />
             ) : (
-              "Create Trip"
+              "Create Group"
             )}
           </button>
         </form>

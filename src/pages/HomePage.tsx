@@ -25,11 +25,11 @@ const HomePage = () => {
             style={{ display: "flex", flexDirection: "column", gap: "1rem" }}
           >
             <Link to="/create-trip" className="btn btn-primary btn-full">
-              Create New Trip
+              Create New Group
             </Link>
 
             <Link to="/join-trip" className="btn btn-secondary btn-full">
-              Join Existing Trip
+              Join Existing Group
             </Link>
           </div>
         </div>
@@ -63,7 +63,8 @@ const HomePage = () => {
                   Create or Join
                 </div>
                 <div style={{ fontSize: "0.875rem", color: "#6b7280" }}>
-                  Create a new trip or join an existing one with a room code
+                  Create a new expense group or join an existing one with a room
+                  code
                 </div>
               </div>
             </div>

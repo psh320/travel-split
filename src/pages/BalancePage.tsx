@@ -35,12 +35,12 @@ const BalancePage = () => {
         const summary = calculateBalances(tripData);
         setBalanceSummary(summary);
       } else {
-        alert("Trip not found");
+        alert("Group not found");
         navigate("/");
       }
     } catch (error) {
       console.error("Error loading trip:", error);
-      alert("Failed to load trip");
+      alert("Failed to load group");
     } finally {
       setLoading(false);
     }

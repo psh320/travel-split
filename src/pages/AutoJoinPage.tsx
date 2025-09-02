@@ -29,11 +29,11 @@ const AutoJoinPage = () => {
       if (tripData) {
         setTrip(tripData);
       } else {
-        setError("Trip not found. Please check the room code.");
+        setError("Group not found. Please check the room code.");
       }
     } catch (error: unknown) {
       console.error("Error loading trip:", error);
-      setError("Failed to load trip. Please try again.");
+      setError("Failed to load group. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -75,7 +75,7 @@ const AutoJoinPage = () => {
       navigate(`/trip/${trip.id}`);
     } catch (error: unknown) {
       console.error("Error joining trip:", error);
-      setError("Failed to join trip. Please try again.");
+      setError("Failed to join group. Please try again.");
     } finally {
       setJoining(false);
     }
@@ -102,8 +102,8 @@ const AutoJoinPage = () => {
           <Link to="/" className="back-button">
             ←
           </Link>
-          <h1>Joining Trip...</h1>
-          <p>Loading trip information</p>
+          <h1>Joining Group...</h1>
+          <p>Loading group information</p>
         </div>
         <div className="content">
           <div className="loading">
@@ -122,7 +122,7 @@ const AutoJoinPage = () => {
             ←
           </Link>
           <h1>Unable to Join</h1>
-          <p>There was a problem with the trip link</p>
+          <p>There was a problem with the group link</p>
         </div>
         <div className="content">
           <div className="card">
@@ -149,14 +149,14 @@ const AutoJoinPage = () => {
           <Link to="/" className="back-button">
             ←
           </Link>
-          <h1>Trip Not Found</h1>
-          <p>The trip link may have expired</p>
+          <h1>Group Not Found</h1>
+          <p>The group link may have expired</p>
         </div>
         <div className="content">
           <div className="card">
-            <h3>Trip Not Found</h3>
+            <h3>Group Not Found</h3>
             <p style={{ marginBottom: "1rem" }}>
-              The trip with room code <strong>{roomCode}</strong> could not be
+              The group with room code <strong>{roomCode}</strong> could not be
               found.
             </p>
             <div style={{ display: "flex", gap: "1rem" }}>
@@ -180,16 +180,16 @@ const AutoJoinPage = () => {
           ←
         </Link>
         <h1>Join "{trip.name}"</h1>
-        <p>You're invited to join this trip!</p>
+        <p>You're invited to join this group!</p>
       </div>
 
       <div className="content">
         {/* Trip Info */}
         <div className="card">
-          <h3>Trip Details</h3>
+          <h3>Group Details</h3>
           <div style={{ fontSize: "0.875rem", color: "#6b7280" }}>
             <p>
-              <strong>Trip Name:</strong> {trip.name}
+              <strong>Group Name:</strong> {trip.name}
             </p>
             {trip.description && (
               <p>
@@ -215,7 +215,7 @@ const AutoJoinPage = () => {
               marginBottom: "1rem",
             }}
           >
-            Click on your name if you've joined this trip before:
+            Click on your name if you've joined this group before:
           </p>
           <div className="list">
             {trip.participants.map((participant: User) => (
@@ -277,7 +277,8 @@ const AutoJoinPage = () => {
               marginBottom: "1rem",
             }}
           >
-            If this is your first time joining this trip, enter your name below:
+            If this is your first time joining this group, enter your name
+            below:
           </p>
 
           {error && (
@@ -358,10 +359,10 @@ const AutoJoinPage = () => {
               lineHeight: "1.6",
             }}
           >
-            <p>• Join the trip and start tracking shared expenses</p>
-            <p>• Add expenses as you travel together</p>
+            <p>• Join the group and start tracking shared expenses</p>
+            <p>• Add expenses as you spend together</p>
             <p>• See who owes what with automatic calculations</p>
-            <p>• Settle up easily at the end of your trip</p>
+            <p>• Settle up easily when you're done</p>
           </div>
         </div>
       </div>

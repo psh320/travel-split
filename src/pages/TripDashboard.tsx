@@ -29,12 +29,12 @@ const TripDashboard = () => {
       if (tripData) {
         setTrip(tripData);
       } else {
-        alert("Trip not found");
+        alert("Group not found");
         navigate("/");
       }
     } catch (error) {
       console.error("Error loading trip:", error);
-      alert("Failed to load trip");
+      alert("Failed to load group");
     } finally {
       setLoading(false);
     }
@@ -100,7 +100,7 @@ const TripDashboard = () => {
     return (
       <div className="content">
         <div className="card">
-          <h3>Trip not found</h3>
+          <h3>Group not found</h3>
           <Link to="/" className="btn btn-primary">
             Go Home
           </Link>
@@ -128,7 +128,7 @@ const TripDashboard = () => {
       </div>
 
       <div className="content">
-        {/* Trip Info Card */}
+        {/* Group Info Card */}
         <div className="card">
           <div
             style={{
@@ -138,7 +138,7 @@ const TripDashboard = () => {
               marginBottom: "1rem",
             }}
           >
-            <h3>Trip Details</h3>
+            <h3>Group Details</h3>
             <div style={{ display: "flex", gap: "0.5rem" }}>
               <button
                 onClick={copyShareableLink}

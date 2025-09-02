@@ -40,7 +40,7 @@ const JoinTripPage = () => {
       const trip = await FirebaseService.getTripByRoomCode(formData.roomCode);
 
       if (!trip) {
-        alert("Trip not found. Please check the room code and try again.");
+        alert("Group not found. Please check the room code and try again.");
         return;
       }
 
@@ -74,7 +74,7 @@ const JoinTripPage = () => {
       }
     } catch (error) {
       console.error("Error joining trip:", error);
-      alert("Failed to join trip. Please check the room code and try again.");
+      alert("Failed to join group. Please check the room code and try again.");
     } finally {
       setLoading(false);
     }
@@ -86,7 +86,7 @@ const JoinTripPage = () => {
         <Link to="/" className="back-button">
           ←
         </Link>
-        <h1>Join Trip</h1>
+        <h1>Join Group</h1>
         <p>Enter room code to join existing trip</p>
       </div>
 
@@ -155,7 +155,7 @@ const JoinTripPage = () => {
                 style={{ width: "1rem", height: "1rem", margin: "0 auto" }}
               />
             ) : (
-              "Join Trip"
+              "Join Group"
             )}
           </button>
         </form>
