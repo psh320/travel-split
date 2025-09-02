@@ -130,9 +130,59 @@
 
     <!-- iOS Specific Meta Tags -->
     <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta
+      name="apple-mobile-web-app-status-bar-style"
+      content="black-translucent"
+    />
+    <meta name="apple-touch-fullscreen" content="yes" />
+    <meta name="apple-mobile-web-app-orientation" content="portrait" />
     <meta name="apple-mobile-web-app-title" content="Split Expense" />
-    <link rel="apple-touch-icon" href="/icons/app-icon.svg" />
+    <link rel="apple-touch-icon" href="/icons/apple-touch-icon-180x180.png" />
+    <link
+      rel="apple-touch-icon"
+      sizes="180x180"
+      href="/icons/apple-touch-icon-180x180.png"
+    />
+    <link
+      rel="apple-touch-icon"
+      sizes="152x152"
+      href="/icons/apple-touch-icon-152x152.png"
+    />
+    <link
+      rel="apple-touch-icon"
+      sizes="144x144"
+      href="/icons/apple-touch-icon-144x144.png"
+    />
+    <link
+      rel="apple-touch-icon"
+      sizes="120x120"
+      href="/icons/apple-touch-icon-120x120.png"
+    />
+    <link
+      rel="apple-touch-icon"
+      sizes="114x114"
+      href="/icons/apple-touch-icon-114x114.png"
+    />
+    <link
+      rel="apple-touch-icon"
+      sizes="76x76"
+      href="/icons/apple-touch-icon-76x76.png"
+    />
+    <link
+      rel="apple-touch-icon"
+      sizes="72x72"
+      href="/icons/apple-touch-icon-72x72.png"
+    />
+    <link
+      rel="apple-touch-icon"
+      sizes="60x60"
+      href="/icons/apple-touch-icon-60x60.png"
+    />
+    <link
+      rel="apple-touch-icon"
+      sizes="57x57"
+      href="/icons/apple-touch-icon-57x57.png"
+    />
 
     <!-- Android/Chrome Meta Tags -->
     <meta name="mobile-web-app-capable" content="yes" />
@@ -150,7 +200,9 @@
     <meta name="format-detection" content="telephone=no" />
     <meta name="HandheldFriendly" content="true" />
     <meta name="MobileOptimized" content="width" />
-    <meta name="apple-touch-fullscreen" content="yes" />
+    <!-- Safari-specific optimizations -->
+    <meta name="supported-color-schemes" content="light dark" />
+    <meta name="color-scheme" content="light dark" />
   </head>
   <body>
     <div id="root"></div>
@@ -162,8 +214,10 @@
       if ("serviceWorker" in navigator) {
         window.addEventListener("load", async () => {
           try {
+            // Safari-specific service worker handling
             const registration = await navigator.serviceWorker.register(
-              "/sw.js"
+              "/sw.js",
+              { scope: "/" }
             );
             console.log("SW registered: ", registration);
 

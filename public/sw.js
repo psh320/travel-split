@@ -11,6 +11,18 @@ const STATIC_FILES = [
   "/icons/app-icon.svg",
   "/sitemap.xml",
   "/robots.txt",
+  // Safari PNG icons for PWA compatibility
+  "/icons/apple-touch-icon-57x57.png",
+  "/icons/apple-touch-icon-60x60.png",
+  "/icons/apple-touch-icon-72x72.png",
+  "/icons/apple-touch-icon-76x76.png",
+  "/icons/apple-touch-icon-114x114.png",
+  "/icons/apple-touch-icon-120x120.png",
+  "/icons/apple-touch-icon-144x144.png",
+  "/icons/apple-touch-icon-152x152.png",
+  "/icons/apple-touch-icon-180x180.png",
+  "/icons/apple-touch-icon-192x192.png",
+  "/icons/apple-touch-icon-512x512.png",
   // Add your CSS and JS files here - they'll be generated with hash names
 ];
 
@@ -84,11 +96,26 @@ async function handleGetRequest(request) {
   const requestUrl = new URL(request.url);
 
   // For HTML pages, try cache first, then network
-  if (request.headers.get("accept").includes("text/html")) {
+  if (
+    request.headers.get("accept") &&
+    request.headers.get("accept").includes("text/html")
+  ) {
     try {
-      // Try cache first
+      // Try cache first for better Safari compatibility
       const cachedResponse = await caches.match(request);
       if (cachedResponse) {
+        // Fetch network in background for Safari
+        fetch(request)
+          .then((networkResponse) => {
+            if (networkResponse.ok) {
+              caches.open(RUNTIME_CACHE).then((cache) => {
+                cache.put(request, networkResponse.clone());
+              });
+            }
+          })
+          .catch(() => {
+            // Ignore background fetch errors
+          });
         return cachedResponse;
       }
 

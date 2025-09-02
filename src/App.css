@@ -5,6 +5,21 @@
   box-sizing: border-box;
 }
 
+/* Safari PWA specific fixes */
+@supports (-webkit-touch-callout: none) {
+  /* Safari-only styles */
+  .app {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* Fix for Safari viewport issues */
+  body {
+    -webkit-text-size-adjust: 100%;
+  }
+}
+
 /* PWA Specific Variables */
 :root {
   --safe-area-inset-top: 0px;
