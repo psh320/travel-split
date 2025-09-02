@@ -1,6 +1,6 @@
 // Split Expense - Service Worker
-const CACHE_NAME = "split-expense-v2.1";
-const STATIC_CACHE_NAME = "split-expense-static-v2.1";
+const CACHE_NAME = "split-expense-v2.11";
+const STATIC_CACHE_NAME = "split-expense-static-v2.11";
 
 // Files to cache immediately (App Shell)
 const STATIC_FILES = [
