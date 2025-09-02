@@ -58,7 +58,7 @@ const Footer = () => {
           </a>
         </div>
         <p style={{ margin: 0, fontSize: "0.75rem" }}>
-          © 2024 Split Expense. Made with ❤️ for groups who share costs.
+          © 2025 Split Expense. Made with ❤️ for groups who share costs.
         </p>
         <p style={{ margin: "0.5rem 0 0 0", fontSize: "0.75rem" }}>
           Free expense splitting for any shared activity.
