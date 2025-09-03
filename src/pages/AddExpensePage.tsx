@@ -175,6 +175,7 @@ const AddExpensePage = () => {
             <label htmlFor="amount">Amount ($) *</label>
             <input
               type="number"
+              inputMode="tel"
               id="amount"
               name="amount"
               value={formData.amount}
@@ -273,22 +274,6 @@ const AddExpensePage = () => {
             )}
           </button>
         </form>
-
-        <div className="card" style={{ marginTop: "2rem" }}>
-          <h3>Tips</h3>
-          <div
-            style={{
-              fontSize: "0.875rem",
-              color: "#6b7280",
-              lineHeight: "1.6",
-            }}
-          >
-            <p>• Be descriptive with expense names for easy reference</p>
-            <p>• You can select different people for different expenses</p>
-            <p>• The app will automatically calculate who owes what</p>
-            <p>• You can delete expenses from the trip dashboard if needed</p>
-          </div>
-        </div>
       </div>
     </>
   );

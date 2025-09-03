@@ -49,7 +49,8 @@ body {
   body {
     /* Handle iOS notch and safe areas */
     padding-top: env(safe-area-inset-top);
-    padding-bottom: env(safe-area-inset-bottom);
+    /* Remove bottom padding to avoid double spacing */
+    /* padding-bottom: env(safe-area-inset-bottom); */
 
     /* Prevent overscroll bounce on iOS */
     overscroll-behavior-y: none;
@@ -62,10 +63,9 @@ body {
   }
 
   .app {
-    /* Adjust for standalone mode */
-    min-height: calc(
-      100vh - env(safe-area-inset-top) - env(safe-area-inset-bottom)
-    );
+    /* Adjust for standalone mode with safe areas */
+    min-height: 100vh;
+    padding-bottom: env(safe-area-inset-bottom);
   }
 
   .header {
