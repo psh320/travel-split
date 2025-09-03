@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { FirebaseService } from "../services/firebase";
+import { GroupHistoryService } from "../services/groupHistory";
 import type { Trip } from "../types";
 import { formatCurrency, formatDate, timeAgo } from "../utils";
 
@@ -19,6 +20,8 @@ const TripDashboard = () => {
       const tripData = await FirebaseService.getTripById(groupId);
       if (tripData) {
         setTrip(tripData);
+        // Update last accessed time in group history
+        GroupHistoryService.updateLastAccessed(groupId);
       } else {
         alert("Group not found");
         navigate("/");

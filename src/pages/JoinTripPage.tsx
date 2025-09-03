@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { FirebaseService } from "../services/firebase";
+import { GroupHistoryService } from "../services/groupHistory";
 import type { JoinTripForm } from "../types";
 import { isValidRoomCode } from "../utils";
 
@@ -56,6 +57,16 @@ const JoinTripPage = () => {
         localStorage.setItem("currentUserName", existingUser.name);
         localStorage.setItem("roomCode", trip.roomCode);
 
+        // Add group to history
+        GroupHistoryService.addGroupToHistory(
+          trip.id,
+          trip.name,
+          trip.roomCode,
+          "participant",
+          existingUser.id,
+          existingUser.name
+        );
+
         navigate(`/group/${trip.id}`);
       } else {
         // Add new user to trip
@@ -68,6 +79,16 @@ const JoinTripPage = () => {
         localStorage.setItem("currentUserId", newUser.id);
         localStorage.setItem("currentUserName", newUser.name);
         localStorage.setItem("roomCode", trip.roomCode);
+
+        // Add group to history
+        GroupHistoryService.addGroupToHistory(
+          trip.id,
+          trip.name,
+          trip.roomCode,
+          "participant",
+          newUser.id,
+          newUser.name
+        );
 
         alert(`Welcome to ${trip.name}!`);
         navigate(`/group/${trip.id}`);

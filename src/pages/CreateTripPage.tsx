@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { FirebaseService } from "../services/firebase";
+import { GroupHistoryService } from "../services/groupHistory";
 import type { CreateTripForm } from "../types";
 
 const CreateTripPage = () => {
@@ -42,6 +43,16 @@ const CreateTripPage = () => {
       localStorage.setItem("currentUserId", trip.participants[0].id);
       localStorage.setItem("currentUserName", trip.participants[0].name);
       localStorage.setItem("roomCode", roomCode);
+
+      // Add group to history
+      GroupHistoryService.addGroupToHistory(
+        trip.id,
+        trip.name,
+        roomCode,
+        "creator",
+        trip.participants[0].id,
+        trip.participants[0].name
+      );
 
       // Show success message with shareable link
       const shareableLink = `${window.location.origin}/join/${roomCode}`;

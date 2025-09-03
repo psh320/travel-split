@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { FirebaseService } from "../services/firebase";
+import { GroupHistoryService } from "../services/groupHistory";
 import { isValidRoomCode } from "../utils";
 import type { Trip, User } from "../types";
 
@@ -72,6 +73,16 @@ const AutoJoinPage = () => {
       localStorage.setItem("currentUserName", newUser.name);
       localStorage.setItem("roomCode", trip.roomCode);
 
+      // Add group to history
+      GroupHistoryService.addGroupToHistory(
+        trip.id,
+        trip.name,
+        trip.roomCode,
+        "participant",
+        newUser.id,
+        newUser.name
+      );
+
       navigate(`/group/${trip.id}`);
     } catch (error: unknown) {
       console.error("Error joining trip:", error);
@@ -86,6 +97,16 @@ const AutoJoinPage = () => {
     localStorage.setItem("currentUserId", user.id);
     localStorage.setItem("currentUserName", user.name);
     localStorage.setItem("roomCode", trip!.roomCode);
+
+    // Add group to history
+    GroupHistoryService.addGroupToHistory(
+      trip!.id,
+      trip!.name,
+      trip!.roomCode,
+      "participant",
+      user.id,
+      user.name
+    );
 
     navigate(`/group/${trip!.id}`);
   };
