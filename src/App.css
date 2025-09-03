@@ -11,6 +11,7 @@
   .app {
     -webkit-touch-callout: none;
     -webkit-user-select: none;
+    user-select: none;
     -webkit-tap-highlight-color: transparent;
   }
 
@@ -33,6 +34,14 @@ body {
   background-color: #ffffff;
   color: #1a1a1a;
   line-height: 1.6;
+  /* Enhanced mobile fixes */
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+  overscroll-behavior-x: none;
+  overscroll-behavior-y: none;
+  /* Prevent pull-to-refresh on mobile */
+  overscroll-behavior: none;
 }
 
 /* PWA Standalone Mode Styles */
@@ -44,7 +53,12 @@ body {
 
     /* Prevent overscroll bounce on iOS */
     overscroll-behavior-y: none;
+    overscroll-behavior-x: none;
+    overscroll-behavior: none;
     -webkit-overflow-scrolling: touch;
+    /* Additional iOS fixes */
+    overflow-x: hidden;
+    max-width: 100%;
   }
 
   .app {
@@ -65,6 +79,7 @@ body {
   /* iOS Safari specific styles */
   body {
     -webkit-user-select: none;
+    user-select: none;
     -webkit-touch-callout: none;
     -webkit-tap-highlight-color: transparent;
   }
@@ -73,6 +88,7 @@ body {
   textarea,
   button {
     -webkit-user-select: auto;
+    user-select: auto;
   }
 
   /* Fix iOS viewport issues */
@@ -83,7 +99,15 @@ body {
 
 .app {
   min-height: 100vh;
+  min-height: -webkit-fill-available;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  /* Prevent overflow and dragging */
+  width: 100%;
+  max-width: 100vw;
+  overflow-x: hidden;
+  overscroll-behavior: none;
+  /* Ensure proper positioning */
+  position: relative;
 }
 
 /* Container for mobile-first design */
@@ -92,8 +116,15 @@ body {
   margin: 0 auto;
   background: #ffffff;
   min-height: 100vh;
+  min-height: -webkit-fill-available;
   box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
   position: relative;
+  /* Prevent horizontal overflow */
+  width: 100%;
+  max-width: min(400px, 100vw);
+  overflow-x: hidden;
+  /* Constrain within viewport */
+  box-sizing: border-box;
 }
 
 /* Header styles */
@@ -417,9 +448,49 @@ body {
 }
 
 /* Responsive adjustments */
+/* Enhanced mobile fixes for all viewport sizes */
+@media (max-width: 768px) {
+  html,
+  body {
+    /* Prevent any horizontal scrolling */
+    overflow-x: hidden !important;
+    max-width: 100vw;
+    /* Disable elastic scrolling and pull-to-refresh */
+    overscroll-behavior: none;
+    /* Prevent zoom and selection */
+    -webkit-text-size-adjust: 100%;
+    -webkit-user-select: none;
+    user-select: none;
+    /* Fix for iOS viewport */
+    height: -webkit-fill-available;
+  }
+
+  * {
+    /* Prevent any element from extending beyond viewport */
+    max-width: 100vw;
+    box-sizing: border-box;
+  }
+
+  .app {
+    /* Ensure app container never exceeds viewport */
+    max-width: 100vw;
+    overflow-x: hidden;
+    position: relative;
+  }
+
+  .container {
+    /* Ensure container is fully contained */
+    max-width: min(400px, 100vw);
+    width: 100%;
+    overflow-x: hidden;
+    margin: 0 auto;
+  }
+}
+
 @media (max-width: 375px) {
   .container {
     max-width: 100%;
+    padding: 0;
   }
 
   .content {
