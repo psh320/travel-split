@@ -1,4 +1,6 @@
-// Service for managing user's group history in localStorage
+// Service for managing user's group history with Safari compatibility
+import { storage } from "./storage";
+
 export interface GroupHistoryItem {
   id: string;
   name: string;
@@ -25,7 +27,7 @@ export class GroupHistoryService {
   // Get all groups from history
   static getGroupHistory(): GroupHistoryItem[] {
     try {
-      const stored = localStorage.getItem(STORAGE_KEY);
+      const stored = storage.getItem(STORAGE_KEY);
       if (!stored) return [];
 
       const parsed: StoredGroupHistoryItem[] = JSON.parse(stored);
@@ -68,7 +70,15 @@ export class GroupHistoryService {
       // Keep only the most recent 20 groups to avoid storage bloat
       const updatedHistory = [newItem, ...filteredHistory].slice(0, 20);
 
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedHistory));
+      const success = storage.setItem(
+        STORAGE_KEY,
+        JSON.stringify(updatedHistory)
+      );
+      if (!success) {
+        console.warn(
+          "Failed to save group to history - storage may be full or unavailable"
+        );
+      }
     } catch (error) {
       console.error("Error saving group to history:", error);
     }
@@ -87,7 +97,7 @@ export class GroupHistoryService {
         (a, b) => b.lastAccessed.getTime() - a.lastAccessed.getTime()
       );
 
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+      storage.setItem(STORAGE_KEY, JSON.stringify(updated));
     } catch (error) {
       console.error("Error updating group access time:", error);
     }
@@ -98,7 +108,7 @@ export class GroupHistoryService {
     try {
       const history = this.getGroupHistory();
       const filtered = history.filter((item) => item.id !== groupId);
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(filtered));
+      storage.setItem(STORAGE_KEY, JSON.stringify(filtered));
     } catch (error) {
       console.error("Error removing group from history:", error);
     }
@@ -117,9 +127,22 @@ export class GroupHistoryService {
   // Clear all history (for privacy/reset purposes)
   static clearHistory(): void {
     try {
-      localStorage.removeItem(STORAGE_KEY);
+      storage.removeItem(STORAGE_KEY);
     } catch (error) {
       console.error("Error clearing group history:", error);
     }
+  }
+
+  // Get storage information for user feedback
+  static getStorageInfo(): {
+    type: "localStorage" | "cookie" | "memory";
+    isPersistent: boolean;
+    warning: string | null;
+  } {
+    return {
+      type: storage.getStorageType(),
+      isPersistent: storage.isPersistent(),
+      warning: storage.getStorageWarning(),
+    };
   }
 }

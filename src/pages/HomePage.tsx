@@ -10,12 +10,17 @@ import { timeAgo } from "../utils";
 const HomePage = () => {
   const [groupHistory, setGroupHistory] = useState<GroupHistoryItem[]>([]);
   const [isNewUser, setIsNewUser] = useState(true);
+  const [storageWarning, setStorageWarning] = useState<string | null>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
     const history = GroupHistoryService.getGroupHistory();
     setGroupHistory(history);
     setIsNewUser(!GroupHistoryService.hasGroupHistory());
+
+    // Check storage status and show warning if needed
+    const storageInfo = GroupHistoryService.getStorageInfo();
+    setStorageWarning(storageInfo.warning);
   }, []);
 
   const handleGroupClick = (group: GroupHistoryItem) => {
@@ -335,6 +340,53 @@ const HomePage = () => {
       </div>
 
       <div className="content">
+        {/* Storage Warning */}
+        {storageWarning && (
+          <div
+            className="card"
+            style={{
+              backgroundColor: "#fef3c7",
+              border: "1px solid #f59e0b",
+              marginBottom: "1rem",
+            }}
+          >
+            <div
+              style={{
+                display: "flex",
+                alignItems: "flex-start",
+                gap: "0.75rem",
+              }}
+            >
+              <span style={{ fontSize: "1.25rem", marginTop: "0.125rem" }}>
+                ⚠️
+              </span>
+              <div>
+                <h4
+                  style={{
+                    margin: 0,
+                    marginBottom: "0.5rem",
+                    color: "#92400e",
+                    fontSize: "0.9rem",
+                    fontWeight: "600",
+                  }}
+                >
+                  Storage Notice
+                </h4>
+                <p
+                  style={{
+                    margin: 0,
+                    fontSize: "0.875rem",
+                    color: "#92400e",
+                    lineHeight: "1.4",
+                  }}
+                >
+                  {storageWarning}
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Quick Actions */}
         <div className="card">
           <h3>Quick Actions</h3>
