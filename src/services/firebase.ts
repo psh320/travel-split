@@ -171,6 +171,50 @@ export class FirebaseService {
     }
   }
 
+  static async removeUserFromTrip(
+    tripId: string,
+    userId: string
+  ): Promise<void> {
+    try {
+      const tripRef = doc(db, "trips", tripId);
+      const tripSnap = await getDoc(tripRef);
+
+      if (!tripSnap.exists()) {
+        throw new Error("Trip not found");
+      }
+
+      const tripData = tripSnap.data() as FirestoreTripData;
+
+      // Remove user from participants array
+      const updatedParticipants = tripData.participants.filter(
+        (participant) => participant.id !== userId
+      );
+
+      // Remove user from all expense participants arrays
+      const updatedExpenses = tripData.expenses
+        .map((expense) => ({
+          ...expense,
+          participants: expense.participants.filter(
+            (participantId) => participantId !== userId
+          ),
+        }))
+        .filter(
+          (expense) =>
+            // Remove expenses where this user was the only participant or the payer with no other participants
+            expense.participants.length > 0 || expense.paidBy !== userId
+        );
+
+      await updateDoc(tripRef, {
+        participants: updatedParticipants,
+        expenses: updatedExpenses,
+        updatedAt: Timestamp.fromDate(new Date()),
+      });
+    } catch (error) {
+      console.error("Error removing user from trip:", error);
+      throw new Error("Failed to remove user from trip");
+    }
+  }
+
   // Expense operations
   static async addExpense(
     tripId: string,

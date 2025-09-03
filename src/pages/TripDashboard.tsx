@@ -11,6 +11,10 @@ const TripDashboard = () => {
   const [trip, setTrip] = useState<Trip | null>(null);
   const [loading, setLoading] = useState(true);
   const [currentUserId, setCurrentUserId] = useState<string>("");
+  const [showAddUser, setShowAddUser] = useState(false);
+  const [newUserName, setNewUserName] = useState("");
+  const [addingUser, setAddingUser] = useState(false);
+  const [addUserError, setAddUserError] = useState("");
 
   const loadTrip = useCallback(async () => {
     if (!groupId) return;
@@ -57,6 +61,82 @@ const TripDashboard = () => {
     } catch (error) {
       console.error("Error deleting expense:", error);
       alert("Failed to delete expense");
+    }
+  };
+
+  const handleAddUser = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!trip || !newUserName.trim()) {
+      setAddUserError("Please enter a name");
+      return;
+    }
+
+    // Check if user name already exists (case-insensitive)
+    const existingUser = trip.participants.find(
+      (p) => p.name.toLowerCase() === newUserName.trim().toLowerCase()
+    );
+
+    if (existingUser) {
+      setAddUserError(`The name "${newUserName}" already exists in this group`);
+      return;
+    }
+
+    setAddingUser(true);
+    setAddUserError("");
+
+    try {
+      // Add new user to trip
+      await FirebaseService.addUserToTrip(trip.id, newUserName.trim());
+
+      // Refresh trip data to show new user
+      await loadTrip();
+
+      // Reset form
+      setNewUserName("");
+      setShowAddUser(false);
+    } catch (error) {
+      console.error("Error adding user:", error);
+      setAddUserError("Failed to add user. Please try again.");
+    } finally {
+      setAddingUser(false);
+    }
+  };
+
+  const handleCancelAddUser = () => {
+    setShowAddUser(false);
+    setNewUserName("");
+    setAddUserError("");
+  };
+
+  const handleRemoveUser = async (userId: string, userName: string) => {
+    if (
+      !trip ||
+      userId === currentUserId ||
+      userId === trip.createdBy ||
+      !window.confirm(`Remove ${userName} from this group?`)
+    ) {
+      return;
+    }
+
+    try {
+      // Check if user has expenses - for now just warn, could implement cascade deletion later
+      const userHasExpenses = trip.expenses.some(
+        (expense) =>
+          expense.paidBy === userId || expense.participants.includes(userId)
+      );
+
+      if (userHasExpenses) {
+        const confirmed = window.confirm(
+          `${userName} is involved in expenses. Removing them may affect balance calculations. Continue?`
+        );
+        if (!confirmed) return;
+      }
+
+      await FirebaseService.removeUserFromTrip(trip.id, userId);
+      await loadTrip();
+    } catch (error) {
+      console.error("Error removing user:", error);
+      alert("Failed to remove user. Please try again.");
     }
   };
 
@@ -176,7 +256,130 @@ const TripDashboard = () => {
 
         {/* Participants Card */}
         <div className="card">
-          <h3>Participants ({trip.participants.length})</h3>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              marginBottom: "1rem",
+            }}
+          >
+            <h3>Participants ({trip.participants.length})</h3>
+            {trip.createdBy === currentUserId && (
+              <button
+                onClick={() => setShowAddUser(true)}
+                className="btn btn-primary"
+                style={{ padding: "0.5rem 1rem", fontSize: "0.875rem" }}
+              >
+                Add User
+              </button>
+            )}
+          </div>
+
+          {/* Add User Form */}
+          {showAddUser && (
+            <div
+              style={{
+                backgroundColor: "#f8fafc",
+                border: "1px solid #e2e8f0",
+                borderRadius: "0.5rem",
+                padding: "1rem",
+                marginBottom: "1rem",
+              }}
+            >
+              <h4
+                style={{ marginTop: 0, marginBottom: "1rem", fontSize: "1rem" }}
+              >
+                Add New User
+              </h4>
+
+              {addUserError && (
+                <div
+                  style={{
+                    color: "#dc2626",
+                    backgroundColor: "#fee2e2",
+                    padding: "0.75rem",
+                    borderRadius: "0.5rem",
+                    marginBottom: "1rem",
+                    fontSize: "0.875rem",
+                  }}
+                >
+                  {addUserError}
+                </div>
+              )}
+
+              <form onSubmit={handleAddUser}>
+                <div className="form-group" style={{ marginBottom: "1rem" }}>
+                  <label
+                    htmlFor="newUserName"
+                    style={{
+                      display: "block",
+                      marginBottom: "0.5rem",
+                      fontSize: "0.875rem",
+                      fontWeight: "600",
+                    }}
+                  >
+                    User Name *
+                  </label>
+                  <input
+                    type="text"
+                    id="newUserName"
+                    value={newUserName}
+                    onChange={(e) => {
+                      setNewUserName(e.target.value);
+                      if (addUserError) setAddUserError("");
+                    }}
+                    placeholder="Enter user name"
+                    style={{ width: "100%", fontSize: "0.875rem" }}
+                    autoFocus
+                    required
+                  />
+                  <div
+                    style={{
+                      fontSize: "0.75rem",
+                      color: "#6b7280",
+                      marginTop: "0.5rem",
+                    }}
+                  >
+                    The user will be added to the group and can start
+                    participating in expenses
+                  </div>
+                </div>
+
+                <div style={{ display: "flex", gap: "0.5rem" }}>
+                  <button
+                    type="submit"
+                    className="btn btn-primary"
+                    disabled={addingUser}
+                    style={{ fontSize: "0.875rem" }}
+                  >
+                    {addingUser ? (
+                      <div
+                        className="spinner"
+                        style={{
+                          width: "1rem",
+                          height: "1rem",
+                          margin: "0 auto",
+                        }}
+                      />
+                    ) : (
+                      "Add User"
+                    )}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleCancelAddUser}
+                    className="btn btn-secondary"
+                    disabled={addingUser}
+                    style={{ fontSize: "0.875rem" }}
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </form>
+            </div>
+          )}
+
           <div className="list">
             {trip.participants.map((participant) => (
               <div key={participant.id} className="list-item">
@@ -195,11 +398,39 @@ const TripDashboard = () => {
                         (You)
                       </span>
                     )}
+                    {participant.id === trip.createdBy && (
+                      <span
+                        style={{
+                          marginLeft: "0.5rem",
+                          fontSize: "0.75rem",
+                          color: "#f59e0b",
+                          fontWeight: "600",
+                        }}
+                      >
+                        (Creator)
+                      </span>
+                    )}
                   </div>
                   <div className="list-item-subtitle">
                     Joined {timeAgo(participant.createdAt)}
                   </div>
                 </div>
+                {/* Show remove button for creators, but not for themselves or the trip creator */}
+                {trip.createdBy === currentUserId &&
+                  participant.id !== currentUserId &&
+                  participant.id !== trip.createdBy && (
+                    <div className="list-item-actions">
+                      <button
+                        onClick={() =>
+                          handleRemoveUser(participant.id, participant.name)
+                        }
+                        className="list-item-action"
+                        style={{ color: "#ef4444", fontSize: "0.875rem" }}
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  )}
               </div>
             ))}
           </div>

@@ -69,7 +69,7 @@ body {
     position: relative;
   }
 
-  /* Bottom safe area background */
+  /* Bottom safe area background
   .app::after {
     content: "";
     position: fixed;
@@ -80,7 +80,7 @@ body {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     z-index: 1000;
     pointer-events: none;
-  }
+  } */
 
   /* Status bar styling for PWA */
   .header {
