@@ -24,6 +24,9 @@
 /* PWA Specific Variables */
 :root {
   --pwa-status-bar-height: 44px;
+  --safe-area-inset-top: env(safe-area-inset-top, 0px);
+  --safe-area-inset-bottom: env(safe-area-inset-bottom, 0px);
+  --header-background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
 }
 
 body {
@@ -53,11 +56,41 @@ body {
     /* Additional iOS fixes */
     overflow-x: hidden;
     max-width: 100%;
+    /* Remove default margins for full-screen experience */
+    margin: 0;
+    padding: 0;
   }
 
   .app {
-    /* Simple full height for standalone mode */
+    /* Full height including safe areas */
     min-height: 100vh;
+    padding-bottom: var(--safe-area-inset-bottom);
+  }
+
+  /* Status bar styling for PWA */
+  .header {
+    /* Extend header into status bar area */
+    padding-top: calc(1rem + var(--safe-area-inset-top)) !important;
+    /* Create status bar background that matches header */
+    position: relative;
+  }
+
+  .header::before {
+    /* Status bar background overlay */
+    content: "";
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: var(--safe-area-inset-top);
+    background: var(--header-background);
+    z-index: 1000;
+    pointer-events: none;
+  }
+
+  /* Make sure status bar text is visible */
+  meta[name="theme-color"] {
+    content: #667eea;
   }
 
   /* Hide footer in PWA mode */
@@ -121,11 +154,13 @@ body {
 
 /* Header styles */
 .header {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: var(--header-background);
   color: white;
   padding: 1.5rem 1rem 1rem;
   text-align: center;
   position: relative;
+  /* Ensure header stays above status bar overlay */
+  z-index: 1001;
 }
 
 .header h1 {
