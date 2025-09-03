@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import GoogleAd from "../components/GoogleAd";
 import SEOContent from "../components/SEOContent";
-import { ADSENSE_CONFIG } from "../config/adsense";
+// import GoogleAd from "../components/GoogleAd";
+// import { ADSENSE_CONFIG } from "../config/adsense";
 import { GroupHistoryService } from "../services/groupHistory";
 import type { GroupHistoryItem } from "../services/groupHistory";
 import { timeAgo } from "../utils";
@@ -307,8 +307,8 @@ const HomePage = () => {
 
         <SEOContent />
 
-        {/* Strategic Ad Placement - After main content, before footer */}
-        <div style={{ marginTop: "2rem", marginBottom: "1rem" }}>
+        {/* Strategic Ad Placement - Disabled for now */}
+        {/* <div style={{ marginTop: "2rem", marginBottom: "1rem" }}>
           <GoogleAd
             client={ADSENSE_CONFIG.publisherId}
             slot={ADSENSE_CONFIG.adSlots.banner}
@@ -324,7 +324,7 @@ const HomePage = () => {
             format="auto"
             responsive={true}
           />
-        </div>
+        </div> */}
       </div>
     </>
   );
@@ -527,8 +527,8 @@ const HomePage = () => {
           )}
         </div>
 
-        {/* Strategic Ad Placement */}
-        <div style={{ marginTop: "2rem", marginBottom: "1rem" }}>
+        {/* Strategic Ad Placement - Disabled for now */}
+        {/* <div style={{ marginTop: "2rem", marginBottom: "1rem" }}>
           <GoogleAd
             client={ADSENSE_CONFIG.publisherId}
             slot={ADSENSE_CONFIG.adSlots.banner}
@@ -544,7 +544,7 @@ const HomePage = () => {
             format="auto"
             responsive={true}
           />
-        </div>
+        </div> */}
       </div>
     </>
   );
