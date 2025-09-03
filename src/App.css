@@ -65,33 +65,63 @@ body {
     /* Full height including safe areas */
     min-height: 100vh;
     padding-bottom: var(--safe-area-inset-bottom);
+    /* Ensure background extends to bottom */
+    position: relative;
+  }
+
+  /* Bottom safe area background */
+  .app::after {
+    content: "";
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: var(--safe-area-inset-bottom);
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    z-index: 1000;
+    pointer-events: none;
   }
 
   /* Status bar styling for PWA */
   .header {
     /* Extend header into status bar area */
-    padding-top: calc(1rem + var(--safe-area-inset-top)) !important;
-    /* Create status bar background that matches header */
+    padding-top: calc(1.5rem + var(--safe-area-inset-top)) !important;
+    /* Remove border radius for full edge-to-edge */
+    border-radius: 0 0 1rem 1rem !important;
+    /* Ensure it starts from the very top */
+    margin-top: 0 !important;
     position: relative;
   }
 
-  .header::before {
-    /* Status bar background overlay */
-    content: "";
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: var(--safe-area-inset-top);
-    background: var(--header-background);
-    z-index: 1000;
-    pointer-events: none;
+  /* Make body start from absolute top */
+  body {
+    padding-top: 0 !important;
+    /* Ensure consistent background to match safe areas */
+    background: #f8fafc;
   }
 
-  /* Make sure status bar text is visible */
-  meta[name="theme-color"] {
-    content: #667eea;
+  /* Ensure container doesn't add extra spacing */
+  .container {
+    padding-top: 0 !important;
   }
+
+  /* Debug: Visualize safe areas (uncomment to debug) */
+  /*
+  .debug-safe-areas {
+    position: fixed;
+    bottom: 10px;
+    left: 10px;
+    background: rgba(255, 0, 0, 0.8);
+    color: white;
+    padding: 5px;
+    font-size: 12px;
+    z-index: 9999;
+    pointer-events: none;
+  }
+  .debug-safe-areas::before {
+    content: "Top: " var(--safe-area-inset-top) " Bottom: " var(--safe-area-inset-bottom);
+  }
+  */
 
   /* Hide footer in PWA mode */
   footer {
@@ -161,6 +191,8 @@ body {
   position: relative;
   /* Ensure header stays above status bar overlay */
   z-index: 1001;
+  border-radius: 0 0 1rem 1rem;
+  margin: 0 0 2rem 0;
 }
 
 .header h1 {
