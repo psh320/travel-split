@@ -1,6 +1,34 @@
 import { Link } from "react-router-dom";
+import { useEffect, useState } from "react";
 
 const Footer = () => {
+  const [isStandalone, setIsStandalone] = useState(false);
+
+  useEffect(() => {
+    // Check if app is running in PWA standalone mode
+    const checkStandalone = () => {
+      const isStandaloneMode =
+        window.matchMedia("(display-mode: standalone)").matches ||
+        (window.navigator as any).standalone === true;
+      setIsStandalone(isStandaloneMode);
+    };
+
+    checkStandalone();
+
+    // Listen for changes in display mode
+    const mediaQuery = window.matchMedia("(display-mode: standalone)");
+    mediaQuery.addEventListener("change", checkStandalone);
+
+    return () => {
+      mediaQuery.removeEventListener("change", checkStandalone);
+    };
+  }, []);
+
+  // Don't render footer in PWA standalone mode
+  if (isStandalone) {
+    return null;
+  }
+
   return (
     <footer
       style={{

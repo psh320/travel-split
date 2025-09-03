@@ -23,8 +23,6 @@
 
 /* PWA Specific Variables */
 :root {
-  --safe-area-inset-top: 0px;
-  --safe-area-inset-bottom: 0px;
   --pwa-status-bar-height: 44px;
 }
 
@@ -47,11 +45,6 @@ body {
 /* PWA Standalone Mode Styles */
 @media (display-mode: standalone) {
   body {
-    /* Handle iOS notch and safe areas */
-    padding-top: env(safe-area-inset-top);
-    /* Remove bottom padding to avoid double spacing */
-    /* padding-bottom: env(safe-area-inset-bottom); */
-
     /* Prevent overscroll bounce on iOS */
     overscroll-behavior-y: none;
     overscroll-behavior-x: none;
@@ -63,14 +56,13 @@ body {
   }
 
   .app {
-    /* Adjust for standalone mode with safe areas */
+    /* Simple full height for standalone mode */
     min-height: 100vh;
-    padding-bottom: env(safe-area-inset-bottom);
   }
 
-  .header {
-    /* Add extra padding for status bar in standalone mode */
-    padding-top: calc(1rem + env(safe-area-inset-top));
+  /* Hide footer in PWA mode */
+  footer {
+    display: none !important;
   }
 }
 
