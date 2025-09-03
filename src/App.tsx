@@ -5,6 +5,7 @@ import JoinTripPage from "./pages/JoinTripPage";
 import AutoJoinPage from "./pages/AutoJoinPage";
 import TripDashboard from "./pages/TripDashboard";
 import AddExpensePage from "./pages/AddExpensePage";
+import ExpensesPage from "./pages/ExpensesPage";
 import BalancePage from "./pages/BalancePage";
 import PrivacyPage from "./pages/PrivacyPage";
 import TermsPage from "./pages/TermsPage";
@@ -26,6 +27,7 @@ function App() {
               path="/group/:groupId/add-expense"
               element={<AddExpensePage />}
             />
+            <Route path="/group/:groupId/expenses" element={<ExpensesPage />} />
             <Route path="/group/:groupId/balance" element={<BalancePage />} />
             <Route path="/privacy" element={<PrivacyPage />} />
             <Route path="/terms" element={<TermsPage />} />

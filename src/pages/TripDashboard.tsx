@@ -206,18 +206,32 @@ const TripDashboard = () => {
         </div>
 
         {/* Quick Actions */}
-        <div style={{ display: "flex", gap: "1rem", marginBottom: "1rem" }}>
+        <div
+          style={{
+            display: "flex",
+            gap: "0.75rem",
+            marginBottom: "1rem",
+            flexWrap: "wrap",
+          }}
+        >
           <Link
             to={`/group/${trip.id}/add-expense`}
             className="btn btn-primary"
-            style={{ flex: 1 }}
+            style={{ flex: 1, minWidth: "120px" }}
           >
             Add Expense
           </Link>
           <Link
+            to={`/group/${trip.id}/expenses`}
+            className="btn btn-secondary"
+            style={{ flex: 1, minWidth: "120px" }}
+          >
+            All Expenses
+          </Link>
+          <Link
             to={`/group/${trip.id}/balance`}
             className="btn btn-secondary"
-            style={{ flex: 1 }}
+            style={{ flex: 1, minWidth: "120px" }}
           >
             View Balance
           </Link>
@@ -289,12 +303,16 @@ const TripDashboard = () => {
           )}
         </div>
 
-        {/* Show all expenses link if there are many */}
+        {/* Show all expenses button if there are many */}
         {trip.expenses.length > 10 && (
           <div style={{ textAlign: "center", marginTop: "1rem" }}>
-            <div style={{ color: "#6b7280", fontSize: "0.875rem" }}>
-              Showing 10 of {trip.expenses.length} expenses
-            </div>
+            <Link
+              to={`/group/${trip.id}/expenses`}
+              className="btn btn-secondary"
+              style={{ fontSize: "0.875rem" }}
+            >
+              View All {trip.expenses.length} Expenses
+            </Link>
           </div>
         )}
       </div>
