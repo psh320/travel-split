@@ -50,6 +50,17 @@ export interface Settlement {
 export interface BalanceSummary {
   balances: Balance[];
   settlements: Settlement[];
+  combinationBalances?: CombinationBalance[];
+}
+
+// New types for balance breakdown by participant combinations
+export interface CombinationBalance {
+  participantIds: string[]; // Sorted array of participant IDs in this combination
+  participantNames: string[]; // Corresponding names
+  expenses: Expense[]; // Expenses that involve exactly these participants
+  balances: Balance[]; // Individual balances for this combination only
+  settlements: Settlement[]; // Settlements needed within this combination
+  totalAmount: number; // Total amount of expenses in this combination
 }
 
 // Form types

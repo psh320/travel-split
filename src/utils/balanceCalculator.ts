@@ -1,4 +1,11 @@
-import type { Trip, Balance, Settlement, BalanceSummary } from "../types";
+import type {
+  Trip,
+  Balance,
+  Settlement,
+  BalanceSummary,
+  CombinationBalance,
+  Expense,
+} from "../types";
 
 // Calculate balances and settlements for a trip
 export const calculateBalances = (trip: Trip): BalanceSummary => {
@@ -41,9 +48,13 @@ export const calculateBalances = (trip: Trip): BalanceSummary => {
   // Calculate settlements using the algorithm to minimize transactions
   const settlements = calculateSettlements(Object.values(balances));
 
+  // Calculate combination-based balances
+  const combinationBalances = calculateCombinationBalances(trip);
+
   return {
     balances: Object.values(balances),
     settlements,
+    combinationBalances,
   };
 };
 
@@ -90,4 +101,98 @@ const calculateSettlements = (balances: Balance[]): Settlement[] => {
   }
 
   return settlements;
+};
+
+// Calculate balances broken down by participant combinations
+const calculateCombinationBalances = (trip: Trip): CombinationBalance[] => {
+  // Group expenses by participant combinations
+  const combinationGroups = new Map<
+    string,
+    { expenses: Expense[]; participantIds: string[] }
+  >();
+
+  trip.expenses.forEach((expense) => {
+    // Sort participant IDs to create consistent keys
+    const sortedParticipants = [...expense.participants].sort();
+    const key = sortedParticipants.join(",");
+
+    if (!combinationGroups.has(key)) {
+      combinationGroups.set(key, {
+        expenses: [],
+        participantIds: sortedParticipants,
+      });
+    }
+
+    combinationGroups.get(key)!.expenses.push(expense);
+  });
+
+  // Calculate balances for each combination
+  const combinationBalances: CombinationBalance[] = [];
+
+  combinationGroups.forEach(({ expenses, participantIds }) => {
+    // Create a map to get participant names
+    const participantMap = new Map<string, string>();
+    trip.participants.forEach((p) => {
+      participantMap.set(p.id, p.name);
+    });
+
+    const participantNames = participantIds.map(
+      (id) => participantMap.get(id) || id
+    );
+
+    // Calculate balances for this combination
+    const balances: Record<string, Balance> = {};
+
+    // Initialize balances for participants in this combination
+    participantIds.forEach((userId) => {
+      balances[userId] = {
+        userId,
+        userName: participantMap.get(userId) || userId,
+        totalPaid: 0,
+        totalOwed: 0,
+        netBalance: 0,
+      };
+    });
+
+    // Calculate paid and owed amounts for this combination
+    let totalAmount = 0;
+    expenses.forEach((expense) => {
+      const splitAmount = expense.amount / expense.participants.length;
+      totalAmount += expense.amount;
+
+      // Add to total paid for the payer
+      if (balances[expense.paidBy]) {
+        balances[expense.paidBy].totalPaid += expense.amount;
+      }
+
+      // Add to total owed for each participant
+      expense.participants.forEach((participantId) => {
+        if (balances[participantId]) {
+          balances[participantId].totalOwed += splitAmount;
+        }
+      });
+    });
+
+    // Calculate net balances
+    Object.values(balances).forEach((balance) => {
+      balance.netBalance = balance.totalPaid - balance.totalOwed;
+    });
+
+    // Calculate settlements for this combination
+    const combinationSettlements = calculateSettlements(
+      Object.values(balances)
+    );
+
+    combinationBalances.push({
+      participantIds,
+      participantNames,
+      expenses,
+      balances: Object.values(balances),
+      settlements: combinationSettlements,
+      totalAmount,
+    });
+  });
+
+  // Sort by total amount descending
+  return combinationBalances.sort((a, b) => b.totalAmount - a.totalAmount);
 };

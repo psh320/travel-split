@@ -274,6 +274,159 @@ const BalancePage = () => {
           </div>
         </div>
 
+        {/* Balance by Combinations */}
+        {balanceSummary.combinationBalances &&
+          balanceSummary.combinationBalances.length > 0 && (
+            <div className="card">
+              <h3>Balance by Groups</h3>
+              <p
+                style={{
+                  fontSize: "0.875rem",
+                  color: "#6b7280",
+                  marginBottom: "1rem",
+                }}
+              >
+                Breakdown of balances for each unique combination of
+                participants:
+              </p>
+              {balanceSummary.combinationBalances.map((combo, index) => (
+                <div
+                  key={index}
+                  style={{
+                    marginBottom: "1.5rem",
+                    border: "1px solid #e5e7eb",
+                    borderRadius: "0.5rem",
+                    padding: "1rem",
+                  }}
+                >
+                  <div style={{ marginBottom: "0.75rem" }}>
+                    <h4 style={{ margin: "0 0 0.25rem 0", fontSize: "1rem" }}>
+                      {combo.participantNames.join(" + ")}
+                      <span
+                        style={{
+                          fontSize: "0.75rem",
+                          color: "#6b7280",
+                          fontWeight: "400",
+                          marginLeft: "0.5rem",
+                        }}
+                      >
+                        ({combo.expenses.length} expense
+                        {combo.expenses.length !== 1 ? "s" : ""})
+                      </span>
+                    </h4>
+                    <div style={{ fontSize: "0.75rem", color: "#6b7280" }}>
+                      Total: {formatCurrency(combo.totalAmount)}
+                    </div>
+                  </div>
+
+                  {/* Individual balances for this combination */}
+                  <div style={{ marginBottom: "0.75rem" }}>
+                    {combo.balances
+                      .sort((a, b) => b.netBalance - a.netBalance)
+                      .map((balance) => (
+                        <div
+                          key={balance.userId}
+                          style={{
+                            display: "flex",
+                            justifyContent: "space-between",
+                            alignItems: "center",
+                            padding: "0.375rem 0",
+                            fontSize: "0.875rem",
+                          }}
+                        >
+                          <div>
+                            <span style={{ fontWeight: "500" }}>
+                              {balance.userName}
+                              {balance.userId === currentUserId && (
+                                <span
+                                  style={{
+                                    marginLeft: "0.25rem",
+                                    fontSize: "0.7rem",
+                                    color: "#667eea",
+                                  }}
+                                >
+                                  (You)
+                                </span>
+                              )}
+                            </span>
+                            <div
+                              style={{ fontSize: "0.75rem", color: "#9ca3af" }}
+                            >
+                              Paid {formatCurrency(balance.totalPaid)} • Owes{" "}
+                              {formatCurrency(balance.totalOwed)}
+                            </div>
+                          </div>
+                          <div
+                            style={{
+                              fontWeight: "600",
+                              color:
+                                balance.netBalance > 0
+                                  ? "#059669"
+                                  : balance.netBalance < 0
+                                  ? "#dc2626"
+                                  : "#6b7280",
+                            }}
+                          >
+                            {balance.netBalance > 0 && "+"}
+                            {formatCurrency(Math.abs(balance.netBalance))}
+                          </div>
+                        </div>
+                      ))}
+                  </div>
+
+                  {/* Settlements within this combination */}
+                  {combo.settlements.length > 0 && (
+                    <div>
+                      <div
+                        style={{
+                          fontSize: "0.75rem",
+                          color: "#6b7280",
+                          marginBottom: "0.5rem",
+                        }}
+                      >
+                        Settlements needed:
+                      </div>
+                      {combo.settlements.map((settlement, sIndex) => (
+                        <div
+                          key={sIndex}
+                          style={{
+                            fontSize: "0.8rem",
+                            padding: "0.25rem 0.5rem",
+                            background: "#f9fafb",
+                            borderRadius: "0.25rem",
+                            marginBottom: "0.25rem",
+                          }}
+                        >
+                          <strong>{settlement.fromUserName}</strong> pays{" "}
+                          <strong>{settlement.toUserName}</strong>{" "}
+                          <strong style={{ color: "#667eea" }}>
+                            {formatCurrency(settlement.amount)}
+                          </strong>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {combo.settlements.length === 0 &&
+                    combo.expenses.length > 0 && (
+                      <div
+                        style={{
+                          fontSize: "0.75rem",
+                          color: "#059669",
+                          textAlign: "center",
+                          padding: "0.5rem",
+                          background: "#d1fae5",
+                          borderRadius: "0.25rem",
+                        }}
+                      >
+                        All settled in this group! ✓
+                      </div>
+                    )}
+                </div>
+              ))}
+            </div>
+          )}
+
         {/* All Settlements */}
         {balanceSummary.settlements.length > 0 && (
           <div className="card">
