@@ -9,8 +9,8 @@
     "Segoe UI",
     sans-serif
   );
-  color: var(--ease-color-text, #111111);
-  background: var(--ease-color-canvas, #f7f7f4);
+  color: var(--ease-color-text, #1A1A1A);
+  background: var(--ease-color-canvas, #F5F5F5);
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;

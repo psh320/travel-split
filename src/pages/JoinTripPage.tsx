@@ -5,6 +5,7 @@ import { FirebaseService } from "../services/firebase";
 import { GroupHistoryService } from "../services/groupHistory";
 import type { Trip, User } from "../types";
 import { isValidRoomCode } from "../utils";
+import { countLabel, t } from "../i18n";
 
 const JoinTripPage = () => {
   const navigate = useNavigate();
@@ -19,14 +20,12 @@ const JoinTripPage = () => {
   const handleRoomCodeSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!roomCode.trim()) {
-      setError("Room code is required");
+      setError(t("roomCodeField"));
       return;
     }
 
     if (!isValidRoomCode(roomCode)) {
-      setError(
-        "Room code must be 6 characters long and contain only letters and numbers"
-      );
+      setError(t("invalidRoomCode"));
       return;
     }
 
@@ -38,7 +37,7 @@ const JoinTripPage = () => {
       const tripData = await FirebaseService.getTripByRoomCode(roomCode);
 
       if (!tripData) {
-        setError("Group not found. Please check the room code and try again.");
+        setError(t("groupNotFound"));
         return;
       }
 
@@ -46,9 +45,7 @@ const JoinTripPage = () => {
       setStep("details");
     } catch (error) {
       console.error("Error finding trip:", error);
-      setError(
-        "Failed to find group. Please check the room code and try again."
-      );
+      setError(t("groupNotFound"));
     } finally {
       setLoading(false);
     }
@@ -79,7 +76,7 @@ const JoinTripPage = () => {
   const handleNewUserJoin = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!userName.trim() || !trip) {
-      setError("Please enter your name");
+      setError(t("yourName"));
       return;
     }
 
@@ -89,9 +86,7 @@ const JoinTripPage = () => {
     );
 
     if (existingUser) {
-      setError(
-        `The name "${userName}" is already taken. Click on the name above to join as that user, or choose a different name.`
-      );
+      setError(t("nameTaken"));
       return;
     }
 
@@ -123,7 +118,7 @@ const JoinTripPage = () => {
       navigate(`/group/${trip.id}`);
     } catch (error) {
       console.error("Error joining trip:", error);
-      setError("Failed to join group. Please try again.");
+      setError(t("unableToJoin"));
     } finally {
       setJoining(false);
     }
@@ -142,8 +137,8 @@ const JoinTripPage = () => {
       <>
         <AppHeader
           backTo="/"
-          title="Join Group"
-          subtitle="Enter the room code."
+          title={t("joinGroup")}
+          subtitle={t("enterCode")}
         />
 
         <div className="content">
@@ -157,7 +152,7 @@ const JoinTripPage = () => {
 
           <form onSubmit={handleRoomCodeSubmit} className="form">
             <div className="form-group">
-              <label htmlFor="roomCode">Room Code *</label>
+              <label htmlFor="roomCode">{t("roomCodeField")}</label>
               <input
                 type="text"
                 id="roomCode"
@@ -184,7 +179,7 @@ const JoinTripPage = () => {
                   marginTop: "0.5rem",
                 }}
               >
-                6 characters
+                {t("sixCharacters")}
               </div>
             </div>
 
@@ -199,13 +194,13 @@ const JoinTripPage = () => {
                   style={{ width: "1rem", height: "1rem", margin: "0 auto" }}
                 />
               ) : (
-                "Find Group"
+                t("findGroup")
               )}
             </button>
           </form>
 
           <div className="card" style={{ marginTop: "2rem" }}>
-            <h3>Need help?</h3>
+            <h3>{t("help")}</h3>
             <div
               style={{
                 fontSize: "0.875rem",
@@ -213,8 +208,8 @@ const JoinTripPage = () => {
                 lineHeight: "1.6",
               }}
             >
-              <p>• Ask for the room code</p>
-              <p>• Changes sync automatically</p>
+              <p>• {t("useRoomCode")}</p>
+              <p>• {t("shareCode")}</p>
             </div>
           </div>
         </div>
@@ -228,28 +223,29 @@ const JoinTripPage = () => {
       <>
         <AppHeader
           onBack={handleBackToCode}
-          title={`Join "${trip.name}"`}
-          subtitle="Pick your name."
+          title={`${t("joinGroup")} "${trip.name}"`}
+          subtitle={t("tapYourName")}
         />
 
         <div className="content">
           {/* Trip Info */}
           <div className="card">
-            <h3>Group Details</h3>
+            <h3>{t("groupDetails")}</h3>
             <div style={{ fontSize: "0.875rem", color: "var(--ease-color-text-muted)" }}>
               <p>
-                <strong>Group Name:</strong> {trip.name}
+                <strong>{t("groupName").replace(" *", "")}:</strong> {trip.name}
               </p>
               {trip.description && (
                 <p>
-                  <strong>Description:</strong> {trip.description}
+                  <strong>{t("description")}</strong> {trip.description}
                 </p>
               )}
               <p>
-                <strong>Room Code:</strong> {trip.roomCode}
+                <strong>{t("roomCode")}</strong> {trip.roomCode}
               </p>
               <p>
-                <strong>Participants:</strong> {trip.participants.length} people
+                <strong>{t("participants")}:</strong>{" "}
+                {countLabel("person", trip.participants.length)}
               </p>
             </div>
           </div>
@@ -257,7 +253,7 @@ const JoinTripPage = () => {
           {/* Existing Participants */}
           {trip.participants.length > 0 && (
             <div className="card">
-            <h3>Existing member</h3>
+              <h3>{t("member")}</h3>
               <p
                 style={{
                   fontSize: "0.875rem",
@@ -265,7 +261,7 @@ const JoinTripPage = () => {
                   marginBottom: "1rem",
                 }}
               >
-                Tap your name.
+                {t("tapYourName")}
               </p>
               <div className="list">
                 {trip.participants.map((participant: User) => (
@@ -299,7 +295,7 @@ const JoinTripPage = () => {
                             fontWeight: "500",
                           }}
                         >
-                          (Click to continue)
+                          ({t("clickToContinue")})
                         </span>
                       </div>
                     </div>
@@ -320,7 +316,7 @@ const JoinTripPage = () => {
 
           {/* New User Form */}
           <div className="card">
-            <h3>New member</h3>
+            <h3>{t("newMember")}</h3>
             <p
               style={{
                 fontSize: "0.875rem",
@@ -328,7 +324,7 @@ const JoinTripPage = () => {
                 marginBottom: "1rem",
               }}
             >
-              Add your name.
+              {t("addYourName")}
             </p>
 
             {error && (
@@ -348,7 +344,7 @@ const JoinTripPage = () => {
 
             <form onSubmit={handleNewUserJoin} className="form">
               <div className="form-group">
-                <label htmlFor="userName">Your Name *</label>
+                <label htmlFor="userName">{t("yourName")}</label>
                 <input
                   type="text"
                   id="userName"
@@ -357,7 +353,7 @@ const JoinTripPage = () => {
                     setUserName(e.target.value);
                     if (error) setError("");
                   }}
-                  placeholder="Enter your name"
+                  placeholder={t("yourName").replace(" *", "")}
                   required
                 />
                 <div
@@ -372,11 +368,10 @@ const JoinTripPage = () => {
                     (p) => p.name.toLowerCase() === userName.toLowerCase()
                   ) ? (
                     <span style={{ color: "var(--ease-color-danger)" }}>
-                      This name already exists. Click on "{userName}" above to
-                      join as existing user.
+                      {t("duplicateName")}
                     </span>
                   ) : (
-                    "Use a recognizable name."
+                    t("chooseRecognizableName")
                   )}
                 </div>
               </div>
@@ -392,14 +387,14 @@ const JoinTripPage = () => {
                     style={{ width: "1rem", height: "1rem", margin: "0 auto" }}
                   />
                 ) : (
-                  `Join ${trip.name}`
+                  `${t("joinGroup")} ${trip.name}`
                 )}
               </button>
             </form>
           </div>
 
           <div className="card">
-            <h3>Next</h3>
+            <h3>{t("next")}</h3>
             <div
               style={{
                 fontSize: "0.875rem",
@@ -407,9 +402,9 @@ const JoinTripPage = () => {
                 lineHeight: "1.6",
               }}
             >
-              <p>• Add expenses</p>
-              <p>• Check balances</p>
-              <p>• Settle up</p>
+              <p>• {t("addExpense")}</p>
+              <p>• {t("checkBalances")}</p>
+              <p>• {t("settleUp")}</p>
             </div>
           </div>
         </div>

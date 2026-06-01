@@ -1,9 +1,11 @@
 import { useState, useEffect, useMemo } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { AppHeader } from "../components/ui/AppHeader";
+import { IconLink } from "../components/ui/IconButton";
 import { FirebaseService } from "../services/firebase";
 import type { Trip } from "../types";
 import { formatCurrency, formatDate } from "../utils";
+import { countLabel, t } from "../i18n";
 
 const ExpensesPage = () => {
   const { groupId } = useParams<{ groupId: string }>();
@@ -34,12 +36,12 @@ const ExpensesPage = () => {
         if (tripData) {
           setTrip(tripData);
         } else {
-          alert("Group not found");
+          alert(t("groupNotFound"));
           navigate("/");
         }
       } catch (error) {
         console.error("Error loading trip:", error);
-        alert("Failed to load group");
+        alert(t("groupNotFound"));
       } finally {
         setLoading(false);
       }
@@ -51,7 +53,7 @@ const ExpensesPage = () => {
   const handleDeleteExpense = async (expenseId: string) => {
     if (
       !trip ||
-      !window.confirm("Are you sure you want to delete this expense?")
+      !window.confirm(t("remove"))
     )
       return;
 
@@ -64,7 +66,7 @@ const ExpensesPage = () => {
       }
     } catch (error) {
       console.error("Error deleting expense:", error);
-      alert("Failed to delete expense");
+      alert(t("remove"));
     }
   };
 
@@ -130,9 +132,9 @@ const ExpensesPage = () => {
     return (
       <div className="content">
         <div className="card">
-          <h3>Group not found</h3>
+          <h3>{t("groupNotFound")}</h3>
           <Link to="/" className="btn btn-primary">
-            Go Home
+            {t("goHome")}
           </Link>
         </div>
       </div>
@@ -148,10 +150,13 @@ const ExpensesPage = () => {
     <>
       <AppHeader
         backTo={`/group/${groupId}`}
-        title="Expenses"
-        subtitle={`${filteredAndSortedExpenses.length} of ${
-          trip.expenses.length
-        } expenses • ${formatCurrency(filteredTotal)}`}
+        title={t("expenses")}
+        subtitle={`${countLabel(
+          "expense",
+          filteredAndSortedExpenses.length
+        )} / ${countLabel("expense", trip.expenses.length)} • ${formatCurrency(
+          filteredTotal
+        )}`}
       />
 
       <div className="content">
@@ -163,7 +168,7 @@ const ExpensesPage = () => {
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="Search"
+              placeholder={t("search")}
               style={{ width: "100%" }}
             />
           </div>
@@ -191,16 +196,16 @@ const ExpensesPage = () => {
                   fontWeight: "600",
                 }}
               >
-                FILTER
+                {t("filter").toUpperCase()}
               </label>
               <select
                 value={filterBy}
                 onChange={(e) => setFilterBy(e.target.value as typeof filterBy)}
                 style={{ fontSize: "0.875rem" }}
               >
-                <option value="all">All Expenses</option>
-                <option value="paid-by-me">Paid by Me</option>
-                <option value="split-with-me">Split with Me</option>
+                <option value="all">{t("allExpenses")}</option>
+                <option value="paid-by-me">{t("paidByMe")}</option>
+                <option value="split-with-me">{t("splitWithMe")}</option>
               </select>
             </div>
 
@@ -218,17 +223,17 @@ const ExpensesPage = () => {
                   fontWeight: "600",
                 }}
               >
-                SORT BY
+                {t("sortBy").toUpperCase()}
               </label>
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value as typeof sortBy)}
                 style={{ fontSize: "0.875rem" }}
               >
-                <option value="date-desc">Newest First</option>
-                <option value="date-asc">Oldest First</option>
-                <option value="amount-desc">Highest Amount</option>
-                <option value="amount-asc">Lowest Amount</option>
+                <option value="date-desc">{t("newestFirst")}</option>
+                <option value="date-asc">{t("oldestFirst")}</option>
+                <option value="amount-desc">{t("highestAmount")}</option>
+                <option value="amount-asc">{t("lowestAmount")}</option>
               </select>
             </div>
           </div>
@@ -257,10 +262,10 @@ const ExpensesPage = () => {
                 </div>
                 <div style={{ fontSize: "0.75rem", color: "var(--ease-color-text-muted)" }}>
                   {filterBy === "all"
-                    ? "Found"
+                    ? t("found")
                     : filterBy === "paid-by-me"
-                    ? "Paid"
-                    : "Split"}
+                    ? t("paid")
+                    : t("split")}
                 </div>
               </div>
               <div>
@@ -274,7 +279,7 @@ const ExpensesPage = () => {
                   {formatCurrency(filteredTotal)}
                 </div>
                 <div style={{ fontSize: "0.75rem", color: "var(--ease-color-text-muted)" }}>
-                  Total
+                  {t("total")}
                 </div>
               </div>
               {filterBy !== "all" && (
@@ -294,7 +299,7 @@ const ExpensesPage = () => {
                     %
                   </div>
                   <div style={{ fontSize: "0.75rem", color: "var(--ease-color-text-muted)" }}>
-                    of All
+                    {t("allExpenses")}
                   </div>
                 </div>
               )}
@@ -312,14 +317,13 @@ const ExpensesPage = () => {
               marginBottom: "1rem",
             }}
           >
-            <h3>List</h3>
-            <Link
+            <h3>{t("list")}</h3>
+            <IconLink
               to={`/group/${groupId}/add-expense`}
-              className="btn btn-primary"
-              style={{ padding: "0.5rem 1rem", fontSize: "0.875rem" }}
+              label={t("addExpense")}
             >
-              Add New
-            </Link>
+              +
+            </IconLink>
           </div>
 
           {filteredAndSortedExpenses.length === 0 ? (
@@ -333,11 +337,11 @@ const ExpensesPage = () => {
             >
               {trip.expenses.length === 0 ? (
                 <>
-              <p>No expenses yet</p>
+                  <p>{t("noExpenses")}</p>
                 </>
               ) : (
                 <>
-                  <p>No matches</p>
+                  <p>{t("noMatches")}</p>
                 </>
               )}
             </div>
@@ -375,7 +379,8 @@ const ExpensesPage = () => {
                           <div className="list-item-subtitle">
                             <div style={{ marginBottom: "0.25rem" }}>
                               <strong>{formatCurrency(expense.amount)}</strong>{" "}
-                              • Paid by {paidByUser?.name || "Unknown"}
+                              • {t("paidBy").replace(" *", "")}{" "}
+                              {paidByUser?.name || "-"}
                               {userPaid && (
                                 <span
                                   style={{
@@ -384,15 +389,16 @@ const ExpensesPage = () => {
                                   }}
                                 >
                                   {" "}
-                                  (You)
+                                  ({t("you")})
                                 </span>
                               )}
                             </div>
                             <div
                               style={{ fontSize: "0.75rem", color: "var(--ease-color-text-soft)" }}
                             >
-                              Split {expense.participants.length} ways (
-                              {formatCurrency(splitAmount)} each) •{" "}
+                              {t("split")} {expense.participants.length}{" "}
+                              {t("splitWays")} (
+                              {formatCurrency(splitAmount)} {t("each")}) •{" "}
                               {formatDate(expense.date)}
                               {userOwes && (
                                 <span
@@ -402,7 +408,7 @@ const ExpensesPage = () => {
                                   }}
                                 >
                                   {" "}
-                                  • You owe {formatCurrency(splitAmount)}
+                                  • {t("youOwe")} {formatCurrency(splitAmount)}
                                 </span>
                               )}
                             </div>
@@ -417,7 +423,7 @@ const ExpensesPage = () => {
                             className="list-item-action"
                             style={{ color: "var(--ease-color-danger)" }}
                           >
-                            Delete
+                            {t("remove")}
                           </button>
                         </div>
                       </div>
@@ -432,7 +438,7 @@ const ExpensesPage = () => {
         {/* Summary Card */}
         {filteredAndSortedExpenses.length > 0 && (
           <div className="card">
-            <h3>Summary</h3>
+            <h3>{t("summary")}</h3>
             <div
               style={{
                 fontSize: "0.875rem",
@@ -447,7 +453,7 @@ const ExpensesPage = () => {
                   marginBottom: "0.5rem",
                 }}
               >
-                <span>Total Expenses:</span>
+                <span>{t("totalExpenses")}</span>
                 <strong>{formatCurrency(filteredTotal)}</strong>
               </div>
               <div
@@ -457,7 +463,7 @@ const ExpensesPage = () => {
                   marginBottom: "0.5rem",
                 }}
               >
-                <span>Average per Expense:</span>
+                <span>{t("averagePerExpense")}</span>
                 <strong>
                   {formatCurrency(
                     filteredTotal / filteredAndSortedExpenses.length
@@ -468,7 +474,7 @@ const ExpensesPage = () => {
                 <div
                   style={{ display: "flex", justifyContent: "space-between" }}
                 >
-                  <span>Average per Person:</span>
+                  <span>{t("averagePerPerson")}</span>
                   <strong>
                     {formatCurrency(filteredTotal / trip.participants.length)}
                   </strong>

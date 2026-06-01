@@ -1,7 +1,8 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { AppHeader } from "../components/ui/AppHeader";
 import { FirebaseService } from "../services/firebase";
+import { t } from "../i18n";
 import type { Trip, AddExpenseForm } from "../types";
 
 const AddExpensePage = () => {
@@ -17,6 +18,23 @@ const AddExpensePage = () => {
     participants: [],
   });
 
+  const loadTrip = useCallback(async () => {
+    if (!groupId) return;
+
+    try {
+      const tripData = await FirebaseService.getTripById(groupId);
+      if (tripData) {
+        setTrip(tripData);
+      } else {
+        alert(t("noMatches"));
+        navigate("/");
+      }
+    } catch (error) {
+      console.error("Error loading trip:", error);
+      alert(t("noMatches"));
+    }
+  }, [groupId, navigate]);
+
   useEffect(() => {
     const userId = localStorage.getItem("currentUserId");
     if (userId) {
@@ -24,7 +42,7 @@ const AddExpensePage = () => {
     }
 
     loadTrip();
-  }, [groupId]);
+  }, [groupId, loadTrip]);
 
   useEffect(() => {
     // Set current user as default payer and select all participants by default
@@ -36,23 +54,6 @@ const AddExpensePage = () => {
       }));
     }
   }, [trip, currentUserId]);
-
-  const loadTrip = async () => {
-    if (!groupId) return;
-
-    try {
-      const tripData = await FirebaseService.getTripById(groupId);
-      if (tripData) {
-        setTrip(tripData);
-      } else {
-        alert("Group not found");
-        navigate("/");
-      }
-    } catch (error) {
-      console.error("Error loading trip:", error);
-      alert("Failed to load group");
-    }
-  };
 
   const handleInputChange = (
     e: React.ChangeEvent<
@@ -99,18 +100,18 @@ const AddExpensePage = () => {
       !formData.amount ||
       !formData.paidBy
     ) {
-      alert("Please fill in all required fields");
+      alert(t("expense"));
       return;
     }
 
     const amount = parseFloat(formData.amount);
     if (isNaN(amount) || amount <= 0) {
-      alert("Please enter a valid amount");
+      alert(t("amount"));
       return;
     }
 
     if (formData.participants.length === 0) {
-      alert("Please select at least one participant to split the expense");
+      alert(t("splitWith"));
       return;
     }
 
@@ -124,11 +125,11 @@ const AddExpensePage = () => {
         formData.participants
       );
 
-      alert("Expense added successfully!");
+      alert(t("addExpense"));
       navigate(`/group/${trip.id}`);
     } catch (error) {
       console.error("Error adding expense:", error);
-      alert("Failed to add expense. Please try again.");
+      alert(t("addExpense"));
     } finally {
       setLoading(false);
     }
@@ -151,27 +152,30 @@ const AddExpensePage = () => {
     <>
       <AppHeader
         backTo={`/group/${groupId}`}
-        title="Add Expense"
-        subtitle="Who paid? Who splits?"
+        title={t("addExpense")}
+        subtitle={`${t("paidBy").replace(" *", "")}? ${t("splitWith").replace(
+          " *",
+          ""
+        )}?`}
       />
 
       <div className="content">
         <form onSubmit={handleSubmit} className="form">
           <div className="form-group">
-            <label htmlFor="description">Expense *</label>
+            <label htmlFor="description">{t("expense")}</label>
             <input
               type="text"
               id="description"
               name="description"
               value={formData.description}
               onChange={handleInputChange}
-              placeholder="Dinner"
+              placeholder={t("expense").replace(" *", "")}
               required
             />
           </div>
 
           <div className="form-group">
-            <label htmlFor="amount">Amount ($) *</label>
+            <label htmlFor="amount">{t("amount")}</label>
             <input
               type="number"
               inputMode="tel"
@@ -187,7 +191,7 @@ const AddExpensePage = () => {
           </div>
 
           <div className="form-group">
-            <label htmlFor="paidBy">Paid by *</label>
+            <label htmlFor="paidBy">{t("paidBy")}</label>
             <select
               id="paidBy"
               name="paidBy"
@@ -195,18 +199,18 @@ const AddExpensePage = () => {
               onChange={handleInputChange}
               required
             >
-              <option value="">Select payer</option>
+              <option value="">{t("paidBy").replace(" *", "")}</option>
               {trip.participants.map((participant) => (
                 <option key={participant.id} value={participant.id}>
                   {participant.name}
-                  {participant.id === currentUserId ? " (You)" : ""}
+                  {participant.id === currentUserId ? ` (${t("you")})` : ""}
                 </option>
               ))}
             </select>
           </div>
 
           <div className="form-group">
-            <label>Split with *</label>
+            <label>{t("splitWith")}</label>
             <div style={{ display: "flex", gap: "0.5rem", margin: "0.5rem 0" }}>
               <button
                 type="button"
@@ -214,7 +218,7 @@ const AddExpensePage = () => {
                 className="btn btn-secondary"
                 style={{ padding: "0.375rem 0.75rem", fontSize: "0.75rem" }}
               >
-                Select All
+                {t("selectAll")}
               </button>
               <button
                 type="button"
@@ -222,7 +226,7 @@ const AddExpensePage = () => {
                 className="btn btn-secondary"
                 style={{ padding: "0.375rem 0.75rem", fontSize: "0.75rem" }}
               >
-                Select None
+                {t("selectNone")}
               </button>
             </div>
             <div className="checkbox-group">
@@ -237,7 +241,7 @@ const AddExpensePage = () => {
                   />
                   <span>
                     {participant.name}
-                    {participant.id === currentUserId ? " (You)" : ""}
+                    {participant.id === currentUserId ? ` (${t("you")})` : ""}
                   </span>
                 </label>
               ))}
@@ -253,7 +257,8 @@ const AddExpensePage = () => {
                   borderRadius: "0.375rem",
                 }}
               >
-                Each: <strong>${splitAmount.toFixed(2)}</strong>
+                {t("splitWith").replace(" *", "")}:{" "}
+                <strong>${splitAmount.toFixed(2)}</strong>
               </div>
             )}
           </div>
@@ -269,7 +274,7 @@ const AddExpensePage = () => {
                 style={{ width: "1rem", height: "1rem", margin: "0 auto" }}
               />
             ) : (
-              "Add Expense"
+              t("addExpense")
             )}
           </button>
         </form>

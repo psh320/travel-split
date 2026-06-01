@@ -5,6 +5,7 @@ import { FirebaseService } from "../services/firebase";
 import { GroupHistoryService } from "../services/groupHistory";
 import { isValidRoomCode } from "../utils";
 import type { Trip, User } from "../types";
+import { countLabel, t } from "../i18n";
 
 const AutoJoinPage = () => {
   const { roomCode } = useParams<{ roomCode: string }>();
@@ -19,7 +20,7 @@ const AutoJoinPage = () => {
     if (roomCode && isValidRoomCode(roomCode)) {
       loadTrip(roomCode);
     } else {
-      setError("Invalid room code in URL");
+      setError(t("invalidRoomCode"));
       setLoading(false);
     }
   }, [roomCode]);
@@ -31,11 +32,11 @@ const AutoJoinPage = () => {
       if (tripData) {
         setTrip(tripData);
       } else {
-        setError("Group not found. Please check the room code.");
+        setError(t("groupNotFound"));
       }
     } catch (error: unknown) {
       console.error("Error loading trip:", error);
-      setError("Failed to load group. Please try again.");
+      setError(t("groupNotFound"));
     } finally {
       setLoading(false);
     }
@@ -44,7 +45,7 @@ const AutoJoinPage = () => {
   const handleJoinTrip = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!userName.trim() || !trip || !roomCode) {
-      setError("Please enter your name");
+      setError(t("yourName"));
       return;
     }
 
@@ -87,7 +88,7 @@ const AutoJoinPage = () => {
       navigate(`/group/${trip.id}`);
     } catch (error: unknown) {
       console.error("Error joining trip:", error);
-      setError("Failed to join group. Please try again.");
+      setError(t("unableToJoin"));
     } finally {
       setJoining(false);
     }
@@ -122,8 +123,8 @@ const AutoJoinPage = () => {
       <>
         <AppHeader
           backTo="/"
-          title="Joining Group..."
-          subtitle="Loading"
+          title={t("joiningGroup")}
+          subtitle={t("loading")}
         />
         <div className="content">
           <div className="loading">
@@ -139,19 +140,19 @@ const AutoJoinPage = () => {
       <>
         <AppHeader
           backTo="/"
-          title="Unable to Join"
-          subtitle="Check the link."
+          title={t("unableToJoin")}
+          subtitle={t("enterCode")}
         />
         <div className="content">
           <div className="card">
-            <h3>Error</h3>
+            <h3>{t("error")}</h3>
             <p style={{ color: "var(--ease-color-danger)", marginBottom: "1rem" }}>{error}</p>
             <div style={{ display: "flex", gap: "1rem" }}>
               <Link to="/join-group" className="btn btn-primary">
-                Enter Code Manually
+                {t("enterCodeManually")}
               </Link>
               <Link to="/" className="btn btn-secondary">
-                Go Home
+                {t("goHome")}
               </Link>
             </div>
           </div>
@@ -165,22 +166,21 @@ const AutoJoinPage = () => {
       <>
         <AppHeader
           backTo="/"
-          title="Group Not Found"
-          subtitle="The link may be old."
+          title={t("groupNotFound")}
+          subtitle={t("enterCode")}
         />
         <div className="content">
           <div className="card">
-            <h3>Group Not Found</h3>
+            <h3>{t("groupNotFound")}</h3>
             <p style={{ marginBottom: "1rem" }}>
-              The group with room code <strong>{roomCode}</strong> could not be
-              found.
+              <strong>{roomCode}</strong>
             </p>
             <div style={{ display: "flex", gap: "1rem" }}>
               <Link to="/join-group" className="btn btn-primary">
-                Enter Code Manually
+                {t("enterCodeManually")}
               </Link>
               <Link to="/" className="btn btn-secondary">
-                Go Home
+                {t("goHome")}
               </Link>
             </div>
           </div>
@@ -193,35 +193,36 @@ const AutoJoinPage = () => {
     <>
       <AppHeader
         backTo="/"
-        title={`Join "${trip.name}"`}
-        subtitle="Pick your name."
+        title={`${t("joinGroup")} "${trip.name}"`}
+        subtitle={t("tapYourName")}
       />
 
       <div className="content">
         {/* Trip Info */}
         <div className="card">
-          <h3>Group Details</h3>
+          <h3>{t("groupDetails")}</h3>
           <div style={{ fontSize: "0.875rem", color: "var(--ease-color-text-muted)" }}>
             <p>
-              <strong>Group Name:</strong> {trip.name}
+              <strong>{t("groupName").replace(" *", "")}:</strong> {trip.name}
             </p>
             {trip.description && (
               <p>
-                <strong>Description:</strong> {trip.description}
+                <strong>{t("description")}</strong> {trip.description}
               </p>
             )}
             <p>
-              <strong>Room Code:</strong> {trip.roomCode}
+              <strong>{t("roomCode")}</strong> {trip.roomCode}
             </p>
             <p>
-              <strong>Participants:</strong> {trip.participants.length} people
+              <strong>{t("participants")}:</strong>{" "}
+              {countLabel("person", trip.participants.length)}
             </p>
           </div>
         </div>
 
         {/* Participants - Clickable to Join */}
         <div className="card">
-          <h3>Current Participants</h3>
+          <h3>{t("participants")}</h3>
           <p
             style={{
               fontSize: "0.875rem",
@@ -229,7 +230,7 @@ const AutoJoinPage = () => {
               marginBottom: "1rem",
             }}
           >
-            Tap your name.
+            {t("tapYourName")}
           </p>
           <div className="list">
             {trip.participants.map((participant: User) => (
@@ -263,7 +264,7 @@ const AutoJoinPage = () => {
                         fontWeight: "500",
                       }}
                     >
-                      (Click to join)
+                      ({t("clickToContinue")})
                     </span>
                   </div>
                 </div>
@@ -283,7 +284,7 @@ const AutoJoinPage = () => {
 
         {/* Join Form - New Users */}
         <div className="card">
-          <h3>New participant</h3>
+          <h3>{t("newMember")}</h3>
           <p
             style={{
               fontSize: "0.875rem",
@@ -291,7 +292,7 @@ const AutoJoinPage = () => {
               marginBottom: "1rem",
             }}
           >
-            Add your name.
+            {t("addYourName")}
           </p>
 
           {error && (
@@ -311,7 +312,7 @@ const AutoJoinPage = () => {
 
           <form onSubmit={handleJoinTrip} className="form">
             <div className="form-group">
-              <label htmlFor="userName">Your Name *</label>
+              <label htmlFor="userName">{t("yourName")}</label>
               <input
                 type="text"
                 id="userName"
@@ -321,7 +322,7 @@ const AutoJoinPage = () => {
                   // Clear error when user starts typing
                   if (error) setError("");
                 }}
-                placeholder="Enter your name"
+                placeholder={t("yourName").replace(" *", "")}
                 required
                 autoFocus
               />
@@ -337,10 +338,10 @@ const AutoJoinPage = () => {
                   (p) => p.name.toLowerCase() === userName.toLowerCase()
                 ) ? (
                   <span style={{ color: "var(--ease-color-danger)" }}>
-                    Name exists. Tap it above.
+                    {t("duplicateName")}
                   </span>
                 ) : (
-                  "Choose a unique name that others can recognize"
+                  t("chooseRecognizableName")
                 )}
               </div>
             </div>
@@ -356,14 +357,14 @@ const AutoJoinPage = () => {
                   style={{ width: "1rem", height: "1rem", margin: "0 auto" }}
                 />
               ) : (
-                `Join ${trip.name}`
+                `${t("joinGroup")} ${trip.name}`
               )}
             </button>
           </form>
         </div>
 
         <div className="card">
-            <h3>Next</h3>
+            <h3>{t("next")}</h3>
           <div
             style={{
               fontSize: "0.875rem",
@@ -371,9 +372,9 @@ const AutoJoinPage = () => {
               lineHeight: "1.6",
             }}
           >
-              <p>• Add expenses</p>
-              <p>• Check balances</p>
-              <p>• Settle up</p>
+              <p>• {t("addExpense")}</p>
+              <p>• {t("checkBalances")}</p>
+              <p>• {t("settleUp")}</p>
           </div>
         </div>
       </div>

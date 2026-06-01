@@ -9,7 +9,6 @@ import ExpensesPage from "./pages/ExpensesPage";
 import BalancePage from "./pages/BalancePage";
 import PrivacyPage from "./pages/PrivacyPage";
 import TermsPage from "./pages/TermsPage";
-import Footer from "./components/Footer";
 import "./App.css";
 
 function App() {
@@ -32,7 +31,6 @@ function App() {
             <Route path="/privacy" element={<PrivacyPage />} />
             <Route path="/terms" element={<TermsPage />} />
           </Routes>
-          <Footer />
         </Router>
       </div>
     </div>

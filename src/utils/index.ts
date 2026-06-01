@@ -1,4 +1,5 @@
 import { v4 as uuidv4 } from "uuid";
+import { getLocale, isKorean } from "../i18n";
 
 // Generate a 6-character room code for trips
 export const generateRoomCode = (): string => {
@@ -20,7 +21,7 @@ export const formatCurrency = (
   amount: number,
   currency: string = "USD"
 ): string => {
-  return new Intl.NumberFormat("en-US", {
+  return new Intl.NumberFormat(isKorean ? "ko-KR" : "en-US", {
     style: "currency",
     currency: currency,
   }).format(amount);
@@ -28,7 +29,7 @@ export const formatCurrency = (
 
 // Format date
 export const formatDate = (date: Date): string => {
-  return new Intl.DateTimeFormat("en-US", {
+  return new Intl.DateTimeFormat(isKorean ? "ko-KR" : "en-US", {
     year: "numeric",
     month: "short",
     day: "numeric",
@@ -40,11 +41,22 @@ export const timeAgo = (date: Date): string => {
   const now = new Date();
   const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
 
-  if (diffInSeconds < 60) return "just now";
-  if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)}m ago`;
-  if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)}h ago`;
-  if (diffInSeconds < 2592000)
-    return `${Math.floor(diffInSeconds / 86400)}d ago`;
+  if (getLocale() === "ko") {
+    if (diffInSeconds < 60) return "방금 전";
+    if (diffInSeconds < 3600)
+      return `${Math.floor(diffInSeconds / 60)}분 전`;
+    if (diffInSeconds < 86400)
+      return `${Math.floor(diffInSeconds / 3600)}시간 전`;
+    if (diffInSeconds < 2592000)
+      return `${Math.floor(diffInSeconds / 86400)}일 전`;
+  } else {
+    if (diffInSeconds < 60) return "just now";
+    if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)}m ago`;
+    if (diffInSeconds < 86400)
+      return `${Math.floor(diffInSeconds / 3600)}h ago`;
+    if (diffInSeconds < 2592000)
+      return `${Math.floor(diffInSeconds / 86400)}d ago`;
+  }
 
   return formatDate(date);
 };

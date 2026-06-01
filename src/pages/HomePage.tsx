@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { AppHeader } from "../components/ui/AppHeader";
-// import GoogleAd from "../components/GoogleAd";
-// import { ADSENSE_CONFIG } from "../config/adsense";
+import { IconButton } from "../components/ui/IconButton";
+import { countLabel, t } from "../i18n";
 import { GroupHistoryService } from "../services/groupHistory";
 import type { GroupHistoryItem } from "../services/groupHistory";
 import { timeAgo } from "../utils";
@@ -11,6 +11,7 @@ const HomePage = () => {
   const [groupHistory, setGroupHistory] = useState<GroupHistoryItem[]>([]);
   const [isNewUser, setIsNewUser] = useState(true);
   const [storageWarning, setStorageWarning] = useState<string | null>(null);
+  const [settingsOpen, setSettingsOpen] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -39,7 +40,7 @@ const HomePage = () => {
 
   const handleRemoveGroup = (groupId: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    if (window.confirm("Remove this group from your history?")) {
+    if (window.confirm(t("remove"))) {
       GroupHistoryService.removeGroupFromHistory(groupId);
       const updatedHistory = GroupHistoryService.getGroupHistory();
       setGroupHistory(updatedHistory);
@@ -51,87 +52,113 @@ const HomePage = () => {
     }
   };
 
+  const HomeTopBar = () => (
+    <div className="home-app-bar">
+      <Link
+        to="/"
+        className="home-app-brand"
+        onClick={() => setSettingsOpen(false)}
+      >
+        {t("appName")}
+      </Link>
+      <div className="home-settings">
+        <IconButton
+          aria-expanded={settingsOpen}
+          aria-haspopup="menu"
+          label={t("settings")}
+          onClick={() => setSettingsOpen((open) => !open)}
+        >
+          ⚙
+        </IconButton>
+        {settingsOpen && (
+          <div className="settings-menu" role="menu">
+            <Link
+              to="/privacy"
+              role="menuitem"
+              onClick={() => setSettingsOpen(false)}
+            >
+              {t("privacy")}
+            </Link>
+            <Link
+              to="/terms"
+              role="menuitem"
+              onClick={() => setSettingsOpen(false)}
+            >
+              {t("terms")}
+            </Link>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+
   const IntroContent = () => (
     <>
+      <HomeTopBar />
       <AppHeader
-        title="Split Expenses"
-        subtitle="Create a room. Add costs. Settle up."
+        title={t("splitExpenses")}
+        subtitle={t("splitSubtitle")}
       />
 
       <div className="content">
         <div className="card">
-          <h3>Start a split</h3>
+          <h3>{t("startSplit")}</h3>
           <p className="muted" style={{ marginBottom: "1.5rem" }}>
-            No account. Just a room code.
+            {t("noAccount")}
           </p>
 
           <div className="button-stack">
             <Link to="/create-group" className="btn btn-primary btn-full">
-              Create Group
+              {t("createGroup")}
             </Link>
 
             <Link to="/join-group" className="btn btn-secondary btn-full">
-              Join Group
+              {t("joinGroup")}
             </Link>
           </div>
         </div>
 
         <div className="card">
-          <h3>Flow</h3>
+          <h3>{t("flow")}</h3>
           <div className="number-list">
             <div className="number-list-item">
               <div className="number-badge">1</div>
               <div>
-                <div className="feature-title">Create or join</div>
-                <div className="feature-copy">Use a room code.</div>
+                <div className="feature-title">{t("createJoin")}</div>
+                <div className="feature-copy">{t("useRoomCode")}</div>
               </div>
             </div>
 
             <div className="number-list-item">
               <div className="number-badge">2</div>
               <div>
-                <div className="feature-title">Add expenses</div>
-                <div className="feature-copy">Pick payer and split.</div>
+                <div className="feature-title">{t("addExpense")}</div>
+                <div className="feature-copy">
+                  {t("paidBy").replace(" *", "")} / {t("splitWith").replace(" *", "")}
+                </div>
               </div>
             </div>
 
             <div className="number-list-item">
               <div className="number-badge">3</div>
               <div>
-                <div className="feature-title">Settle up</div>
-                <div className="feature-copy">See who owes whom.</div>
+                <div className="feature-title">{t("settleUp")}</div>
+                <div className="feature-copy">{t("balanceSubtitle")}</div>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Strategic Ad Placement - Disabled for now */}
-        {/* <div style={{ marginTop: "2rem", marginBottom: "1rem" }}>
-          <GoogleAd
-            client={ADSENSE_CONFIG.publisherId}
-            slot={ADSENSE_CONFIG.adSlots.banner}
-            style={{
-              display: "block",
-              textAlign: "center",
-              minHeight: "100px",
-              backgroundColor: "var(--ease-color-surface-raised)",
-              border: "1px solid var(--ease-color-border)",
-              borderRadius: "0.5rem",
-              padding: "1rem",
-            }}
-            format="auto"
-            responsive={true}
-          />
-        </div> */}
       </div>
     </>
   );
 
   const GroupListContent = () => (
     <>
+      <HomeTopBar />
       <AppHeader
-        title="Welcome Back"
-        subtitle="Pick a group."
+        title={t("welcomeBack")}
+        subtitle={t("pickAGroup")}
       />
 
       <div className="content">
@@ -158,7 +185,7 @@ const HomePage = () => {
                     fontWeight: "600",
                   }}
                 >
-                  Storage Notice
+                  {t("notes")}
                 </h4>
                 <p
                   style={{
@@ -177,14 +204,14 @@ const HomePage = () => {
 
         {/* Quick Actions */}
         <div className="card">
-          <h3>Actions</h3>
+          <h3>{t("actions")}</h3>
           <div className="button-stack">
             <Link to="/create-group" className="btn btn-primary btn-full">
-              Create Group
+              {t("createGroup")}
             </Link>
 
             <Link to="/join-group" className="btn btn-secondary btn-full">
-              Join Group
+              {t("joinGroup")}
             </Link>
           </div>
         </div>
@@ -199,9 +226,9 @@ const HomePage = () => {
               marginBottom: "1rem",
             }}
           >
-            <h3 style={{ margin: 0 }}>Your Groups</h3>
+            <h3 style={{ margin: 0 }}>{t("groups")}</h3>
             <span style={{ fontSize: "0.875rem", color: "var(--ease-color-text-muted)" }}>
-              {groupHistory.length} group{groupHistory.length !== 1 ? "s" : ""}
+              {countLabel("group", groupHistory.length)}
             </span>
           </div>
 
@@ -210,7 +237,7 @@ const HomePage = () => {
               className="muted"
               style={{ textAlign: "center", padding: "2rem" }}
             >
-              <p>No groups found in your history.</p>
+              <p>{t("noGroups")}</p>
               <button
                 onClick={() => setIsNewUser(true)}
                 style={{
@@ -222,7 +249,7 @@ const HomePage = () => {
                   fontSize: "0.875rem",
                 }}
               >
-                Show introduction page
+                {t("startSplit")}
               </button>
             </div>
           ) : (
@@ -266,30 +293,21 @@ const HomePage = () => {
                         marginBottom: "0.25rem",
                       }}
                     >
-                      Room: {group.roomCode} • You joined as{" "}
+                      {t("room")}: {group.roomCode} • {t("joinedAs")}{" "}
                       {group.userNameInGroup}
                     </div>
                     <div style={{ fontSize: "0.75rem", color: "var(--ease-color-text-soft)" }}>
-                      {group.role === "creator" ? "Creator" : "Member"} • Last
-                      used {timeAgo(group.lastAccessed)}
+                      {group.role === "creator" ? t("creator") : t("member")} •{" "}
+                      {timeAgo(group.lastAccessed)}
                     </div>
                   </div>
                   <button
                     onClick={(e) => handleRemoveGroup(group.id, e)}
-                    className="list-item-action"
+                    className="list-item-action icon-action"
                     style={{
                       color: "var(--ease-color-danger)",
-                      fontSize: "1.25rem",
-                      width: "2rem",
-                      height: "2rem",
                     }}
-                    title="Remove from history"
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.backgroundColor = "var(--ease-color-danger-soft)";
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.backgroundColor = "transparent";
-                    }}
+                    title={t("removeHistory")}
                   >
                     ×
                   </button>
@@ -299,24 +317,6 @@ const HomePage = () => {
           )}
         </div>
 
-        {/* Strategic Ad Placement - Disabled for now */}
-        {/* <div style={{ marginTop: "2rem", marginBottom: "1rem" }}>
-          <GoogleAd
-            client={ADSENSE_CONFIG.publisherId}
-            slot={ADSENSE_CONFIG.adSlots.banner}
-            style={{
-              display: "block",
-              textAlign: "center",
-              minHeight: "100px",
-              backgroundColor: "var(--ease-color-surface-raised)",
-              border: "1px solid var(--ease-color-border)",
-              borderRadius: "0.5rem",
-              padding: "1rem",
-            }}
-            format="auto"
-            responsive={true}
-          />
-        </div> */}
       </div>
     </>
   );

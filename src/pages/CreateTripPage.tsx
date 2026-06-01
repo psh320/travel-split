@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { AppHeader } from "../components/ui/AppHeader";
 import { FirebaseService } from "../services/firebase";
 import { GroupHistoryService } from "../services/groupHistory";
+import { t } from "../i18n";
 import type { CreateTripForm } from "../types";
 
 const CreateTripPage = () => {
@@ -27,7 +28,7 @@ const CreateTripPage = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.name.trim() || !formData.creatorName.trim()) {
-      alert("Group name and your name are required");
+      alert(`${t("groupName")} / ${t("yourName")}`);
       return;
     }
 
@@ -63,16 +64,16 @@ const CreateTripPage = () => {
         try {
           await navigator.clipboard.writeText(shareableLink);
           alert(
-            `Group created successfully!\n\nShareable link copied to clipboard:\n${shareableLink}\n\nSend this link to your friends so they can join instantly!`
+            `${t("createGroup")}\n\n${t("shareLink")}:\n${shareableLink}`
           );
         } catch {
           alert(
-            `Group created successfully!\n\nShare this link with your friends:\n${shareableLink}\n\nRoom code: ${roomCode}`
+            `${t("createGroup")}\n\n${t("shareLink")}:\n${shareableLink}\n\n${t("roomCode")} ${roomCode}`
           );
         }
       } else {
         alert(
-          `Group created successfully!\n\nShare this link with your friends:\n${shareableLink}\n\nRoom code: ${roomCode}`
+          `${t("createGroup")}\n\n${t("shareLink")}:\n${shareableLink}\n\n${t("roomCode")} ${roomCode}`
         );
       }
 
@@ -80,7 +81,7 @@ const CreateTripPage = () => {
       navigate(`/group/${trip.id}`);
     } catch (error) {
       console.error("Error creating trip:", error);
-      alert("Failed to create group. Please try again.");
+      alert(t("createGroup"));
     } finally {
       setLoading(false);
     }
@@ -90,45 +91,45 @@ const CreateTripPage = () => {
     <>
       <AppHeader
         backTo="/"
-        title="New Group"
-        subtitle="Name it. Share the code."
+        title={t("newGroup")}
+        subtitle={`${t("groupName").replace(" *", "")}. ${t("shareCode")}.`}
       />
 
       <div className="content">
         <form onSubmit={handleSubmit} className="form">
           <div className="form-group">
-            <label htmlFor="name">Group Name *</label>
+            <label htmlFor="name">{t("groupName")}</label>
             <input
               type="text"
               id="name"
               name="name"
               value={formData.name}
               onChange={handleInputChange}
-              placeholder="Weekend trip"
+              placeholder={t("newGroup")}
               required
             />
           </div>
 
           <div className="form-group">
-            <label htmlFor="description">Notes (optional)</label>
+            <label htmlFor="description">{t("notes")}</label>
             <textarea
               id="description"
               name="description"
               value={formData.description}
               onChange={handleInputChange}
-              placeholder="Optional notes"
+              placeholder={t("notes")}
             />
           </div>
 
           <div className="form-group">
-            <label htmlFor="creatorName">Your Name *</label>
+            <label htmlFor="creatorName">{t("yourName")}</label>
             <input
               type="text"
               id="creatorName"
               name="creatorName"
               value={formData.creatorName}
               onChange={handleInputChange}
-              placeholder="Your name"
+              placeholder={t("yourName").replace(" *", "")}
               required
             />
           </div>
@@ -144,13 +145,13 @@ const CreateTripPage = () => {
                 style={{ width: "1rem", height: "1rem", margin: "0 auto" }}
               />
             ) : (
-              "Create Group"
+              t("createGroup")
             )}
           </button>
         </form>
 
         <div className="card" style={{ marginTop: "2rem" }}>
-          <h3>Next</h3>
+          <h3>{t("next")}</h3>
           <div
             style={{
               fontSize: "0.875rem",
@@ -158,9 +159,9 @@ const CreateTripPage = () => {
               lineHeight: "1.6",
             }}
           >
-            <p>• Share the code</p>
-            <p>• Add expenses</p>
-            <p>• Settle up</p>
+            <p>• {t("shareCode")}</p>
+            <p>• {t("addExpense")}</p>
+            <p>• {t("settleUp")}</p>
           </div>
         </div>
       </div>

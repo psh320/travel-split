@@ -1,10 +1,11 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { AppHeader } from "../components/ui/AppHeader";
 import { FirebaseService } from "../services/firebase";
 import type { Trip, BalanceSummary } from "../types";
 import { calculateBalances } from "../utils/balanceCalculator";
 import { formatCurrency } from "../utils";
+import { countLabel, t } from "../i18n";
 
 const BalancePage = () => {
   const { groupId } = useParams<{ groupId: string }>();
@@ -16,16 +17,7 @@ const BalancePage = () => {
   const [loading, setLoading] = useState(true);
   const [currentUserId, setCurrentUserId] = useState<string>("");
 
-  useEffect(() => {
-    const userId = localStorage.getItem("currentUserId");
-    if (userId) {
-      setCurrentUserId(userId);
-    }
-
-    loadTrip();
-  }, [groupId]);
-
-  const loadTrip = async () => {
+  const loadTrip = useCallback(async () => {
     if (!groupId) return;
 
     setLoading(true);
@@ -36,16 +28,25 @@ const BalancePage = () => {
         const summary = calculateBalances(tripData);
         setBalanceSummary(summary);
       } else {
-        alert("Group not found");
+        alert(t("groupNotFound"));
         navigate("/");
       }
     } catch (error) {
       console.error("Error loading trip:", error);
-      alert("Failed to load group");
+      alert(t("groupNotFound"));
     } finally {
       setLoading(false);
     }
-  };
+  }, [groupId, navigate]);
+
+  useEffect(() => {
+    const userId = localStorage.getItem("currentUserId");
+    if (userId) {
+      setCurrentUserId(userId);
+    }
+
+    loadTrip();
+  }, [groupId, loadTrip]);
 
   if (loading) {
     return (
@@ -59,9 +60,9 @@ const BalancePage = () => {
     return (
       <div className="content">
         <div className="card">
-          <h3>Unable to load balance</h3>
+          <h3>{t("unableToLoadBalance")}</h3>
           <Link to={`/group/${groupId}`} className="btn btn-primary">
-            Go Back
+            {t("goBack")}
           </Link>
         </div>
       </div>
@@ -83,23 +84,25 @@ const BalancePage = () => {
     <>
       <AppHeader
         backTo={`/group/${groupId}`}
-        title="Balance"
-        subtitle="Who owes whom."
+        title={t("balance")}
+        subtitle={t("balanceSubtitle")}
       />
 
       <div className="content">
         {/* Trip Summary */}
         <div className="card">
-          <h3>Summary</h3>
+          <h3>{t("summary")}</h3>
           <div style={{ fontSize: "0.875rem", color: "var(--ease-color-text-muted)" }}>
             <p>
-              <strong>Total Expenses:</strong> {formatCurrency(totalExpenses)}
+              <strong>{t("totalExpenses")}</strong> {formatCurrency(totalExpenses)}
             </p>
             <p>
-              <strong>Number of Expenses:</strong> {trip.expenses.length}
+              <strong>{t("numberOfExpenses")}</strong>{" "}
+              {countLabel("expense", trip.expenses.length)}
             </p>
             <p>
-              <strong>Participants:</strong> {trip.participants.length}
+              <strong>{t("participants")}:</strong>{" "}
+              {countLabel("person", trip.participants.length)}
             </p>
           </div>
         </div>
@@ -107,7 +110,7 @@ const BalancePage = () => {
         {/* Your Balance */}
         {currentUserBalance && (
           <div className="card">
-            <h3>Your Balance</h3>
+            <h3>{t("yourBalance")}</h3>
             <div
               style={{
                 display: "flex",
@@ -118,7 +121,7 @@ const BalancePage = () => {
             >
               <div>
                 <div style={{ fontSize: "0.875rem", color: "var(--ease-color-text-muted)" }}>
-                  You paid
+                  {t("youPaid")}
                 </div>
                 <div style={{ fontSize: "1.125rem", fontWeight: "600" }}>
                   {formatCurrency(currentUserBalance.totalPaid)}
@@ -126,7 +129,7 @@ const BalancePage = () => {
               </div>
               <div style={{ textAlign: "center" }}>
                 <div style={{ fontSize: "0.875rem", color: "var(--ease-color-text-muted)" }}>
-                  You owe
+                  {t("youOwe")}
                 </div>
                 <div style={{ fontSize: "1.125rem", fontWeight: "600" }}>
                   {formatCurrency(currentUserBalance.totalOwed)}
@@ -134,7 +137,7 @@ const BalancePage = () => {
               </div>
               <div style={{ textAlign: "right" }}>
                 <div style={{ fontSize: "0.875rem", color: "var(--ease-color-text-muted)" }}>
-                  Net balance
+                  {t("netBalance")}
                 </div>
                 <div
                   style={{
@@ -169,20 +172,20 @@ const BalancePage = () => {
             >
               {currentUserBalance.netBalance > 0 && (
                 <span style={{ color: "var(--ease-color-success)" }}>
-                  You are owed {formatCurrency(currentUserBalance.netBalance)}{" "}
-                  overall
+                  {t("youAreOwed")}{" "}
+                  {formatCurrency(currentUserBalance.netBalance)} {t("overall")}
                 </span>
               )}
               {currentUserBalance.netBalance < 0 && (
                 <span style={{ color: "var(--ease-color-danger)" }}>
-                  You owe{" "}
+                  {t("youOwe")}{" "}
                   {formatCurrency(Math.abs(currentUserBalance.netBalance))}{" "}
-                  overall
+                  {t("overall")}
                 </span>
               )}
               {currentUserBalance.netBalance === 0 && (
                 <span style={{ color: "var(--ease-color-text)" }}>
-                  You're all settled up.
+                  {t("settled")}
                 </span>
               )}
             </div>
@@ -192,20 +195,21 @@ const BalancePage = () => {
         {/* Your Settlements */}
         {currentUserSettlements.length > 0 && (
           <div className="card">
-            <h3>Your Settlements</h3>
+            <h3>{t("yourSettlements")}</h3>
             <div className="list">
               {currentUserSettlements.map((settlement, index) => (
                 <div key={index} className="settlement-item">
                   {settlement.fromUserId === currentUserId ? (
                     <div>
-                      You owe <strong>{settlement.toUserName}</strong>{" "}
+                      {t("youOwe")} <strong>{settlement.toUserName}</strong>{" "}
                       <strong style={{ color: "var(--ease-color-danger)" }}>
                         {formatCurrency(settlement.amount)}
                       </strong>
                     </div>
                   ) : (
                     <div>
-                      <strong>{settlement.fromUserName}</strong> owes you{" "}
+                      <strong>{settlement.fromUserName}</strong>{" "}
+                      {t("youAreOwed")}{" "}
                       <strong style={{ color: "var(--ease-color-success)" }}>
                         {formatCurrency(settlement.amount)}
                       </strong>
@@ -219,7 +223,7 @@ const BalancePage = () => {
 
         {/* Everyone's Balance */}
         <div className="card">
-          <h3>Everyone's Balance</h3>
+          <h3>{t("everyoneBalance")}</h3>
           <div className="balance-summary">
             {balanceSummary.balances
               .sort((a, b) => b.netBalance - a.netBalance) // Sort by net balance, highest first
@@ -245,12 +249,13 @@ const BalancePage = () => {
                             color: "var(--ease-color-brand)",
                           }}
                         >
-                          (You)
+                          ({t("you")})
                         </span>
                       )}
                     </div>
                     <div style={{ fontSize: "0.75rem", color: "var(--ease-color-text-muted)" }}>
-                      Paid {formatCurrency(balance.totalPaid)} • Owes{" "}
+                      {t("paid")} {formatCurrency(balance.totalPaid)} •{" "}
+                      {t("owes")}{" "}
                       {formatCurrency(balance.totalOwed)}
                     </div>
                   </div>
@@ -277,7 +282,7 @@ const BalancePage = () => {
         {balanceSummary.combinationBalances &&
           balanceSummary.combinationBalances.length > 0 && (
             <div className="card">
-              <h3>Balance by Groups</h3>
+              <h3>{t("balanceByGroups")}</h3>
               <p
                 style={{
                   fontSize: "0.875rem",
@@ -285,7 +290,7 @@ const BalancePage = () => {
                   marginBottom: "1rem",
                 }}
               >
-                By split group.
+                {t("splitWith").replace(" *", "")}
               </p>
               {balanceSummary.combinationBalances.map((combo, index) => (
                 <div
@@ -308,12 +313,11 @@ const BalancePage = () => {
                           marginLeft: "0.5rem",
                         }}
                       >
-                        ({combo.expenses.length} expense
-                        {combo.expenses.length !== 1 ? "s" : ""})
+                        ({countLabel("expense", combo.expenses.length)})
                       </span>
                     </h4>
                     <div style={{ fontSize: "0.75rem", color: "var(--ease-color-text-muted)" }}>
-                      Total: {formatCurrency(combo.totalAmount)}
+                      {t("total")}: {formatCurrency(combo.totalAmount)}
                     </div>
                   </div>
 
@@ -343,14 +347,15 @@ const BalancePage = () => {
                                     color: "var(--ease-color-brand)",
                                   }}
                                 >
-                                  (You)
+                                  ({t("you")})
                                 </span>
                               )}
                             </span>
                             <div
                               style={{ fontSize: "0.75rem", color: "var(--ease-color-text-soft)" }}
                             >
-                              Paid {formatCurrency(balance.totalPaid)} • Owes{" "}
+                              {t("paid")} {formatCurrency(balance.totalPaid)} •{" "}
+                              {t("owes")}{" "}
                               {formatCurrency(balance.totalOwed)}
                             </div>
                           </div>
@@ -382,7 +387,7 @@ const BalancePage = () => {
                           marginBottom: "0.5rem",
                         }}
                       >
-                        Settle:
+                        {t("settle")}
                       </div>
                       {combo.settlements.map((settlement, sIndex) => (
                         <div
@@ -395,7 +400,8 @@ const BalancePage = () => {
                             marginBottom: "0.25rem",
                           }}
                         >
-                          <strong>{settlement.fromUserName}</strong> pays{" "}
+                          <strong>{settlement.fromUserName}</strong>{" "}
+                          {t("pays")}{" "}
                           <strong>{settlement.toUserName}</strong>{" "}
                           <strong style={{ color: "var(--ease-color-brand)" }}>
                             {formatCurrency(settlement.amount)}
@@ -417,7 +423,7 @@ const BalancePage = () => {
                           borderRadius: "0.25rem",
                         }}
                       >
-                        All settled in this group! ✓
+                        {t("allSettledInGroup")}
                       </div>
                     )}
                 </div>
@@ -428,7 +434,7 @@ const BalancePage = () => {
         {/* All Settlements */}
         {balanceSummary.settlements.length > 0 && (
           <div className="card">
-            <h3>Suggested Settlements</h3>
+            <h3>{t("suggestedSettlements")}</h3>
             <p
               style={{
                 fontSize: "0.875rem",
@@ -436,12 +442,12 @@ const BalancePage = () => {
                 marginBottom: "1rem",
               }}
             >
-              Minimum payments.
+              {t("minimumPayments")}
             </p>
             <div className="list">
               {balanceSummary.settlements.map((settlement, index) => (
                 <div key={index} className="settlement-item">
-                  <strong>{settlement.fromUserName}</strong> pays{" "}
+                  <strong>{settlement.fromUserName}</strong> {t("pays")}{" "}
                   <strong>{settlement.toUserName}</strong>{" "}
                   <strong style={{ color: "var(--ease-color-brand)" }}>
                     {formatCurrency(settlement.amount)}
@@ -456,9 +462,11 @@ const BalancePage = () => {
           trip.expenses.length > 0 && (
             <div className="card">
               <div style={{ textAlign: "center", padding: "2rem" }}>
-                <h3 style={{ color: "var(--ease-color-success)" }}>All Settled!</h3>
+                <h3 style={{ color: "var(--ease-color-success)" }}>
+                  {t("allSettled")}
+                </h3>
                 <p style={{ color: "var(--ease-color-text-muted)", fontSize: "0.875rem" }}>
-                  No payments needed.
+                  {t("noPaymentsNeeded")}
                 </p>
               </div>
             </div>
@@ -467,7 +475,7 @@ const BalancePage = () => {
         {trip.expenses.length === 0 && (
           <div className="card">
             <div style={{ textAlign: "center", padding: "2rem" }}>
-              <h3>No Expenses Yet</h3>
+              <h3>{t("noExpenses")}</h3>
               <p
                 style={{
                   color: "var(--ease-color-text-muted)",
@@ -475,13 +483,13 @@ const BalancePage = () => {
                   marginBottom: "1rem",
                 }}
               >
-                Add an expense to see balances.
+                {t("addExpenseToSeeBalances")}
               </p>
               <Link
                 to={`/group/${groupId}/add-expense`}
                 className="btn btn-primary"
               >
-                Add First Expense
+                {t("addFirstExpense")}
               </Link>
             </div>
           </div>

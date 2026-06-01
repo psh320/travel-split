@@ -1,8 +1,10 @@
 import { useState, useEffect, useCallback } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { AppHeader } from "../components/ui/AppHeader";
+import { IconButton } from "../components/ui/IconButton";
 import { FirebaseService } from "../services/firebase";
 import { GroupHistoryService } from "../services/groupHistory";
+import { countLabel, t } from "../i18n";
 import type { Trip } from "../types";
 import { formatCurrency, formatDate, timeAgo } from "../utils";
 
@@ -28,12 +30,12 @@ const TripDashboard = () => {
         // Update last accessed time in group history
         GroupHistoryService.updateLastAccessed(groupId);
       } else {
-        alert("Group not found");
+        alert(t("noMatches"));
         navigate("/");
       }
     } catch (error) {
       console.error("Error loading trip:", error);
-      alert("Failed to load group");
+      alert(t("noMatches"));
     } finally {
       setLoading(false);
     }
@@ -51,7 +53,7 @@ const TripDashboard = () => {
   const handleDeleteExpense = async (expenseId: string) => {
     if (
       !trip ||
-      !window.confirm("Are you sure you want to delete this expense?")
+      !window.confirm(t("remove"))
     )
       return;
 
@@ -61,14 +63,14 @@ const TripDashboard = () => {
       await loadTrip();
     } catch (error) {
       console.error("Error deleting expense:", error);
-      alert("Failed to delete expense");
+      alert(t("remove"));
     }
   };
 
   const handleAddUser = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!trip || !newUserName.trim()) {
-      setAddUserError("Please enter a name");
+      setAddUserError(t("yourName"));
       return;
     }
 
@@ -78,7 +80,7 @@ const TripDashboard = () => {
     );
 
     if (existingUser) {
-      setAddUserError(`The name "${newUserName}" already exists in this group`);
+      setAddUserError(`${newUserName}: ${t("noMatches")}`);
       return;
     }
 
@@ -97,7 +99,7 @@ const TripDashboard = () => {
       setShowAddUser(false);
     } catch (error) {
       console.error("Error adding user:", error);
-      setAddUserError("Failed to add user. Please try again.");
+      setAddUserError(t("addUser"));
     } finally {
       setAddingUser(false);
     }
@@ -114,7 +116,7 @@ const TripDashboard = () => {
       !trip ||
       userId === currentUserId ||
       userId === trip.createdBy ||
-      !window.confirm(`Remove ${userName} from this group?`)
+      !window.confirm(`${t("remove")} ${userName}?`)
     ) {
       return;
     }
@@ -128,7 +130,7 @@ const TripDashboard = () => {
 
       if (userHasExpenses) {
         const confirmed = window.confirm(
-          `${userName} is involved in expenses. Removing them may affect balance calculations. Continue?`
+          `${userName}: ${t("remove")}?`
         );
         if (!confirmed) return;
       }
@@ -137,7 +139,7 @@ const TripDashboard = () => {
       await loadTrip();
     } catch (error) {
       console.error("Error removing user:", error);
-      alert("Failed to remove user. Please try again.");
+      alert(t("remove"));
     }
   };
 
@@ -145,7 +147,7 @@ const TripDashboard = () => {
     const roomCode = localStorage.getItem("roomCode") || trip?.roomCode;
     if (roomCode) {
       navigator.clipboard.writeText(roomCode);
-      alert(`Room code ${roomCode} copied to clipboard!`);
+      alert(`${t("roomCode")} ${roomCode}`);
     }
   };
 
@@ -157,16 +159,16 @@ const TripDashboard = () => {
         try {
           await navigator.clipboard.writeText(shareableLink);
           alert(
-            `Shareable link copied to clipboard!\nSend this to friends so they can join instantly: ${shareableLink}`
+            `${t("shareLink")}:\n${shareableLink}`
           );
         } catch {
           alert(
-            `Shareable link: ${shareableLink}\n\nCopy and send this to your friends!`
+            `${t("shareLink")}:\n${shareableLink}`
           );
         }
       } else {
         alert(
-          `Shareable link: ${shareableLink}\n\nCopy and send this to your friends!`
+          `${t("shareLink")}:\n${shareableLink}`
         );
       }
     }
@@ -184,9 +186,9 @@ const TripDashboard = () => {
     return (
       <div className="content">
         <div className="card">
-          <h3>Group not found</h3>
+          <h3>{t("noMatches")}</h3>
           <Link to="/" className="btn btn-primary">
-            Go Home
+            {t("splitExpenses")}
           </Link>
         </div>
       </div>
@@ -203,7 +205,7 @@ const TripDashboard = () => {
       <AppHeader
         backTo="/"
         title={trip.name}
-        subtitle={`${trip.participants.length} people • ${formatCurrency(
+        subtitle={`${countLabel("person", trip.participants.length)} • ${formatCurrency(
           totalExpenses
         )}`}
       />
@@ -219,34 +221,34 @@ const TripDashboard = () => {
               marginBottom: "1rem",
             }}
           >
-            <h3>Details</h3>
+            <h3>{t("details")}</h3>
             <div style={{ display: "flex", gap: "0.5rem" }}>
               <button
                 onClick={copyShareableLink}
                 className="btn btn-primary"
                 style={{ padding: "0.5rem 1rem", fontSize: "0.875rem" }}
               >
-                Share Link
+                {t("shareLink")}
               </button>
               <button
                 onClick={copyRoomCode}
                 className="btn btn-secondary"
                 style={{ padding: "0.5rem 1rem", fontSize: "0.875rem" }}
               >
-                Copy Code
+                {t("copyCode")}
               </button>
             </div>
           </div>
           <div style={{ fontSize: "0.875rem", color: "var(--ease-color-text-muted)" }}>
             <p>
-              <strong>Room Code:</strong> {trip.roomCode}
+              <strong>{t("roomCode")}</strong> {trip.roomCode}
             </p>
             <p>
-              <strong>Created:</strong> {formatDate(trip.createdAt)}
+              <strong>{t("created")}</strong> {formatDate(trip.createdAt)}
             </p>
             {trip.description && (
               <p>
-                <strong>Description:</strong> {trip.description}
+                <strong>{t("description")}</strong> {trip.description}
               </p>
             )}
           </div>
@@ -262,15 +264,14 @@ const TripDashboard = () => {
               marginBottom: "1rem",
             }}
           >
-            <h3>Participants ({trip.participants.length})</h3>
+            <h3>{t("participants")} ({trip.participants.length})</h3>
             {trip.createdBy === currentUserId && (
-              <button
+              <IconButton
                 onClick={() => setShowAddUser(true)}
-                className="btn btn-primary"
-                style={{ padding: "0.5rem 1rem", fontSize: "0.875rem" }}
+                label={t("addUser")}
               >
-                Add User
-              </button>
+                +
+              </IconButton>
             )}
           </div>
 
@@ -286,7 +287,7 @@ const TripDashboard = () => {
               }}
             >
               <h4 style={{ marginTop: 0, marginBottom: "1rem", fontSize: "1rem" }}>
-                Add User
+                {t("addUser")}
               </h4>
 
               {addUserError && (
@@ -315,7 +316,7 @@ const TripDashboard = () => {
                       fontWeight: "600",
                     }}
                   >
-                    User Name *
+                    {t("yourName")}
                   </label>
                   <input
                     type="text"
@@ -325,7 +326,7 @@ const TripDashboard = () => {
                       setNewUserName(e.target.value);
                       if (addUserError) setAddUserError("");
                     }}
-                    placeholder="Enter user name"
+                    placeholder={t("yourName").replace(" *", "")}
                     style={{ width: "100%", fontSize: "0.875rem" }}
                     autoFocus
                     required
@@ -337,7 +338,7 @@ const TripDashboard = () => {
                       marginTop: "0.5rem",
                     }}
                   >
-                    They can join future splits.
+                    {t("splitSubtitle")}
                   </div>
                 </div>
 
@@ -358,7 +359,7 @@ const TripDashboard = () => {
                         }}
                       />
                     ) : (
-                      "Add User"
+                      t("addUser")
                     )}
                   </button>
                   <button
@@ -368,7 +369,7 @@ const TripDashboard = () => {
                     disabled={addingUser}
                     style={{ fontSize: "0.875rem" }}
                   >
-                    Cancel
+                    {t("cancel")}
                   </button>
                 </div>
               </form>
@@ -390,7 +391,7 @@ const TripDashboard = () => {
                           fontWeight: "600",
                         }}
                       >
-                        (You)
+                        ({t("you")})
                       </span>
                     )}
                     {participant.id === trip.createdBy && (
@@ -402,12 +403,12 @@ const TripDashboard = () => {
                           fontWeight: "600",
                         }}
                       >
-                        (Creator)
+                        ({t("creator")})
                       </span>
                     )}
                   </div>
                   <div className="list-item-subtitle">
-                    Joined {timeAgo(participant.createdAt)}
+                    {t("joined")} {timeAgo(participant.createdAt)}
                   </div>
                 </div>
                 {/* Show remove button for creators, but not for themselves or the trip creator */}
@@ -422,7 +423,7 @@ const TripDashboard = () => {
                         className="list-item-action"
                         style={{ color: "var(--ease-color-danger)", fontSize: "0.875rem" }}
                       >
-                        Remove
+                        {t("remove")}
                       </button>
                     </div>
                   )}
@@ -445,21 +446,21 @@ const TripDashboard = () => {
             className="btn btn-primary"
             style={{ flex: 1, minWidth: "120px" }}
           >
-            Add Expense
+            {t("addExpense")}
           </Link>
           <Link
             to={`/group/${trip.id}/expenses`}
             className="btn btn-secondary"
             style={{ flex: 1, minWidth: "120px" }}
           >
-            All Expenses
+            {t("allExpenses")}
           </Link>
           <Link
             to={`/group/${trip.id}/balance`}
             className="btn btn-secondary"
             style={{ flex: 1, minWidth: "120px" }}
           >
-            View Balance
+            {t("viewBalance")}
           </Link>
         </div>
 
@@ -473,9 +474,9 @@ const TripDashboard = () => {
               marginBottom: "1rem",
             }}
           >
-            <h3>Recent Expenses</h3>
+            <h3>{t("expenses")}</h3>
             <span className="badge badge-success">
-              {trip.expenses.length} expenses
+              {countLabel("expense", trip.expenses.length)}
             </span>
           </div>
 
@@ -488,8 +489,7 @@ const TripDashboard = () => {
                 fontSize: "0.875rem",
               }}
             >
-              <p>No expenses yet</p>
-              <p>Add your first expense to get started!</p>
+              <p>{t("noExpenses")}</p>
             </div>
           ) : (
             <div className="list">
@@ -507,9 +507,10 @@ const TripDashboard = () => {
                           {expense.description}
                         </div>
                         <div className="list-item-subtitle">
-                          {formatCurrency(expense.amount)} • Paid by{" "}
-                          {paidByUser?.name || "Unknown"} • Split{" "}
-                          {expense.participants.length} ways •{" "}
+                          {formatCurrency(expense.amount)} •{" "}
+                          {t("paidBy").replace(" *", "")}{" "}
+                          {paidByUser?.name || "-"} •{" "}
+                          {countLabel("person", expense.participants.length)} •{" "}
                           {timeAgo(expense.date)}
                         </div>
                       </div>
@@ -519,7 +520,7 @@ const TripDashboard = () => {
                           className="list-item-action"
                           style={{ color: "var(--ease-color-danger)" }}
                         >
-                          Delete
+                          {t("remove")}
                         </button>
                       </div>
                     </div>
@@ -537,7 +538,7 @@ const TripDashboard = () => {
               className="btn btn-secondary"
               style={{ fontSize: "0.875rem" }}
             >
-              View All {trip.expenses.length} Expenses
+              {t("allExpenses")} ({trip.expenses.length})
             </Link>
           </div>
         )}

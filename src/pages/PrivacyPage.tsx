@@ -1,176 +1,88 @@
 import { AppHeader } from "../components/ui/AppHeader";
+import { getLocale, isKorean, t } from "../i18n";
+
+const privacySections = isKorean
+  ? [
+      {
+        title: "수집 정보",
+        items: ["그룹 이름과 메모", "입력한 이름", "지출과 정산 데이터"],
+      },
+      {
+        title: "사용 목적",
+        items: ["방 코드로 그룹을 찾기", "공유 지출 저장", "정산 계산"],
+      },
+      {
+        title: "저장",
+        items: ["Firebase Firestore", "브라우저 로컬 저장소", "이메일 없이 사용"],
+      },
+      {
+        title: "삭제",
+        items: ["지출 삭제", "브라우저 데이터 삭제", "GitHub 이슈로 요청"],
+      },
+    ]
+  : [
+      {
+        title: "Information We Collect",
+        items: ["Group names and notes", "Names you enter", "Expense data"],
+      },
+      {
+        title: "How We Use It",
+        items: ["Find rooms by code", "Store shared expenses", "Calculate balances"],
+      },
+      {
+        title: "Storage",
+        items: ["Firebase Firestore", "Browser local storage", "No email required"],
+      },
+      {
+        title: "Deletion",
+        items: ["Delete expenses", "Clear browser data", "Ask through GitHub issues"],
+      },
+    ];
 
 const PrivacyPage = () => {
   return (
     <>
       <AppHeader
         backTo="/"
-        title="Privacy Policy"
-        subtitle="How we protect your information"
+        title={t("privacyPolicy")}
+        subtitle={isKorean ? "데이터 사용 방식" : "How data is used"}
       />
 
       <div className="content">
         <div className="card">
-          <h3>Privacy Policy for Split Expense</h3>
-          <p
-            style={{
-              fontSize: "0.875rem",
-              color: "var(--ease-color-text-muted)",
-              marginBottom: "1rem",
-            }}
-          >
-            Last updated: {new Date().toLocaleDateString()}
+          <h3>{t("privacyPolicy")}</h3>
+          <p className="muted" style={{ marginBottom: "1rem" }}>
+            {isKorean ? "업데이트:" : "Last updated:"}{" "}
+            {new Date().toLocaleDateString(getLocale() === "ko" ? "ko-KR" : "en-US")}
           </p>
 
-          <div
-            style={{
-              fontSize: "0.875rem",
-              lineHeight: "1.6",
-              color: "var(--ease-color-text)",
-            }}
-          >
-            <h4
-              style={{
-                marginTop: "1.5rem",
-                marginBottom: "0.5rem",
-                color: "var(--ease-color-text)",
-              }}
-            >
-              Information We Collect
-            </h4>
-            <p>
-              Split Expense collects minimal information to provide our expense
-              splitting service:
-            </p>
-            <ul style={{ marginLeft: "1rem", marginBottom: "1rem" }}>
-              <li>Group names and descriptions you create</li>
-              <li>User names you enter (no email or personal info required)</li>
-              <li>Expense data you add to groups</li>
-              <li>Usage data through Google Analytics and AdSense</li>
-            </ul>
+          <div style={{ fontSize: "0.875rem", lineHeight: "1.6" }}>
+            {privacySections.map((section) => (
+              <section key={section.title} style={{ marginTop: "1.25rem" }}>
+                <h4 style={{ marginBottom: "0.5rem" }}>{section.title}</h4>
+                <ul style={{ marginLeft: "1rem" }}>
+                  {section.items.map((item) => (
+                    <li key={item}>{item}</li>
+                  ))}
+                </ul>
+              </section>
+            ))}
 
-            <h4
-              style={{
-                marginTop: "1.5rem",
-                marginBottom: "0.5rem",
-                color: "var(--ease-color-text)",
-              }}
-            >
-              How We Use Information
-            </h4>
-            <p>We use the information to:</p>
-            <ul style={{ marginLeft: "1rem", marginBottom: "1rem" }}>
-              <li>Provide the expense splitting service</li>
-              <li>Store your group data securely in Firebase</li>
-              <li>Display relevant advertisements through Google AdSense</li>
-              <li>Improve our service through analytics</li>
-            </ul>
-
-            <h4
-              style={{
-                marginTop: "1.5rem",
-                marginBottom: "0.5rem",
-                color: "var(--ease-color-text)",
-              }}
-            >
-              Data Storage
-            </h4>
-            <p>Your data is stored securely using:</p>
-            <ul style={{ marginLeft: "1rem", marginBottom: "1rem" }}>
-              <li>Google Firebase Firestore with security rules</li>
-              <li>Browser local storage for session management</li>
-              <li>No personal information is permanently stored</li>
-            </ul>
-
-            <h4
-              style={{
-                marginTop: "1.5rem",
-                marginBottom: "0.5rem",
-                color: "var(--ease-color-text)",
-              }}
-            >
-              Third-Party Services
-            </h4>
-            <p>We use these third-party services:</p>
-            <ul style={{ marginLeft: "1rem", marginBottom: "1rem" }}>
-              <li>
-                <strong>Google Firebase:</strong> Data storage and hosting
-              </li>
-              <li>
-                <strong>Google AdSense:</strong> Advertisement display
-              </li>
-              <li>
-                <strong>Google Analytics:</strong> Usage analytics (if
-                implemented)
-              </li>
-            </ul>
-
-            <h4
-              style={{
-                marginTop: "1.5rem",
-                marginBottom: "0.5rem",
-                color: "var(--ease-color-text)",
-              }}
-            >
-              Cookies and Tracking
-            </h4>
-            <p>We may use cookies for:</p>
-            <ul style={{ marginLeft: "1rem", marginBottom: "1rem" }}>
-              <li>Session management and user experience</li>
-              <li>Google AdSense advertisement personalization</li>
-              <li>Analytics to improve our service</li>
-            </ul>
-
-            <h4
-              style={{
-                marginTop: "1.5rem",
-                marginBottom: "0.5rem",
-                color: "var(--ease-color-text)",
-              }}
-            >
-              Data Deletion
-            </h4>
-            <p>You can delete your data by:</p>
-            <ul style={{ marginLeft: "1rem", marginBottom: "1rem" }}>
-              <li>Deleting individual expenses from groups</li>
-              <li>Clearing your browser's local storage</li>
-              <li>Contacting us to remove group data</li>
-            </ul>
-
-            <h4
-              style={{
-                marginTop: "1.5rem",
-                marginBottom: "0.5rem",
-                color: "var(--ease-color-text)",
-              }}
-            >
-              Contact Us
-            </h4>
-            <p>
-              If you have questions about this Privacy Policy, please create an
-              issue on our{" "}
-              <a
-                href="https://github.com/psh320/travel-split"
-                style={{ color: "var(--ease-color-brand)" }}
-              >
-                GitHub repository
-              </a>
-              .
-            </p>
-
-            <h4
-              style={{
-                marginTop: "1.5rem",
-                marginBottom: "0.5rem",
-                color: "var(--ease-color-text)",
-              }}
-            >
-              Changes to Privacy Policy
-            </h4>
-            <p>
-              We may update this privacy policy from time to time. We will
-              notify users of any changes by updating the "Last updated" date.
-            </p>
+            <section style={{ marginTop: "1.25rem" }}>
+              <h4 style={{ marginBottom: "0.5rem" }}>
+                {isKorean ? "문의" : "Contact"}
+              </h4>
+              <p>
+                {isKorean ? "질문은 " : "Questions can be opened in the "}
+                <a
+                  href="https://github.com/psh320/travel-split"
+                  style={{ color: "var(--ease-color-brand)" }}
+                >
+                  GitHub
+                </a>
+                {isKorean ? "에 남겨주세요." : " repository."}
+              </p>
+            </section>
           </div>
         </div>
       </div>
