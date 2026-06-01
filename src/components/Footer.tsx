@@ -1,6 +1,10 @@
 import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 
+type NavigatorWithStandalone = Navigator & {
+  standalone?: boolean;
+};
+
 const Footer = () => {
   const [isStandalone, setIsStandalone] = useState(false);
 
@@ -9,7 +13,7 @@ const Footer = () => {
     const checkStandalone = () => {
       const isStandaloneMode =
         window.matchMedia("(display-mode: standalone)").matches ||
-        (window.navigator as any).standalone === true;
+        (window.navigator as NavigatorWithStandalone).standalone === true;
       setIsStandalone(isStandaloneMode);
     };
 
@@ -32,12 +36,12 @@ const Footer = () => {
   return (
     <footer
       style={{
-        borderTop: "1px solid #e5e7eb",
+        borderTop: "1px solid var(--ease-color-border)",
         padding: "1.5rem 1rem",
         marginTop: "2rem",
-        backgroundColor: "#f9fafb",
+        backgroundColor: "var(--ease-color-surface-raised)",
         fontSize: "0.875rem",
-        color: "#6b7280",
+        color: "var(--ease-color-text-muted)",
       }}
     >
       <div
@@ -58,7 +62,7 @@ const Footer = () => {
           <Link
             to="/privacy"
             style={{
-              color: "#6b7280",
+              color: "var(--ease-color-text-muted)",
               textDecoration: "none",
             }}
           >
@@ -67,7 +71,7 @@ const Footer = () => {
           <Link
             to="/terms"
             style={{
-              color: "#6b7280",
+              color: "var(--ease-color-text-muted)",
               textDecoration: "none",
             }}
           >
@@ -78,7 +82,7 @@ const Footer = () => {
             target="_blank"
             rel="noopener noreferrer"
             style={{
-              color: "#6b7280",
+              color: "var(--ease-color-text-muted)",
               textDecoration: "none",
             }}
           >
@@ -86,7 +90,7 @@ const Footer = () => {
           </a>
         </div>
         <p style={{ margin: 0, fontSize: "0.75rem" }}>
-          © 2025 Split Expense. Made with ❤️ for groups who share costs.
+          © 2025 Split Expense. Made for groups who share costs.
         </p>
         <p style={{ margin: "0.5rem 0 0 0", fontSize: "0.75rem" }}>
           Free expense splitting for any shared activity.

@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
-import { useParams, Link, useNavigate } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
+import { AppHeader } from "../components/ui/AppHeader";
 import { FirebaseService } from "../services/firebase";
 import type { Trip, AddExpenseForm } from "../types";
 
@@ -148,25 +149,23 @@ const AddExpensePage = () => {
 
   return (
     <>
-      <div className="header">
-        <Link to={`/group/${groupId}`} className="back-button">
-          ←
-        </Link>
-        <h1>Add Expense</h1>
-        <p>Record a new shared expense</p>
-      </div>
+      <AppHeader
+        backTo={`/group/${groupId}`}
+        title="Add Expense"
+        subtitle="Who paid? Who splits?"
+      />
 
       <div className="content">
         <form onSubmit={handleSubmit} className="form">
           <div className="form-group">
-            <label htmlFor="description">What was this expense for? *</label>
+            <label htmlFor="description">Expense *</label>
             <input
               type="text"
               id="description"
               name="description"
               value={formData.description}
               onChange={handleInputChange}
-              placeholder="e.g., Dinner at restaurant, Uber ride, Hotel room"
+              placeholder="Dinner"
               required
             />
           </div>
@@ -188,7 +187,7 @@ const AddExpensePage = () => {
           </div>
 
           <div className="form-group">
-            <label htmlFor="paidBy">Who paid for this? *</label>
+            <label htmlFor="paidBy">Paid by *</label>
             <select
               id="paidBy"
               name="paidBy"
@@ -207,7 +206,7 @@ const AddExpensePage = () => {
           </div>
 
           <div className="form-group">
-            <label>Who should split this expense? *</label>
+            <label>Split with *</label>
             <div style={{ display: "flex", gap: "0.5rem", margin: "0.5rem 0" }}>
               <button
                 type="button"
@@ -248,13 +247,13 @@ const AddExpensePage = () => {
                 style={{
                   marginTop: "0.5rem",
                   fontSize: "0.875rem",
-                  color: "#6b7280",
+                  color: "var(--ease-color-text-muted)",
                   padding: "0.5rem",
-                  background: "#f9fafb",
+                  background: "var(--ease-color-surface-raised)",
                   borderRadius: "0.375rem",
                 }}
               >
-                Each person pays: <strong>${splitAmount.toFixed(2)}</strong>
+                Each: <strong>${splitAmount.toFixed(2)}</strong>
               </div>
             )}
           </div>

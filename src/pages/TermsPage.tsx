@@ -1,15 +1,14 @@
 import { Link } from "react-router-dom";
+import { AppHeader } from "../components/ui/AppHeader";
 
 const TermsPage = () => {
   return (
     <>
-      <div className="header">
-        <Link to="/" className="back-button">
-          ←
-        </Link>
-        <h1>Terms of Service</h1>
-        <p>Terms and conditions</p>
-      </div>
+      <AppHeader
+        backTo="/"
+        title="Terms of Service"
+        subtitle="Terms and conditions"
+      />
 
       <div className="content">
         <div className="card">
@@ -17,7 +16,7 @@ const TermsPage = () => {
           <p
             style={{
               fontSize: "0.875rem",
-              color: "#6b7280",
+              color: "var(--ease-color-text-muted)",
               marginBottom: "1rem",
             }}
           >
@@ -28,14 +27,14 @@ const TermsPage = () => {
             style={{
               fontSize: "0.875rem",
               lineHeight: "1.6",
-              color: "#374151",
+              color: "var(--ease-color-text)",
             }}
           >
             <h4
               style={{
                 marginTop: "1.5rem",
                 marginBottom: "0.5rem",
-                color: "#1f2937",
+                color: "var(--ease-color-text)",
               }}
             >
               Acceptance of Terms
@@ -49,7 +48,7 @@ const TermsPage = () => {
               style={{
                 marginTop: "1.5rem",
                 marginBottom: "0.5rem",
-                color: "#1f2937",
+                color: "var(--ease-color-text)",
               }}
             >
               Service Description
@@ -66,7 +65,7 @@ const TermsPage = () => {
               style={{
                 marginTop: "1.5rem",
                 marginBottom: "0.5rem",
-                color: "#1f2937",
+                color: "var(--ease-color-text)",
               }}
             >
               User Responsibilities
@@ -83,14 +82,14 @@ const TermsPage = () => {
               style={{
                 marginTop: "1.5rem",
                 marginBottom: "0.5rem",
-                color: "#1f2937",
+                color: "var(--ease-color-text)",
               }}
             >
               Data and Privacy
             </h4>
             <p>
               Please review our{" "}
-              <Link to="/privacy" style={{ color: "#667eea" }}>
+              <Link to="/privacy" style={{ color: "var(--ease-color-brand)" }}>
                 Privacy Policy
               </Link>{" "}
               to understand how we collect, use, and protect your information.
@@ -100,7 +99,7 @@ const TermsPage = () => {
               style={{
                 marginTop: "1.5rem",
                 marginBottom: "0.5rem",
-                color: "#1f2937",
+                color: "var(--ease-color-text)",
               }}
             >
               Limitation of Liability
@@ -120,7 +119,7 @@ const TermsPage = () => {
               style={{
                 marginTop: "1.5rem",
                 marginBottom: "0.5rem",
-                color: "#1f2937",
+                color: "var(--ease-color-text)",
               }}
             >
               Service Availability
@@ -136,7 +135,7 @@ const TermsPage = () => {
               style={{
                 marginTop: "1.5rem",
                 marginBottom: "0.5rem",
-                color: "#1f2937",
+                color: "var(--ease-color-text)",
               }}
             >
               Advertising
@@ -154,7 +153,7 @@ const TermsPage = () => {
               style={{
                 marginTop: "1.5rem",
                 marginBottom: "0.5rem",
-                color: "#1f2937",
+                color: "var(--ease-color-text)",
               }}
             >
               Termination
@@ -169,7 +168,7 @@ const TermsPage = () => {
               style={{
                 marginTop: "1.5rem",
                 marginBottom: "0.5rem",
-                color: "#1f2937",
+                color: "var(--ease-color-text)",
               }}
             >
               Changes to Terms
@@ -183,7 +182,7 @@ const TermsPage = () => {
               style={{
                 marginTop: "1.5rem",
                 marginBottom: "0.5rem",
-                color: "#1f2937",
+                color: "var(--ease-color-text)",
               }}
             >
               Contact Information
@@ -193,7 +192,7 @@ const TermsPage = () => {
               on our{" "}
               <a
                 href="https://github.com/psh320/travel-split"
-                style={{ color: "#667eea" }}
+                style={{ color: "var(--ease-color-brand)" }}
               >
                 GitHub repository
               </a>

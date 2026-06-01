@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
+import { AppHeader } from "../components/ui/AppHeader";
 import { FirebaseService } from "../services/firebase";
 import { GroupHistoryService } from "../services/groupHistory";
 import { isValidRoomCode } from "../utils";
@@ -119,13 +120,11 @@ const AutoJoinPage = () => {
   if (loading) {
     return (
       <>
-        <div className="header">
-          <Link to="/" className="back-button">
-            ←
-          </Link>
-          <h1>Joining Group...</h1>
-          <p>Loading group information</p>
-        </div>
+        <AppHeader
+          backTo="/"
+          title="Joining Group..."
+          subtitle="Loading"
+        />
         <div className="content">
           <div className="loading">
             <div className="spinner" />
@@ -138,17 +137,15 @@ const AutoJoinPage = () => {
   if (error) {
     return (
       <>
-        <div className="header">
-          <Link to="/" className="back-button">
-            ←
-          </Link>
-          <h1>Unable to Join</h1>
-          <p>There was a problem with the group link</p>
-        </div>
+        <AppHeader
+          backTo="/"
+          title="Unable to Join"
+          subtitle="Check the link."
+        />
         <div className="content">
           <div className="card">
             <h3>Error</h3>
-            <p style={{ color: "#dc2626", marginBottom: "1rem" }}>{error}</p>
+            <p style={{ color: "var(--ease-color-danger)", marginBottom: "1rem" }}>{error}</p>
             <div style={{ display: "flex", gap: "1rem" }}>
               <Link to="/join-group" className="btn btn-primary">
                 Enter Code Manually
@@ -166,13 +163,11 @@ const AutoJoinPage = () => {
   if (!trip) {
     return (
       <>
-        <div className="header">
-          <Link to="/" className="back-button">
-            ←
-          </Link>
-          <h1>Group Not Found</h1>
-          <p>The group link may have expired</p>
-        </div>
+        <AppHeader
+          backTo="/"
+          title="Group Not Found"
+          subtitle="The link may be old."
+        />
         <div className="content">
           <div className="card">
             <h3>Group Not Found</h3>
@@ -196,19 +191,17 @@ const AutoJoinPage = () => {
 
   return (
     <>
-      <div className="header">
-        <Link to="/" className="back-button">
-          ←
-        </Link>
-        <h1>Join "{trip.name}"</h1>
-        <p>You're invited to join this group!</p>
-      </div>
+      <AppHeader
+        backTo="/"
+        title={`Join "${trip.name}"`}
+        subtitle="Pick your name."
+      />
 
       <div className="content">
         {/* Trip Info */}
         <div className="card">
           <h3>Group Details</h3>
-          <div style={{ fontSize: "0.875rem", color: "#6b7280" }}>
+          <div style={{ fontSize: "0.875rem", color: "var(--ease-color-text-muted)" }}>
             <p>
               <strong>Group Name:</strong> {trip.name}
             </p>
@@ -232,11 +225,11 @@ const AutoJoinPage = () => {
           <p
             style={{
               fontSize: "0.875rem",
-              color: "#6b7280",
+              color: "var(--ease-color-text-muted)",
               marginBottom: "1rem",
             }}
           >
-            Click on your name if you've joined this group before:
+            Tap your name.
           </p>
           <div className="list">
             {trip.participants.map((participant: User) => (
@@ -247,16 +240,16 @@ const AutoJoinPage = () => {
                 style={{
                   cursor: "pointer",
                   transition: "all 0.2s ease",
-                  backgroundColor: "#f9fafb",
-                  border: "1px solid #e5e7eb",
+                  backgroundColor: "var(--ease-color-surface-raised)",
+                  border: "1px solid var(--ease-color-border)",
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = "#f3f4f6";
-                  e.currentTarget.style.borderColor = "#667eea";
+                  e.currentTarget.style.backgroundColor = "var(--ease-color-surface-subtle)";
+                  e.currentTarget.style.borderColor = "var(--ease-color-brand)";
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = "#f9fafb";
-                  e.currentTarget.style.borderColor = "#e5e7eb";
+                  e.currentTarget.style.backgroundColor = "var(--ease-color-surface-raised)";
+                  e.currentTarget.style.borderColor = "var(--ease-color-border)";
                 }}
               >
                 <div className="list-item-content">
@@ -266,7 +259,7 @@ const AutoJoinPage = () => {
                       style={{
                         marginLeft: "0.5rem",
                         fontSize: "0.75rem",
-                        color: "#667eea",
+                        color: "var(--ease-color-brand)",
                         fontWeight: "500",
                       }}
                     >
@@ -277,7 +270,7 @@ const AutoJoinPage = () => {
                 <div
                   style={{
                     fontSize: "1.25rem",
-                    color: "#667eea",
+                    color: "var(--ease-color-brand)",
                     opacity: 0.6,
                   }}
                 >
@@ -290,23 +283,22 @@ const AutoJoinPage = () => {
 
         {/* Join Form - New Users */}
         <div className="card">
-          <h3>Or Enter Your Name as New Participant</h3>
+          <h3>New participant</h3>
           <p
             style={{
               fontSize: "0.875rem",
-              color: "#6b7280",
+              color: "var(--ease-color-text-muted)",
               marginBottom: "1rem",
             }}
           >
-            If this is your first time joining this group, enter your name
-            below:
+            Add your name.
           </p>
 
           {error && (
             <div
               style={{
-                color: "#dc2626",
-                backgroundColor: "#fee2e2",
+                color: "var(--ease-color-danger)",
+                backgroundColor: "var(--ease-color-danger-soft)",
                 padding: "0.75rem",
                 borderRadius: "0.5rem",
                 marginBottom: "1rem",
@@ -336,7 +328,7 @@ const AutoJoinPage = () => {
               <div
                 style={{
                   fontSize: "0.75rem",
-                  color: "#6b7280",
+                  color: "var(--ease-color-text-muted)",
                   marginTop: "0.5rem",
                 }}
               >
@@ -344,9 +336,8 @@ const AutoJoinPage = () => {
                 trip.participants.some(
                   (p) => p.name.toLowerCase() === userName.toLowerCase()
                 ) ? (
-                  <span style={{ color: "#dc2626" }}>
-                    ⚠️ This name already exists. Click on "{userName}" above to
-                    join as existing user.
+                  <span style={{ color: "var(--ease-color-danger)" }}>
+                    Name exists. Tap it above.
                   </span>
                 ) : (
                   "Choose a unique name that others can recognize"
@@ -372,18 +363,17 @@ const AutoJoinPage = () => {
         </div>
 
         <div className="card">
-          <h3>What's Next?</h3>
+            <h3>Next</h3>
           <div
             style={{
               fontSize: "0.875rem",
-              color: "#6b7280",
+              color: "var(--ease-color-text-muted)",
               lineHeight: "1.6",
             }}
           >
-            <p>• Join the group and start tracking shared expenses</p>
-            <p>• Add expenses as you spend together</p>
-            <p>• See who owes what with automatic calculations</p>
-            <p>• Settle up easily when you're done</p>
+              <p>• Add expenses</p>
+              <p>• Check balances</p>
+              <p>• Settle up</p>
           </div>
         </div>
       </div>

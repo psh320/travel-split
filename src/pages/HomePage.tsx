@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import SEOContent from "../components/SEOContent";
+import { AppHeader } from "../components/ui/AppHeader";
 // import GoogleAd from "../components/GoogleAd";
 // import { ADSENSE_CONFIG } from "../config/adsense";
 import { GroupHistoryService } from "../services/groupHistory";
@@ -53,259 +53,57 @@ const HomePage = () => {
 
   const IntroContent = () => (
     <>
-      <div className="header">
-        <h1>Split Expenses Online Free</h1>
-        <p>
-          Split expenses online with friends - The easiest bill splitting
-          calculator
-        </p>
-      </div>
+      <AppHeader
+        title="Split Expenses"
+        subtitle="Create a room. Add costs. Settle up."
+      />
 
       <div className="content">
         <div className="card">
-          <h3>Free Online Expense Splitter</h3>
-          <p style={{ marginBottom: "1.5rem", color: "#6b7280" }}>
-            Split expenses online free with your group and see who owes whom.
-            Our bill splitting calculator makes it easy to divide shared costs
-            for travel, dining, and group activities. No registration required -
-            just create a room and share the code with your friends!
+          <h3>Start a split</h3>
+          <p className="muted" style={{ marginBottom: "1.5rem" }}>
+            No account. Just a room code.
           </p>
 
-          <div
-            style={{ display: "flex", flexDirection: "column", gap: "1rem" }}
-          >
+          <div className="button-stack">
             <Link to="/create-group" className="btn btn-primary btn-full">
-              Create New Group
+              Create Group
             </Link>
 
             <Link to="/join-group" className="btn btn-secondary btn-full">
-              Join Existing Group
+              Join Group
             </Link>
           </div>
         </div>
 
         <div className="card">
-          <h3>How it works</h3>
-          <div
-            style={{ display: "flex", flexDirection: "column", gap: "1rem" }}
-          >
-            <div style={{ display: "flex", alignItems: "start", gap: "1rem" }}>
-              <div
-                style={{
-                  background:
-                    "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
-                  color: "white",
-                  borderRadius: "50%",
-                  width: "2rem",
-                  height: "2rem",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  fontSize: "0.875rem",
-                  fontWeight: "600",
-                  flexShrink: 0,
-                }}
-              >
-                1
-              </div>
+          <h3>Flow</h3>
+          <div className="number-list">
+            <div className="number-list-item">
+              <div className="number-badge">1</div>
               <div>
-                <div style={{ fontWeight: "600", marginBottom: "0.25rem" }}>
-                  Create or Join
-                </div>
-                <div style={{ fontSize: "0.875rem", color: "#6b7280" }}>
-                  Create a new expense group or join an existing one with a room
-                  code
-                </div>
+                <div className="feature-title">Create or join</div>
+                <div className="feature-copy">Use a room code.</div>
               </div>
             </div>
 
-            <div style={{ display: "flex", alignItems: "start", gap: "1rem" }}>
-              <div
-                style={{
-                  background:
-                    "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
-                  color: "white",
-                  borderRadius: "50%",
-                  width: "2rem",
-                  height: "2rem",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  fontSize: "0.875rem",
-                  fontWeight: "600",
-                  flexShrink: 0,
-                }}
-              >
-                2
-              </div>
+            <div className="number-list-item">
+              <div className="number-badge">2</div>
               <div>
-                <div style={{ fontWeight: "600", marginBottom: "0.25rem" }}>
-                  Record Expenses
-                </div>
-                <div style={{ fontSize: "0.875rem", color: "#6b7280" }}>
-                  Add expenses and select who paid and who should split the cost
-                </div>
+                <div className="feature-title">Add expenses</div>
+                <div className="feature-copy">Pick payer and split.</div>
               </div>
             </div>
 
-            <div style={{ display: "flex", alignItems: "start", gap: "1rem" }}>
-              <div
-                style={{
-                  background:
-                    "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
-                  color: "white",
-                  borderRadius: "50%",
-                  width: "2rem",
-                  height: "2rem",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  fontSize: "0.875rem",
-                  fontWeight: "600",
-                  flexShrink: 0,
-                }}
-              >
-                3
-              </div>
+            <div className="number-list-item">
+              <div className="number-badge">3</div>
               <div>
-                <div style={{ fontWeight: "600", marginBottom: "0.25rem" }}>
-                  Settle Up
-                </div>
-                <div style={{ fontSize: "0.875rem", color: "#6b7280" }}>
-                  See who owes whom and settle debts with minimal transactions
-                </div>
+                <div className="feature-title">Settle up</div>
+                <div className="feature-copy">See who owes whom.</div>
               </div>
             </div>
           </div>
         </div>
-
-        <div className="card">
-          <h3>Why Choose Our Bill Splitting Calculator?</h3>
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
-              gap: "1.5rem",
-              marginTop: "1rem",
-            }}
-          >
-            <div>
-              <h4
-                style={{
-                  fontSize: "1rem",
-                  fontWeight: "600",
-                  marginBottom: "0.5rem",
-                  color: "#374151",
-                }}
-              >
-                💰 Split Expenses Online Free
-              </h4>
-              <p style={{ fontSize: "0.875rem", color: "#6b7280", margin: 0 }}>
-                Completely free expense splitting tool. No hidden fees, no
-                premium plans - just split costs online instantly.
-              </p>
-            </div>
-            <div>
-              <h4
-                style={{
-                  fontSize: "1rem",
-                  fontWeight: "600",
-                  marginBottom: "0.5rem",
-                  color: "#374151",
-                }}
-              >
-                📱 Works on Any Device
-              </h4>
-              <p style={{ fontSize: "0.875rem", color: "#6b7280", margin: 0 }}>
-                Access your expense splitter from phone, tablet, or computer. No
-                app download needed.
-              </p>
-            </div>
-            <div>
-              <h4
-                style={{
-                  fontSize: "1rem",
-                  fontWeight: "600",
-                  marginBottom: "0.5rem",
-                  color: "#374151",
-                }}
-              >
-                🚀 No Registration Required
-              </h4>
-              <p style={{ fontSize: "0.875rem", color: "#6b7280", margin: 0 }}>
-                Start splitting expenses immediately. No sign-ups, no personal
-                information needed.
-              </p>
-            </div>
-            <div>
-              <h4
-                style={{
-                  fontSize: "1rem",
-                  fontWeight: "600",
-                  marginBottom: "0.5rem",
-                  color: "#374151",
-                }}
-              >
-                🧮 Smart Calculations
-              </h4>
-              <p style={{ fontSize: "0.875rem", color: "#6b7280", margin: 0 }}>
-                Our bill splitting calculator optimizes payments to minimize
-                transactions between group members.
-              </p>
-            </div>
-          </div>
-        </div>
-
-        <div className="card">
-          <h3>Perfect for Every Occasion</h3>
-          <div
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              gap: "0.75rem",
-              marginTop: "1rem",
-            }}
-          >
-            <div
-              style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}
-            >
-              <span style={{ fontSize: "1.25rem" }}>✈️</span>
-              <span style={{ fontSize: "0.9rem" }}>
-                <strong>Travel Expenses:</strong> Split hotel, flights, and
-                activities with travel companions
-              </span>
-            </div>
-            <div
-              style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}
-            >
-              <span style={{ fontSize: "1.25rem" }}>🍕</span>
-              <span style={{ fontSize: "0.9rem" }}>
-                <strong>Group Dining:</strong> Easily divide restaurant bills
-                and food delivery costs
-              </span>
-            </div>
-            <div
-              style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}
-            >
-              <span style={{ fontSize: "1.25rem" }}>🏠</span>
-              <span style={{ fontSize: "0.9rem" }}>
-                <strong>Roommate Expenses:</strong> Track shared household costs
-                and utilities
-              </span>
-            </div>
-            <div
-              style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}
-            >
-              <span style={{ fontSize: "1.25rem" }}>🎉</span>
-              <span style={{ fontSize: "0.9rem" }}>
-                <strong>Events & Parties:</strong> Split costs for celebrations,
-                gifts, and entertainment
-              </span>
-            </div>
-          </div>
-        </div>
-
-        <SEOContent />
 
         {/* Strategic Ad Placement - Disabled for now */}
         {/* <div style={{ marginTop: "2rem", marginBottom: "1rem" }}>
@@ -316,8 +114,8 @@ const HomePage = () => {
               display: "block",
               textAlign: "center",
               minHeight: "100px",
-              backgroundColor: "#f9fafb",
-              border: "1px solid #e5e7eb",
+              backgroundColor: "var(--ease-color-surface-raised)",
+              border: "1px solid var(--ease-color-border)",
               borderRadius: "0.5rem",
               padding: "1rem",
             }}
@@ -331,24 +129,17 @@ const HomePage = () => {
 
   const GroupListContent = () => (
     <>
-      <div className="header">
-        <h1>Welcome Back!</h1>
-        <p>
-          Your expense groups - Click on any group to continue where you left
-          off
-        </p>
-      </div>
+      <AppHeader
+        title="Welcome Back"
+        subtitle="Pick a group."
+      />
 
       <div className="content">
         {/* Storage Warning */}
         {storageWarning && (
           <div
-            className="card"
-            style={{
-              backgroundColor: "#fef3c7",
-              border: "1px solid #f59e0b",
-              marginBottom: "1rem",
-            }}
+            className="callout callout-warning"
+            style={{ marginBottom: "1rem" }}
           >
             <div
               style={{
@@ -357,15 +148,12 @@ const HomePage = () => {
                 gap: "0.75rem",
               }}
             >
-              <span style={{ fontSize: "1.25rem", marginTop: "0.125rem" }}>
-                ⚠️
-              </span>
               <div>
                 <h4
                   style={{
                     margin: 0,
                     marginBottom: "0.5rem",
-                    color: "#92400e",
+                    color: "var(--ease-color-warning)",
                     fontSize: "0.9rem",
                     fontWeight: "600",
                   }}
@@ -376,7 +164,7 @@ const HomePage = () => {
                   style={{
                     margin: 0,
                     fontSize: "0.875rem",
-                    color: "#92400e",
+                    color: "var(--ease-color-warning)",
                     lineHeight: "1.4",
                   }}
                 >
@@ -389,16 +177,14 @@ const HomePage = () => {
 
         {/* Quick Actions */}
         <div className="card">
-          <h3>Quick Actions</h3>
-          <div
-            style={{ display: "flex", flexDirection: "column", gap: "1rem" }}
-          >
+          <h3>Actions</h3>
+          <div className="button-stack">
             <Link to="/create-group" className="btn btn-primary btn-full">
-              Create New Group
+              Create Group
             </Link>
 
             <Link to="/join-group" className="btn btn-secondary btn-full">
-              Join Existing Group
+              Join Group
             </Link>
           </div>
         </div>
@@ -414,14 +200,15 @@ const HomePage = () => {
             }}
           >
             <h3 style={{ margin: 0 }}>Your Groups</h3>
-            <span style={{ fontSize: "0.875rem", color: "#6b7280" }}>
+            <span style={{ fontSize: "0.875rem", color: "var(--ease-color-text-muted)" }}>
               {groupHistory.length} group{groupHistory.length !== 1 ? "s" : ""}
             </span>
           </div>
 
           {groupHistory.length === 0 ? (
             <div
-              style={{ textAlign: "center", padding: "2rem", color: "#6b7280" }}
+              className="muted"
+              style={{ textAlign: "center", padding: "2rem" }}
             >
               <p>No groups found in your history.</p>
               <button
@@ -429,7 +216,7 @@ const HomePage = () => {
                 style={{
                   background: "none",
                   border: "none",
-                  color: "#667eea",
+                  color: "var(--ease-color-brand)",
                   textDecoration: "underline",
                   cursor: "pointer",
                   fontSize: "0.875rem",
@@ -439,35 +226,27 @@ const HomePage = () => {
               </button>
             </div>
           ) : (
-            <div
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                gap: "0.75rem",
-              }}
-            >
+            <div className="list">
               {groupHistory.map((group) => (
                 <div
                   key={group.id}
+                  className="list-item"
                   onClick={() => handleGroupClick(group)}
                   style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                    padding: "1rem",
-                    border: "1px solid #e5e7eb",
-                    borderRadius: "0.5rem",
                     cursor: "pointer",
-                    transition: "all 0.2s",
-                    backgroundColor: "#fff",
+                    transition: "background 0.2s, border-color 0.2s",
                   }}
                   onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor = "#f9fafb";
-                    e.currentTarget.style.borderColor = "#d1d5db";
+                    e.currentTarget.style.backgroundColor =
+                      "var(--ease-color-brand-soft)";
+                    e.currentTarget.style.borderColor =
+                      "var(--ease-color-border-strong)";
                   }}
                   onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = "#fff";
-                    e.currentTarget.style.borderColor = "#e5e7eb";
+                    e.currentTarget.style.backgroundColor =
+                      "var(--ease-color-surface-raised)";
+                    e.currentTarget.style.borderColor =
+                      "var(--ease-color-border)";
                   }}
                 >
                   <div>
@@ -483,37 +262,30 @@ const HomePage = () => {
                     <div
                       style={{
                         fontSize: "0.875rem",
-                        color: "#6b7280",
+                        color: "var(--ease-color-text-muted)",
                         marginBottom: "0.25rem",
                       }}
                     >
                       Room: {group.roomCode} • You joined as{" "}
                       {group.userNameInGroup}
                     </div>
-                    <div style={{ fontSize: "0.75rem", color: "#9ca3af" }}>
-                      {group.role === "creator" ? "👑 Creator" : "👤 Member"} •
-                      Last used {timeAgo(group.lastAccessed)}
+                    <div style={{ fontSize: "0.75rem", color: "var(--ease-color-text-soft)" }}>
+                      {group.role === "creator" ? "Creator" : "Member"} • Last
+                      used {timeAgo(group.lastAccessed)}
                     </div>
                   </div>
                   <button
                     onClick={(e) => handleRemoveGroup(group.id, e)}
+                    className="list-item-action"
                     style={{
-                      background: "none",
-                      border: "none",
-                      color: "#dc2626",
-                      cursor: "pointer",
-                      padding: "0.5rem",
-                      borderRadius: "0.25rem",
+                      color: "var(--ease-color-danger)",
                       fontSize: "1.25rem",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
                       width: "2rem",
                       height: "2rem",
                     }}
                     title="Remove from history"
                     onMouseEnter={(e) => {
-                      e.currentTarget.style.backgroundColor = "#fee2e2";
+                      e.currentTarget.style.backgroundColor = "var(--ease-color-danger-soft)";
                     }}
                     onMouseLeave={(e) => {
                       e.currentTarget.style.backgroundColor = "transparent";
@@ -536,8 +308,8 @@ const HomePage = () => {
               display: "block",
               textAlign: "center",
               minHeight: "100px",
-              backgroundColor: "#f9fafb",
-              border: "1px solid #e5e7eb",
+              backgroundColor: "var(--ease-color-surface-raised)",
+              border: "1px solid var(--ease-color-border)",
               borderRadius: "0.5rem",
               padding: "1rem",
             }}

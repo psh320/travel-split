@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
+import { AppHeader } from "../components/ui/AppHeader";
 import { FirebaseService } from "../services/firebase";
 import { GroupHistoryService } from "../services/groupHistory";
 import type { Trip } from "../types";
@@ -199,16 +200,13 @@ const TripDashboard = () => {
 
   return (
     <>
-      <div className="header">
-        <Link to="/" className="back-button">
-          ←
-        </Link>
-        <h1>{trip.name}</h1>
-        <p>
-          {trip.participants.length} people • {formatCurrency(totalExpenses)}{" "}
-          total
-        </p>
-      </div>
+      <AppHeader
+        backTo="/"
+        title={trip.name}
+        subtitle={`${trip.participants.length} people • ${formatCurrency(
+          totalExpenses
+        )}`}
+      />
 
       <div className="content">
         {/* Group Info Card */}
@@ -221,7 +219,7 @@ const TripDashboard = () => {
               marginBottom: "1rem",
             }}
           >
-            <h3>Group Details</h3>
+            <h3>Details</h3>
             <div style={{ display: "flex", gap: "0.5rem" }}>
               <button
                 onClick={copyShareableLink}
@@ -239,7 +237,7 @@ const TripDashboard = () => {
               </button>
             </div>
           </div>
-          <div style={{ fontSize: "0.875rem", color: "#6b7280" }}>
+          <div style={{ fontSize: "0.875rem", color: "var(--ease-color-text-muted)" }}>
             <p>
               <strong>Room Code:</strong> {trip.roomCode}
             </p>
@@ -280,24 +278,22 @@ const TripDashboard = () => {
           {showAddUser && (
             <div
               style={{
-                backgroundColor: "#f8fafc",
-                border: "1px solid #e2e8f0",
+                backgroundColor: "var(--ease-color-surface-raised)",
+                border: "1px solid var(--ease-color-border)",
                 borderRadius: "0.5rem",
                 padding: "1rem",
                 marginBottom: "1rem",
               }}
             >
-              <h4
-                style={{ marginTop: 0, marginBottom: "1rem", fontSize: "1rem" }}
-              >
-                Add New User
+              <h4 style={{ marginTop: 0, marginBottom: "1rem", fontSize: "1rem" }}>
+                Add User
               </h4>
 
               {addUserError && (
                 <div
                   style={{
-                    color: "#dc2626",
-                    backgroundColor: "#fee2e2",
+                    color: "var(--ease-color-danger)",
+                    backgroundColor: "var(--ease-color-danger-soft)",
                     padding: "0.75rem",
                     borderRadius: "0.5rem",
                     marginBottom: "1rem",
@@ -337,12 +333,11 @@ const TripDashboard = () => {
                   <div
                     style={{
                       fontSize: "0.75rem",
-                      color: "#6b7280",
+                      color: "var(--ease-color-text-muted)",
                       marginTop: "0.5rem",
                     }}
                   >
-                    The user will be added to the group and can start
-                    participating in expenses
+                    They can join future splits.
                   </div>
                 </div>
 
@@ -391,7 +386,7 @@ const TripDashboard = () => {
                         style={{
                           marginLeft: "0.5rem",
                           fontSize: "0.75rem",
-                          color: "#667eea",
+                          color: "var(--ease-color-brand)",
                           fontWeight: "600",
                         }}
                       >
@@ -403,7 +398,7 @@ const TripDashboard = () => {
                         style={{
                           marginLeft: "0.5rem",
                           fontSize: "0.75rem",
-                          color: "#f59e0b",
+                          color: "var(--ease-color-warning)",
                           fontWeight: "600",
                         }}
                       >
@@ -425,7 +420,7 @@ const TripDashboard = () => {
                           handleRemoveUser(participant.id, participant.name)
                         }
                         className="list-item-action"
-                        style={{ color: "#ef4444", fontSize: "0.875rem" }}
+                        style={{ color: "var(--ease-color-danger)", fontSize: "0.875rem" }}
                       >
                         Remove
                       </button>
@@ -489,7 +484,7 @@ const TripDashboard = () => {
               style={{
                 textAlign: "center",
                 padding: "2rem",
-                color: "#6b7280",
+                color: "var(--ease-color-text-muted)",
                 fontSize: "0.875rem",
               }}
             >
@@ -522,7 +517,7 @@ const TripDashboard = () => {
                         <button
                           onClick={() => handleDeleteExpense(expense.id)}
                           className="list-item-action"
-                          style={{ color: "#ef4444" }}
+                          style={{ color: "var(--ease-color-danger)" }}
                         >
                           Delete
                         </button>

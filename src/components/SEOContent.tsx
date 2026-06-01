@@ -18,7 +18,7 @@ const SEOContent: React.FC = () => {
               fontSize: "1rem",
               fontWeight: "600",
               marginBottom: "0.5rem",
-              color: "#374151",
+              color: "var(--ease-color-text)",
             }}
           >
             How do I split expenses online for free?
@@ -26,7 +26,7 @@ const SEOContent: React.FC = () => {
           <p
             style={{
               fontSize: "0.875rem",
-              color: "#6b7280",
+              color: "var(--ease-color-text-muted)",
               margin: 0,
               lineHeight: "1.5",
             }}
@@ -44,7 +44,7 @@ const SEOContent: React.FC = () => {
               fontSize: "1rem",
               fontWeight: "600",
               marginBottom: "0.5rem",
-              color: "#374151",
+              color: "var(--ease-color-text)",
             }}
           >
             Is this expense splitter really free?
@@ -52,7 +52,7 @@ const SEOContent: React.FC = () => {
           <p
             style={{
               fontSize: "0.875rem",
-              color: "#6b7280",
+              color: "var(--ease-color-text-muted)",
               margin: 0,
               lineHeight: "1.5",
             }}
@@ -69,7 +69,7 @@ const SEOContent: React.FC = () => {
               fontSize: "1rem",
               fontWeight: "600",
               marginBottom: "0.5rem",
-              color: "#374151",
+              color: "var(--ease-color-text)",
             }}
           >
             Do I need to create an account to split costs online?
@@ -77,7 +77,7 @@ const SEOContent: React.FC = () => {
           <p
             style={{
               fontSize: "0.875rem",
-              color: "#6b7280",
+              color: "var(--ease-color-text-muted)",
               margin: 0,
               lineHeight: "1.5",
             }}
@@ -94,7 +94,7 @@ const SEOContent: React.FC = () => {
               fontSize: "1rem",
               fontWeight: "600",
               marginBottom: "0.5rem",
-              color: "#374151",
+              color: "var(--ease-color-text)",
             }}
           >
             Can I use this bill splitter on my phone?
@@ -102,7 +102,7 @@ const SEOContent: React.FC = () => {
           <p
             style={{
               fontSize: "0.875rem",
-              color: "#6b7280",
+              color: "var(--ease-color-text-muted)",
               margin: 0,
               lineHeight: "1.5",
             }}
@@ -119,7 +119,7 @@ const SEOContent: React.FC = () => {
               fontSize: "1rem",
               fontWeight: "600",
               marginBottom: "0.5rem",
-              color: "#374151",
+              color: "var(--ease-color-text)",
             }}
           >
             How does the expense calculation work?
@@ -127,7 +127,7 @@ const SEOContent: React.FC = () => {
           <p
             style={{
               fontSize: "0.875rem",
-              color: "#6b7280",
+              color: "var(--ease-color-text-muted)",
               margin: 0,
               lineHeight: "1.5",
             }}

@@ -105,10 +105,10 @@ const GoogleAd: React.FC<GoogleAdProps> = ({
           <div
             style={{
               fontSize: "0.75rem",
-              color: "#666",
+              color: "var(--ease-color-text-muted)",
               marginTop: "0.5rem",
               padding: "0.5rem",
-              backgroundColor: "#ffe4e1",
+              backgroundColor: "var(--ease-color-danger-soft)",
               borderRadius: "0.25rem",
             }}
           >
@@ -139,10 +139,10 @@ const GoogleAd: React.FC<GoogleAdProps> = ({
         <div
           style={{
             fontSize: "0.75rem",
-            color: "#666",
+            color: "var(--ease-color-text-muted)",
             marginTop: "0.5rem",
             padding: "0.5rem",
-            backgroundColor: "#f5f5f5",
+            backgroundColor: "var(--ease-color-surface-raised)",
             borderRadius: "0.25rem",
           }}
         >

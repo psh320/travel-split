@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
+import { AppHeader } from "../components/ui/AppHeader";
 import { FirebaseService } from "../services/firebase";
 import { GroupHistoryService } from "../services/groupHistory";
 import type { CreateTripForm } from "../types";
@@ -87,13 +88,11 @@ const CreateTripPage = () => {
 
   return (
     <>
-      <div className="header">
-        <Link to="/" className="back-button">
-          ←
-        </Link>
-        <h1>Create Group</h1>
-        <p>Start a new expense sharing group</p>
-      </div>
+      <AppHeader
+        backTo="/"
+        title="New Group"
+        subtitle="Name it. Share the code."
+      />
 
       <div className="content">
         <form onSubmit={handleSubmit} className="form">
@@ -105,19 +104,19 @@ const CreateTripPage = () => {
               name="name"
               value={formData.name}
               onChange={handleInputChange}
-              placeholder="e.g., Weekend Getaway, Roommate Expenses"
+              placeholder="Weekend trip"
               required
             />
           </div>
 
           <div className="form-group">
-            <label htmlFor="description">Description (optional)</label>
+            <label htmlFor="description">Notes (optional)</label>
             <textarea
               id="description"
               name="description"
               value={formData.description}
               onChange={handleInputChange}
-              placeholder="Brief description of your group..."
+              placeholder="Optional notes"
             />
           </div>
 
@@ -129,7 +128,7 @@ const CreateTripPage = () => {
               name="creatorName"
               value={formData.creatorName}
               onChange={handleInputChange}
-              placeholder="Enter your name"
+              placeholder="Your name"
               required
             />
           </div>
@@ -151,18 +150,17 @@ const CreateTripPage = () => {
         </form>
 
         <div className="card" style={{ marginTop: "2rem" }}>
-          <h3>What happens next?</h3>
+          <h3>Next</h3>
           <div
             style={{
               fontSize: "0.875rem",
-              color: "#6b7280",
+              color: "var(--ease-color-text-muted)",
               lineHeight: "1.6",
             }}
           >
-            <p>• A unique room code will be generated</p>
-            <p>• Share the code with your travel companions</p>
-            <p>• Everyone can join and start adding expenses</p>
-            <p>• The app will automatically calculate who owes whom</p>
+            <p>• Share the code</p>
+            <p>• Add expenses</p>
+            <p>• Settle up</p>
           </div>
         </div>
       </div>

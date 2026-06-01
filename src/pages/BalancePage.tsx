@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
+import { AppHeader } from "../components/ui/AppHeader";
 import { FirebaseService } from "../services/firebase";
 import type { Trip, BalanceSummary } from "../types";
 import { calculateBalances } from "../utils/balanceCalculator";
@@ -80,19 +81,17 @@ const BalancePage = () => {
 
   return (
     <>
-      <div className="header">
-        <Link to={`/group/${groupId}`} className="back-button">
-          ←
-        </Link>
-        <h1>Balance Summary</h1>
-        <p>Who owes whom and how much</p>
-      </div>
+      <AppHeader
+        backTo={`/group/${groupId}`}
+        title="Balance"
+        subtitle="Who owes whom."
+      />
 
       <div className="content">
         {/* Trip Summary */}
         <div className="card">
-          <h3>Trip Summary</h3>
-          <div style={{ fontSize: "0.875rem", color: "#6b7280" }}>
+          <h3>Summary</h3>
+          <div style={{ fontSize: "0.875rem", color: "var(--ease-color-text-muted)" }}>
             <p>
               <strong>Total Expenses:</strong> {formatCurrency(totalExpenses)}
             </p>
@@ -118,7 +117,7 @@ const BalancePage = () => {
               }}
             >
               <div>
-                <div style={{ fontSize: "0.875rem", color: "#6b7280" }}>
+                <div style={{ fontSize: "0.875rem", color: "var(--ease-color-text-muted)" }}>
                   You paid
                 </div>
                 <div style={{ fontSize: "1.125rem", fontWeight: "600" }}>
@@ -126,7 +125,7 @@ const BalancePage = () => {
                 </div>
               </div>
               <div style={{ textAlign: "center" }}>
-                <div style={{ fontSize: "0.875rem", color: "#6b7280" }}>
+                <div style={{ fontSize: "0.875rem", color: "var(--ease-color-text-muted)" }}>
                   You owe
                 </div>
                 <div style={{ fontSize: "1.125rem", fontWeight: "600" }}>
@@ -134,7 +133,7 @@ const BalancePage = () => {
                 </div>
               </div>
               <div style={{ textAlign: "right" }}>
-                <div style={{ fontSize: "0.875rem", color: "#6b7280" }}>
+                <div style={{ fontSize: "0.875rem", color: "var(--ease-color-text-muted)" }}>
                   Net balance
                 </div>
                 <div
@@ -143,10 +142,10 @@ const BalancePage = () => {
                     fontWeight: "700",
                     color:
                       currentUserBalance.netBalance > 0
-                        ? "#059669"
+                        ? "var(--ease-color-success)"
                         : currentUserBalance.netBalance < 0
-                        ? "#dc2626"
-                        : "#6b7280",
+                        ? "var(--ease-color-danger)"
+                        : "var(--ease-color-text-muted)",
                   }}
                 >
                   {currentUserBalance.netBalance > 0 && "+"}
@@ -160,30 +159,30 @@ const BalancePage = () => {
                 borderRadius: "0.5rem",
                 background:
                   currentUserBalance.netBalance > 0
-                    ? "#d1fae5"
+                    ? "var(--ease-color-success-soft)"
                     : currentUserBalance.netBalance < 0
-                    ? "#fee2e2"
-                    : "#f3f4f6",
+                    ? "var(--ease-color-danger-soft)"
+                    : "var(--ease-color-surface-subtle)",
                 fontSize: "0.875rem",
                 textAlign: "center",
               }}
             >
               {currentUserBalance.netBalance > 0 && (
-                <span style={{ color: "#065f46" }}>
+                <span style={{ color: "var(--ease-color-success)" }}>
                   You are owed {formatCurrency(currentUserBalance.netBalance)}{" "}
                   overall
                 </span>
               )}
               {currentUserBalance.netBalance < 0 && (
-                <span style={{ color: "#991b1b" }}>
+                <span style={{ color: "var(--ease-color-danger)" }}>
                   You owe{" "}
                   {formatCurrency(Math.abs(currentUserBalance.netBalance))}{" "}
                   overall
                 </span>
               )}
               {currentUserBalance.netBalance === 0 && (
-                <span style={{ color: "#374151" }}>
-                  You're all settled up! 🎉
+                <span style={{ color: "var(--ease-color-text)" }}>
+                  You're all settled up.
                 </span>
               )}
             </div>
@@ -200,14 +199,14 @@ const BalancePage = () => {
                   {settlement.fromUserId === currentUserId ? (
                     <div>
                       You owe <strong>{settlement.toUserName}</strong>{" "}
-                      <strong style={{ color: "#dc2626" }}>
+                      <strong style={{ color: "var(--ease-color-danger)" }}>
                         {formatCurrency(settlement.amount)}
                       </strong>
                     </div>
                   ) : (
                     <div>
                       <strong>{settlement.fromUserName}</strong> owes you{" "}
-                      <strong style={{ color: "#059669" }}>
+                      <strong style={{ color: "var(--ease-color-success)" }}>
                         {formatCurrency(settlement.amount)}
                       </strong>
                     </div>
@@ -243,14 +242,14 @@ const BalancePage = () => {
                           style={{
                             marginLeft: "0.5rem",
                             fontSize: "0.75rem",
-                            color: "#667eea",
+                            color: "var(--ease-color-brand)",
                           }}
                         >
                           (You)
                         </span>
                       )}
                     </div>
-                    <div style={{ fontSize: "0.75rem", color: "#6b7280" }}>
+                    <div style={{ fontSize: "0.75rem", color: "var(--ease-color-text-muted)" }}>
                       Paid {formatCurrency(balance.totalPaid)} • Owes{" "}
                       {formatCurrency(balance.totalOwed)}
                     </div>
@@ -260,10 +259,10 @@ const BalancePage = () => {
                       fontWeight: "700",
                       color:
                         balance.netBalance > 0
-                          ? "#059669"
+                          ? "var(--ease-color-success)"
                           : balance.netBalance < 0
-                          ? "#dc2626"
-                          : "#6b7280",
+                          ? "var(--ease-color-danger)"
+                          : "var(--ease-color-text-muted)",
                     }}
                   >
                     {balance.netBalance > 0 && "+"}
@@ -282,19 +281,18 @@ const BalancePage = () => {
               <p
                 style={{
                   fontSize: "0.875rem",
-                  color: "#6b7280",
+                  color: "var(--ease-color-text-muted)",
                   marginBottom: "1rem",
                 }}
               >
-                Breakdown of balances for each unique combination of
-                participants:
+                By split group.
               </p>
               {balanceSummary.combinationBalances.map((combo, index) => (
                 <div
                   key={index}
                   style={{
                     marginBottom: "1.5rem",
-                    border: "1px solid #e5e7eb",
+                    border: "1px solid var(--ease-color-border)",
                     borderRadius: "0.5rem",
                     padding: "1rem",
                   }}
@@ -305,7 +303,7 @@ const BalancePage = () => {
                       <span
                         style={{
                           fontSize: "0.75rem",
-                          color: "#6b7280",
+                          color: "var(--ease-color-text-muted)",
                           fontWeight: "400",
                           marginLeft: "0.5rem",
                         }}
@@ -314,7 +312,7 @@ const BalancePage = () => {
                         {combo.expenses.length !== 1 ? "s" : ""})
                       </span>
                     </h4>
-                    <div style={{ fontSize: "0.75rem", color: "#6b7280" }}>
+                    <div style={{ fontSize: "0.75rem", color: "var(--ease-color-text-muted)" }}>
                       Total: {formatCurrency(combo.totalAmount)}
                     </div>
                   </div>
@@ -342,7 +340,7 @@ const BalancePage = () => {
                                   style={{
                                     marginLeft: "0.25rem",
                                     fontSize: "0.7rem",
-                                    color: "#667eea",
+                                    color: "var(--ease-color-brand)",
                                   }}
                                 >
                                   (You)
@@ -350,7 +348,7 @@ const BalancePage = () => {
                               )}
                             </span>
                             <div
-                              style={{ fontSize: "0.75rem", color: "#9ca3af" }}
+                              style={{ fontSize: "0.75rem", color: "var(--ease-color-text-soft)" }}
                             >
                               Paid {formatCurrency(balance.totalPaid)} • Owes{" "}
                               {formatCurrency(balance.totalOwed)}
@@ -361,10 +359,10 @@ const BalancePage = () => {
                               fontWeight: "600",
                               color:
                                 balance.netBalance > 0
-                                  ? "#059669"
+                                  ? "var(--ease-color-success)"
                                   : balance.netBalance < 0
-                                  ? "#dc2626"
-                                  : "#6b7280",
+                                  ? "var(--ease-color-danger)"
+                                  : "var(--ease-color-text-muted)",
                             }}
                           >
                             {balance.netBalance > 0 && "+"}
@@ -380,11 +378,11 @@ const BalancePage = () => {
                       <div
                         style={{
                           fontSize: "0.75rem",
-                          color: "#6b7280",
+                          color: "var(--ease-color-text-muted)",
                           marginBottom: "0.5rem",
                         }}
                       >
-                        Settlements needed:
+                        Settle:
                       </div>
                       {combo.settlements.map((settlement, sIndex) => (
                         <div
@@ -392,14 +390,14 @@ const BalancePage = () => {
                           style={{
                             fontSize: "0.8rem",
                             padding: "0.25rem 0.5rem",
-                            background: "#f9fafb",
+                            background: "var(--ease-color-surface-raised)",
                             borderRadius: "0.25rem",
                             marginBottom: "0.25rem",
                           }}
                         >
                           <strong>{settlement.fromUserName}</strong> pays{" "}
                           <strong>{settlement.toUserName}</strong>{" "}
-                          <strong style={{ color: "#667eea" }}>
+                          <strong style={{ color: "var(--ease-color-brand)" }}>
                             {formatCurrency(settlement.amount)}
                           </strong>
                         </div>
@@ -412,10 +410,10 @@ const BalancePage = () => {
                       <div
                         style={{
                           fontSize: "0.75rem",
-                          color: "#059669",
+                          color: "var(--ease-color-success)",
                           textAlign: "center",
                           padding: "0.5rem",
-                          background: "#d1fae5",
+                          background: "var(--ease-color-success-soft)",
                           borderRadius: "0.25rem",
                         }}
                       >
@@ -434,18 +432,18 @@ const BalancePage = () => {
             <p
               style={{
                 fontSize: "0.875rem",
-                color: "#6b7280",
+                color: "var(--ease-color-text-muted)",
                 marginBottom: "1rem",
               }}
             >
-              These are the minimum transactions needed to settle all debts:
+              Minimum payments.
             </p>
             <div className="list">
               {balanceSummary.settlements.map((settlement, index) => (
                 <div key={index} className="settlement-item">
                   <strong>{settlement.fromUserName}</strong> pays{" "}
                   <strong>{settlement.toUserName}</strong>{" "}
-                  <strong style={{ color: "#667eea" }}>
+                  <strong style={{ color: "var(--ease-color-brand)" }}>
                     {formatCurrency(settlement.amount)}
                   </strong>
                 </div>
@@ -458,10 +456,9 @@ const BalancePage = () => {
           trip.expenses.length > 0 && (
             <div className="card">
               <div style={{ textAlign: "center", padding: "2rem" }}>
-                <div style={{ fontSize: "3rem", marginBottom: "1rem" }}>🎉</div>
-                <h3 style={{ color: "#059669" }}>All Settled!</h3>
-                <p style={{ color: "#6b7280", fontSize: "0.875rem" }}>
-                  Everyone has paid their fair share. No settlements needed!
+                <h3 style={{ color: "var(--ease-color-success)" }}>All Settled!</h3>
+                <p style={{ color: "var(--ease-color-text-muted)", fontSize: "0.875rem" }}>
+                  No payments needed.
                 </p>
               </div>
             </div>
@@ -473,12 +470,12 @@ const BalancePage = () => {
               <h3>No Expenses Yet</h3>
               <p
                 style={{
-                  color: "#6b7280",
+                  color: "var(--ease-color-text-muted)",
                   fontSize: "0.875rem",
                   marginBottom: "1rem",
                 }}
               >
-                Add some expenses to see the balance summary
+                Add an expense to see balances.
               </p>
               <Link
                 to={`/group/${groupId}/add-expense`}

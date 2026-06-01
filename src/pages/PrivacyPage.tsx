@@ -1,15 +1,13 @@
-import { Link } from "react-router-dom";
+import { AppHeader } from "../components/ui/AppHeader";
 
 const PrivacyPage = () => {
   return (
     <>
-      <div className="header">
-        <Link to="/" className="back-button">
-          ←
-        </Link>
-        <h1>Privacy Policy</h1>
-        <p>How we protect your information</p>
-      </div>
+      <AppHeader
+        backTo="/"
+        title="Privacy Policy"
+        subtitle="How we protect your information"
+      />
 
       <div className="content">
         <div className="card">
@@ -17,7 +15,7 @@ const PrivacyPage = () => {
           <p
             style={{
               fontSize: "0.875rem",
-              color: "#6b7280",
+              color: "var(--ease-color-text-muted)",
               marginBottom: "1rem",
             }}
           >
@@ -28,14 +26,14 @@ const PrivacyPage = () => {
             style={{
               fontSize: "0.875rem",
               lineHeight: "1.6",
-              color: "#374151",
+              color: "var(--ease-color-text)",
             }}
           >
             <h4
               style={{
                 marginTop: "1.5rem",
                 marginBottom: "0.5rem",
-                color: "#1f2937",
+                color: "var(--ease-color-text)",
               }}
             >
               Information We Collect
@@ -55,7 +53,7 @@ const PrivacyPage = () => {
               style={{
                 marginTop: "1.5rem",
                 marginBottom: "0.5rem",
-                color: "#1f2937",
+                color: "var(--ease-color-text)",
               }}
             >
               How We Use Information
@@ -72,7 +70,7 @@ const PrivacyPage = () => {
               style={{
                 marginTop: "1.5rem",
                 marginBottom: "0.5rem",
-                color: "#1f2937",
+                color: "var(--ease-color-text)",
               }}
             >
               Data Storage
@@ -88,7 +86,7 @@ const PrivacyPage = () => {
               style={{
                 marginTop: "1.5rem",
                 marginBottom: "0.5rem",
-                color: "#1f2937",
+                color: "var(--ease-color-text)",
               }}
             >
               Third-Party Services
@@ -111,7 +109,7 @@ const PrivacyPage = () => {
               style={{
                 marginTop: "1.5rem",
                 marginBottom: "0.5rem",
-                color: "#1f2937",
+                color: "var(--ease-color-text)",
               }}
             >
               Cookies and Tracking
@@ -127,7 +125,7 @@ const PrivacyPage = () => {
               style={{
                 marginTop: "1.5rem",
                 marginBottom: "0.5rem",
-                color: "#1f2937",
+                color: "var(--ease-color-text)",
               }}
             >
               Data Deletion
@@ -143,7 +141,7 @@ const PrivacyPage = () => {
               style={{
                 marginTop: "1.5rem",
                 marginBottom: "0.5rem",
-                color: "#1f2937",
+                color: "var(--ease-color-text)",
               }}
             >
               Contact Us
@@ -153,7 +151,7 @@ const PrivacyPage = () => {
               issue on our{" "}
               <a
                 href="https://github.com/psh320/travel-split"
-                style={{ color: "#667eea" }}
+                style={{ color: "var(--ease-color-brand)" }}
               >
                 GitHub repository
               </a>
@@ -164,7 +162,7 @@ const PrivacyPage = () => {
               style={{
                 marginTop: "1.5rem",
                 marginBottom: "0.5rem",
-                color: "#1f2937",
+                color: "var(--ease-color-text)",
               }}
             >
               Changes to Privacy Policy

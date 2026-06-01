@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
+import { AppHeader } from "../components/ui/AppHeader";
 import { FirebaseService } from "../services/firebase";
 import type { Trip } from "../types";
 import { formatCurrency, formatDate } from "../utils";
@@ -145,16 +146,13 @@ const ExpensesPage = () => {
 
   return (
     <>
-      <div className="header">
-        <Link to={`/group/${groupId}`} className="back-button">
-          ←
-        </Link>
-        <h1>All Expenses</h1>
-        <p>
-          {filteredAndSortedExpenses.length} of {trip.expenses.length} expenses
-          • {formatCurrency(filteredTotal)}
-        </p>
-      </div>
+      <AppHeader
+        backTo={`/group/${groupId}`}
+        title="Expenses"
+        subtitle={`${filteredAndSortedExpenses.length} of ${
+          trip.expenses.length
+        } expenses • ${formatCurrency(filteredTotal)}`}
+      />
 
       <div className="content">
         {/* Search and Filter Controls */}
@@ -165,7 +163,7 @@ const ExpensesPage = () => {
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="Search expenses or payer names..."
+              placeholder="Search"
               style={{ width: "100%" }}
             />
           </div>
@@ -189,7 +187,7 @@ const ExpensesPage = () => {
               <label
                 style={{
                   fontSize: "0.75rem",
-                  color: "#6b7280",
+                  color: "var(--ease-color-text-muted)",
                   fontWeight: "600",
                 }}
               >
@@ -216,7 +214,7 @@ const ExpensesPage = () => {
               <label
                 style={{
                   fontSize: "0.75rem",
-                  color: "#6b7280",
+                  color: "var(--ease-color-text-muted)",
                   fontWeight: "600",
                 }}
               >
@@ -252,12 +250,12 @@ const ExpensesPage = () => {
                   style={{
                     fontSize: "1.5rem",
                     fontWeight: "600",
-                    color: "#667eea",
+                    color: "var(--ease-color-brand)",
                   }}
                 >
                   {filteredAndSortedExpenses.length}
                 </div>
-                <div style={{ fontSize: "0.75rem", color: "#6b7280" }}>
+                <div style={{ fontSize: "0.75rem", color: "var(--ease-color-text-muted)" }}>
                   {filterBy === "all"
                     ? "Found"
                     : filterBy === "paid-by-me"
@@ -270,12 +268,12 @@ const ExpensesPage = () => {
                   style={{
                     fontSize: "1.5rem",
                     fontWeight: "600",
-                    color: "#10b981",
+                    color: "var(--ease-color-success)",
                   }}
                 >
                   {formatCurrency(filteredTotal)}
                 </div>
-                <div style={{ fontSize: "0.75rem", color: "#6b7280" }}>
+                <div style={{ fontSize: "0.75rem", color: "var(--ease-color-text-muted)" }}>
                   Total
                 </div>
               </div>
@@ -285,7 +283,7 @@ const ExpensesPage = () => {
                     style={{
                       fontSize: "1.5rem",
                       fontWeight: "600",
-                      color: "#f59e0b",
+                      color: "var(--ease-color-warning)",
                     }}
                   >
                     {Math.round(
@@ -295,7 +293,7 @@ const ExpensesPage = () => {
                     )}
                     %
                   </div>
-                  <div style={{ fontSize: "0.75rem", color: "#6b7280" }}>
+                  <div style={{ fontSize: "0.75rem", color: "var(--ease-color-text-muted)" }}>
                     of All
                   </div>
                 </div>
@@ -314,7 +312,7 @@ const ExpensesPage = () => {
               marginBottom: "1rem",
             }}
           >
-            <h3>Expenses</h3>
+            <h3>List</h3>
             <Link
               to={`/group/${groupId}/add-expense`}
               className="btn btn-primary"
@@ -329,19 +327,17 @@ const ExpensesPage = () => {
               style={{
                 textAlign: "center",
                 padding: "2rem",
-                color: "#6b7280",
+                color: "var(--ease-color-text-muted)",
                 fontSize: "0.875rem",
               }}
             >
               {trip.expenses.length === 0 ? (
                 <>
-                  <p>No expenses yet</p>
-                  <p>Add your first expense to get started!</p>
+              <p>No expenses yet</p>
                 </>
               ) : (
                 <>
-                  <p>No expenses match your search</p>
-                  <p>Try adjusting your filters or search term</p>
+                  <p>No matches</p>
                 </>
               )}
             </div>
@@ -383,7 +379,7 @@ const ExpensesPage = () => {
                               {userPaid && (
                                 <span
                                   style={{
-                                    color: "#10b981",
+                                    color: "var(--ease-color-success)",
                                     fontWeight: "600",
                                   }}
                                 >
@@ -393,7 +389,7 @@ const ExpensesPage = () => {
                               )}
                             </div>
                             <div
-                              style={{ fontSize: "0.75rem", color: "#9ca3af" }}
+                              style={{ fontSize: "0.75rem", color: "var(--ease-color-text-soft)" }}
                             >
                               Split {expense.participants.length} ways (
                               {formatCurrency(splitAmount)} each) •{" "}
@@ -401,7 +397,7 @@ const ExpensesPage = () => {
                               {userOwes && (
                                 <span
                                   style={{
-                                    color: "#f59e0b",
+                                    color: "var(--ease-color-warning)",
                                     fontWeight: "600",
                                   }}
                                 >
@@ -419,7 +415,7 @@ const ExpensesPage = () => {
                           <button
                             onClick={() => handleDeleteExpense(expense.id)}
                             className="list-item-action"
-                            style={{ color: "#ef4444" }}
+                            style={{ color: "var(--ease-color-danger)" }}
                           >
                             Delete
                           </button>
@@ -440,7 +436,7 @@ const ExpensesPage = () => {
             <div
               style={{
                 fontSize: "0.875rem",
-                color: "#6b7280",
+                color: "var(--ease-color-text-muted)",
                 lineHeight: "1.6",
               }}
             >

@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
+import { AppHeader } from "../components/ui/AppHeader";
 import { FirebaseService } from "../services/firebase";
 import { GroupHistoryService } from "../services/groupHistory";
 import type { Trip, User } from "../types";
@@ -139,22 +140,17 @@ const JoinTripPage = () => {
   if (step === "code") {
     return (
       <>
-        <div className="header">
-          <Link to="/" className="back-button">
-            ←
-          </Link>
-          <h1>Join Group</h1>
-          <p>Enter room code to join existing trip</p>
-        </div>
+        <AppHeader
+          backTo="/"
+          title="Join Group"
+          subtitle="Enter the room code."
+        />
 
         <div className="content">
           {error && (
-            <div
-              className="card"
-              style={{ marginBottom: "1rem", border: "1px solid #f87171" }}
-            >
-              <div style={{ color: "#dc2626", fontSize: "0.875rem" }}>
-                ⚠️ {error}
+            <div className="callout callout-danger" style={{ marginBottom: "1rem" }}>
+              <div style={{ color: "var(--ease-color-danger)", fontSize: "0.875rem" }}>
+                {error}
               </div>
             </div>
           )}
@@ -184,11 +180,11 @@ const JoinTripPage = () => {
               <div
                 style={{
                   fontSize: "0.75rem",
-                  color: "#6b7280",
+                  color: "var(--ease-color-text-muted)",
                   marginTop: "0.5rem",
                 }}
               >
-                Enter the 6-character code shared by your trip organizer
+                6 characters
               </div>
             </div>
 
@@ -213,15 +209,12 @@ const JoinTripPage = () => {
             <div
               style={{
                 fontSize: "0.875rem",
-                color: "#6b7280",
+                color: "var(--ease-color-text-muted)",
                 lineHeight: "1.6",
               }}
             >
-              <p>• Ask your trip organizer for the room code</p>
-              <p>• The code is exactly 6 characters long</p>
-              <p>
-                • All expenses and calculations will be synced automatically
-              </p>
+              <p>• Ask for the room code</p>
+              <p>• Changes sync automatically</p>
             </div>
           </div>
         </div>
@@ -233,19 +226,17 @@ const JoinTripPage = () => {
   if (step === "details" && trip) {
     return (
       <>
-        <div className="header">
-          <button onClick={handleBackToCode} className="back-button">
-            ←
-          </button>
-          <h1>Join "{trip.name}"</h1>
-          <p>Choose how to join this group</p>
-        </div>
+        <AppHeader
+          onBack={handleBackToCode}
+          title={`Join "${trip.name}"`}
+          subtitle="Pick your name."
+        />
 
         <div className="content">
           {/* Trip Info */}
           <div className="card">
             <h3>Group Details</h3>
-            <div style={{ fontSize: "0.875rem", color: "#6b7280" }}>
+            <div style={{ fontSize: "0.875rem", color: "var(--ease-color-text-muted)" }}>
               <p>
                 <strong>Group Name:</strong> {trip.name}
               </p>
@@ -266,15 +257,15 @@ const JoinTripPage = () => {
           {/* Existing Participants */}
           {trip.participants.length > 0 && (
             <div className="card">
-              <h3>Rejoin as Existing Member</h3>
+            <h3>Existing member</h3>
               <p
                 style={{
                   fontSize: "0.875rem",
-                  color: "#6b7280",
+                  color: "var(--ease-color-text-muted)",
                   marginBottom: "1rem",
                 }}
               >
-                Click on your name if you've joined this group before:
+                Tap your name.
               </p>
               <div className="list">
                 {trip.participants.map((participant: User) => (
@@ -285,16 +276,16 @@ const JoinTripPage = () => {
                     style={{
                       cursor: "pointer",
                       transition: "all 0.2s ease",
-                      backgroundColor: "#f9fafb",
-                      border: "1px solid #e5e7eb",
+                      backgroundColor: "var(--ease-color-surface-raised)",
+                      border: "1px solid var(--ease-color-border)",
                     }}
                     onMouseEnter={(e) => {
-                      e.currentTarget.style.backgroundColor = "#f3f4f6";
-                      e.currentTarget.style.borderColor = "#667eea";
+                      e.currentTarget.style.backgroundColor = "var(--ease-color-surface-subtle)";
+                      e.currentTarget.style.borderColor = "var(--ease-color-brand)";
                     }}
                     onMouseLeave={(e) => {
-                      e.currentTarget.style.backgroundColor = "#f9fafb";
-                      e.currentTarget.style.borderColor = "#e5e7eb";
+                      e.currentTarget.style.backgroundColor = "var(--ease-color-surface-raised)";
+                      e.currentTarget.style.borderColor = "var(--ease-color-border)";
                     }}
                   >
                     <div className="list-item-content">
@@ -304,7 +295,7 @@ const JoinTripPage = () => {
                           style={{
                             marginLeft: "0.5rem",
                             fontSize: "0.75rem",
-                            color: "#667eea",
+                            color: "var(--ease-color-brand)",
                             fontWeight: "500",
                           }}
                         >
@@ -315,7 +306,7 @@ const JoinTripPage = () => {
                     <div
                       style={{
                         fontSize: "1.25rem",
-                        color: "#667eea",
+                        color: "var(--ease-color-brand)",
                         opacity: 0.6,
                       }}
                     >
@@ -329,23 +320,22 @@ const JoinTripPage = () => {
 
           {/* New User Form */}
           <div className="card">
-            <h3>Or Join as New Member</h3>
+            <h3>New member</h3>
             <p
               style={{
                 fontSize: "0.875rem",
-                color: "#6b7280",
+                color: "var(--ease-color-text-muted)",
                 marginBottom: "1rem",
               }}
             >
-              If this is your first time joining this group, enter your name
-              below:
+              Add your name.
             </p>
 
             {error && (
               <div
                 style={{
-                  color: "#dc2626",
-                  backgroundColor: "#fee2e2",
+                  color: "var(--ease-color-danger)",
+                  backgroundColor: "var(--ease-color-danger-soft)",
                   padding: "0.75rem",
                   borderRadius: "0.5rem",
                   marginBottom: "1rem",
@@ -373,7 +363,7 @@ const JoinTripPage = () => {
                 <div
                   style={{
                     fontSize: "0.75rem",
-                    color: "#6b7280",
+                    color: "var(--ease-color-text-muted)",
                     marginTop: "0.5rem",
                   }}
                 >
@@ -381,12 +371,12 @@ const JoinTripPage = () => {
                   trip.participants.some(
                     (p) => p.name.toLowerCase() === userName.toLowerCase()
                   ) ? (
-                    <span style={{ color: "#dc2626" }}>
-                      ⚠️ This name already exists. Click on "{userName}" above
-                      to join as existing user.
+                    <span style={{ color: "var(--ease-color-danger)" }}>
+                      This name already exists. Click on "{userName}" above to
+                      join as existing user.
                     </span>
                   ) : (
-                    "Choose a unique name that others can recognize"
+                    "Use a recognizable name."
                   )}
                 </div>
               </div>
@@ -409,18 +399,17 @@ const JoinTripPage = () => {
           </div>
 
           <div className="card">
-            <h3>What's Next?</h3>
+            <h3>Next</h3>
             <div
               style={{
                 fontSize: "0.875rem",
-                color: "#6b7280",
+                color: "var(--ease-color-text-muted)",
                 lineHeight: "1.6",
               }}
             >
-              <p>• Join the group and start tracking shared expenses</p>
-              <p>• Add expenses as you spend together</p>
-              <p>• See who owes what with automatic calculations</p>
-              <p>• Settle up easily when you're done</p>
+              <p>• Add expenses</p>
+              <p>• Check balances</p>
+              <p>• Settle up</p>
             </div>
           </div>
         </div>
