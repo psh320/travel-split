@@ -12,7 +12,12 @@ export function AppHeader({ backTo, onBack, subtitle, title }: AppHeaderProps) {
   return (
     <div className="header">
       {backTo ? (
-        <Link to={backTo} className="back-button" aria-label={t("back")}>
+        <Link
+          to={backTo}
+          className="back-button"
+          aria-label={t("back")}
+          data-google-vignette="false"
+        >
           ←
         </Link>
       ) : null}

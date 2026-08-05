@@ -16,6 +16,10 @@ const termsSections = isKorean
         title: "제한",
         items: ["계산 결과 확인 필요", "서비스 중단 가능", "데이터 보관 보장 없음"],
       },
+      {
+        title: "광고",
+        items: ["무료 서비스 운영을 위해 Google 광고가 표시될 수 있음", "광고는 닫거나 건너뛸 수 있음"],
+      },
     ]
   : [
       {
@@ -30,7 +34,16 @@ const termsSections = isKorean
         title: "Limits",
         items: ["Check calculations before paying", "Service may be unavailable", "Data storage is not guaranteed"],
       },
+      {
+        title: "Advertising",
+        items: ["Google ads may be shown to keep the service free", "Overlay ads can be dismissed or skipped"],
+      },
     ];
+
+const lastUpdated = new Intl.DateTimeFormat(
+  getLocale() === "ko" ? "ko-KR" : "en-US",
+  { dateStyle: "medium", timeZone: "UTC" }
+).format(new Date(Date.UTC(2026, 6, 16)));
 
 const TermsPage = () => {
   return (
@@ -45,8 +58,7 @@ const TermsPage = () => {
         <div className="card">
           <h3>{t("termsOfService")}</h3>
           <p className="muted" style={{ marginBottom: "1rem" }}>
-            {isKorean ? "업데이트:" : "Last updated:"}{" "}
-            {new Date().toLocaleDateString(getLocale() === "ko" ? "ko-KR" : "en-US")}
+            {isKorean ? "업데이트:" : "Last updated:"} {lastUpdated}
           </p>
 
           <div style={{ fontSize: "0.875rem", lineHeight: "1.6" }}>
@@ -67,7 +79,11 @@ const TermsPage = () => {
               </h4>
               <p>
                 {isKorean ? "데이터 사용 방식은 " : "See the "}
-                <Link to="/privacy" style={{ color: "var(--ease-color-brand)" }}>
+                <Link
+                  to="/privacy"
+                  style={{ color: "var(--ease-color-brand)" }}
+                  data-google-vignette="false"
+                >
                   {t("privacyPolicy")}
                 </Link>
                 {isKorean ? "에서 확인하세요." : " for data details."}

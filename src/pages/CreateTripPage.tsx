@@ -5,18 +5,24 @@ import { FirebaseService } from "../services/firebase";
 import { GroupHistoryService } from "../services/groupHistory";
 import { t } from "../i18n";
 import type { CreateTripForm } from "../types";
+import { CURRENCY_OPTIONS } from "../utils/currencies";
+import { useToast } from "../components/ui/useToast";
 
 const CreateTripPage = () => {
   const navigate = useNavigate();
+  const { showToast } = useToast();
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState<CreateTripForm>({
     name: "",
     description: "",
     creatorName: "",
+    currency: "USD",
   });
 
   const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+    >
   ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
@@ -28,7 +34,7 @@ const CreateTripPage = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.name.trim() || !formData.creatorName.trim()) {
-      alert(`${t("groupName")} / ${t("yourName")}`);
+      showToast(`${t("groupName")} / ${t("yourName")}`, "error");
       return;
     }
 
@@ -37,7 +43,8 @@ const CreateTripPage = () => {
       const { trip, roomCode } = await FirebaseService.createTrip(
         formData.name.trim(),
         formData.description?.trim() || "",
-        formData.creatorName.trim()
+        formData.creatorName.trim(),
+        formData.currency
       );
 
       // Store room code and user info in localStorage for easy access
@@ -63,17 +70,19 @@ const CreateTripPage = () => {
       if (navigator.clipboard) {
         try {
           await navigator.clipboard.writeText(shareableLink);
-          alert(
-            `${t("createGroup")}\n\n${t("shareLink")}:\n${shareableLink}`
-          );
+          showToast(`${t("createGroup")} · ${shareableLink}`, "success", 5000);
         } catch {
-          alert(
-            `${t("createGroup")}\n\n${t("shareLink")}:\n${shareableLink}\n\n${t("roomCode")} ${roomCode}`
+          showToast(
+            `${t("createGroup")} · ${t("roomCode")} ${roomCode}`,
+            "success",
+            5000
           );
         }
       } else {
-        alert(
-          `${t("createGroup")}\n\n${t("shareLink")}:\n${shareableLink}\n\n${t("roomCode")} ${roomCode}`
+        showToast(
+          `${t("createGroup")} · ${t("roomCode")} ${roomCode}`,
+          "success",
+          5000
         );
       }
 
@@ -81,7 +90,7 @@ const CreateTripPage = () => {
       navigate(`/group/${trip.id}`);
     } catch (error) {
       console.error("Error creating trip:", error);
-      alert(t("createGroup"));
+      showToast(t("createGroup"), "error");
     } finally {
       setLoading(false);
     }
@@ -108,6 +117,24 @@ const CreateTripPage = () => {
               placeholder={t("newGroup")}
               required
             />
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="currency">{t("currency")}</label>
+            <select
+              id="currency"
+              name="currency"
+              value={formData.currency}
+              onChange={handleInputChange}
+              required
+            >
+              {CURRENCY_OPTIONS.map((option) => (
+                <option key={option.code} value={option.code}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+            <span className="form-help">{t("currencyNote")}</span>
           </div>
 
           <div className="form-group">

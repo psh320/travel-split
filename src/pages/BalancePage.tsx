@@ -6,38 +6,44 @@ import type { Trip, BalanceSummary } from "../types";
 import { calculateBalances } from "../utils/balanceCalculator";
 import { formatCurrency } from "../utils";
 import { countLabel, t } from "../i18n";
+import { useToast } from "../components/ui/useToast";
 
 const BalancePage = () => {
   const { groupId } = useParams<{ groupId: string }>();
   const navigate = useNavigate();
-  const [trip, setTrip] = useState<Trip | null>(null);
+  const { showToast } = useToast();
+  const cachedTrip = groupId ? FirebaseService.getCachedTripById(groupId) : null;
+  const [trip, setTrip] = useState<Trip | null>(cachedTrip);
   const [balanceSummary, setBalanceSummary] = useState<BalanceSummary | null>(
-    null
+    cachedTrip ? calculateBalances(cachedTrip) : null
   );
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!cachedTrip);
   const [currentUserId, setCurrentUserId] = useState<string>("");
 
   const loadTrip = useCallback(async () => {
     if (!groupId) return;
 
-    setLoading(true);
+    const hasCachedTrip = Boolean(FirebaseService.getCachedTripById(groupId));
+    if (!hasCachedTrip) setLoading(true);
     try {
-      const tripData = await FirebaseService.getTripById(groupId);
+      const tripData = await FirebaseService.getTripById(groupId, {
+        force: hasCachedTrip,
+      });
       if (tripData) {
         setTrip(tripData);
         const summary = calculateBalances(tripData);
         setBalanceSummary(summary);
       } else {
-        alert(t("groupNotFound"));
+        showToast(t("groupNotFound"), "error");
         navigate("/");
       }
     } catch (error) {
       console.error("Error loading trip:", error);
-      alert(t("groupNotFound"));
+      showToast(t("groupNotFound"), "error");
     } finally {
       setLoading(false);
     }
-  }, [groupId, navigate]);
+  }, [groupId, navigate, showToast]);
 
   useEffect(() => {
     const userId = localStorage.getItem("currentUserId");
@@ -79,6 +85,7 @@ const BalancePage = () => {
   const currentUserSettlements = balanceSummary.settlements.filter(
     (s) => s.fromUserId === currentUserId || s.toUserId === currentUserId
   );
+  const currency = trip.currency || "USD";
 
   return (
     <>
@@ -94,7 +101,8 @@ const BalancePage = () => {
           <h3>{t("summary")}</h3>
           <div style={{ fontSize: "0.875rem", color: "var(--ease-color-text-muted)" }}>
             <p>
-              <strong>{t("totalExpenses")}</strong> {formatCurrency(totalExpenses)}
+              <strong>{t("totalExpenses")}</strong>{" "}
+              {formatCurrency(totalExpenses, currency)}
             </p>
             <p>
               <strong>{t("numberOfExpenses")}</strong>{" "}
@@ -124,7 +132,7 @@ const BalancePage = () => {
                   {t("youPaid")}
                 </div>
                 <div style={{ fontSize: "1.125rem", fontWeight: "600" }}>
-                  {formatCurrency(currentUserBalance.totalPaid)}
+                  {formatCurrency(currentUserBalance.totalPaid, currency)}
                 </div>
               </div>
               <div style={{ textAlign: "center" }}>
@@ -132,7 +140,7 @@ const BalancePage = () => {
                   {t("youOwe")}
                 </div>
                 <div style={{ fontSize: "1.125rem", fontWeight: "600" }}>
-                  {formatCurrency(currentUserBalance.totalOwed)}
+                  {formatCurrency(currentUserBalance.totalOwed, currency)}
                 </div>
               </div>
               <div style={{ textAlign: "right" }}>
@@ -152,7 +160,10 @@ const BalancePage = () => {
                   }}
                 >
                   {currentUserBalance.netBalance > 0 && "+"}
-                  {formatCurrency(Math.abs(currentUserBalance.netBalance))}
+                  {formatCurrency(
+                    Math.abs(currentUserBalance.netBalance),
+                    currency
+                  )}
                 </div>
               </div>
             </div>
@@ -173,13 +184,17 @@ const BalancePage = () => {
               {currentUserBalance.netBalance > 0 && (
                 <span style={{ color: "var(--ease-color-success)" }}>
                   {t("youAreOwed")}{" "}
-                  {formatCurrency(currentUserBalance.netBalance)} {t("overall")}
+                  {formatCurrency(currentUserBalance.netBalance, currency)}{" "}
+                  {t("overall")}
                 </span>
               )}
               {currentUserBalance.netBalance < 0 && (
                 <span style={{ color: "var(--ease-color-danger)" }}>
                   {t("youOwe")}{" "}
-                  {formatCurrency(Math.abs(currentUserBalance.netBalance))}{" "}
+                  {formatCurrency(
+                    Math.abs(currentUserBalance.netBalance),
+                    currency
+                  )}{" "}
                   {t("overall")}
                 </span>
               )}
@@ -203,7 +218,7 @@ const BalancePage = () => {
                     <div>
                       {t("youOwe")} <strong>{settlement.toUserName}</strong>{" "}
                       <strong style={{ color: "var(--ease-color-danger)" }}>
-                        {formatCurrency(settlement.amount)}
+                        {formatCurrency(settlement.amount, currency)}
                       </strong>
                     </div>
                   ) : (
@@ -211,7 +226,7 @@ const BalancePage = () => {
                       <strong>{settlement.fromUserName}</strong>{" "}
                       {t("youAreOwed")}{" "}
                       <strong style={{ color: "var(--ease-color-success)" }}>
-                        {formatCurrency(settlement.amount)}
+                        {formatCurrency(settlement.amount, currency)}
                       </strong>
                     </div>
                   )}
@@ -254,9 +269,9 @@ const BalancePage = () => {
                       )}
                     </div>
                     <div style={{ fontSize: "0.75rem", color: "var(--ease-color-text-muted)" }}>
-                      {t("paid")} {formatCurrency(balance.totalPaid)} •{" "}
+                      {t("paid")} {formatCurrency(balance.totalPaid, currency)} •{" "}
                       {t("owes")}{" "}
-                      {formatCurrency(balance.totalOwed)}
+                      {formatCurrency(balance.totalOwed, currency)}
                     </div>
                   </div>
                   <div
@@ -271,7 +286,7 @@ const BalancePage = () => {
                     }}
                   >
                     {balance.netBalance > 0 && "+"}
-                    {formatCurrency(Math.abs(balance.netBalance))}
+                    {formatCurrency(Math.abs(balance.netBalance), currency)}
                   </div>
                 </div>
               ))}
@@ -317,7 +332,7 @@ const BalancePage = () => {
                       </span>
                     </h4>
                     <div style={{ fontSize: "0.75rem", color: "var(--ease-color-text-muted)" }}>
-                      {t("total")}: {formatCurrency(combo.totalAmount)}
+                      {t("total")}: {formatCurrency(combo.totalAmount, currency)}
                     </div>
                   </div>
 
@@ -354,9 +369,9 @@ const BalancePage = () => {
                             <div
                               style={{ fontSize: "0.75rem", color: "var(--ease-color-text-soft)" }}
                             >
-                              {t("paid")} {formatCurrency(balance.totalPaid)} •{" "}
+                              {t("paid")} {formatCurrency(balance.totalPaid, currency)} •{" "}
                               {t("owes")}{" "}
-                              {formatCurrency(balance.totalOwed)}
+                              {formatCurrency(balance.totalOwed, currency)}
                             </div>
                           </div>
                           <div
@@ -371,7 +386,10 @@ const BalancePage = () => {
                             }}
                           >
                             {balance.netBalance > 0 && "+"}
-                            {formatCurrency(Math.abs(balance.netBalance))}
+                            {formatCurrency(
+                              Math.abs(balance.netBalance),
+                              currency
+                            )}
                           </div>
                         </div>
                       ))}
@@ -404,7 +422,7 @@ const BalancePage = () => {
                           {t("pays")}{" "}
                           <strong>{settlement.toUserName}</strong>{" "}
                           <strong style={{ color: "var(--ease-color-brand)" }}>
-                            {formatCurrency(settlement.amount)}
+                            {formatCurrency(settlement.amount, currency)}
                           </strong>
                         </div>
                       ))}
@@ -450,7 +468,7 @@ const BalancePage = () => {
                   <strong>{settlement.fromUserName}</strong> {t("pays")}{" "}
                   <strong>{settlement.toUserName}</strong>{" "}
                   <strong style={{ color: "var(--ease-color-brand)" }}>
-                    {formatCurrency(settlement.amount)}
+                    {formatCurrency(settlement.amount, currency)}
                   </strong>
                 </div>
               ))}

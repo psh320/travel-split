@@ -7,39 +7,44 @@ import { GroupHistoryService } from "../services/groupHistory";
 import { countLabel, t } from "../i18n";
 import type { Trip } from "../types";
 import { formatCurrency, formatDate, timeAgo } from "../utils";
+import { useToast } from "../components/ui/useToast";
 
 const TripDashboard = () => {
   const { groupId } = useParams<{ groupId: string }>();
   const navigate = useNavigate();
-  const [trip, setTrip] = useState<Trip | null>(null);
-  const [loading, setLoading] = useState(true);
+  const { showToast } = useToast();
+  const cachedTrip = groupId ? FirebaseService.getCachedTripById(groupId) : null;
+  const [trip, setTrip] = useState<Trip | null>(cachedTrip);
+  const [loading, setLoading] = useState(!cachedTrip);
   const [currentUserId, setCurrentUserId] = useState<string>("");
   const [showAddUser, setShowAddUser] = useState(false);
   const [newUserName, setNewUserName] = useState("");
   const [addingUser, setAddingUser] = useState(false);
   const [addUserError, setAddUserError] = useState("");
 
-  const loadTrip = useCallback(async () => {
+  const loadTrip = useCallback(async (showLoading = false) => {
     if (!groupId) return;
 
-    setLoading(true);
+    if (showLoading) setLoading(true);
     try {
-      const tripData = await FirebaseService.getTripById(groupId);
+      const tripData = await FirebaseService.getTripById(groupId, {
+        force: Boolean(FirebaseService.getCachedTripById(groupId)),
+      });
       if (tripData) {
         setTrip(tripData);
         // Update last accessed time in group history
         GroupHistoryService.updateLastAccessed(groupId);
       } else {
-        alert(t("noMatches"));
+        showToast(t("noMatches"), "error");
         navigate("/");
       }
     } catch (error) {
       console.error("Error loading trip:", error);
-      alert(t("noMatches"));
+      showToast(t("noMatches"), "error");
     } finally {
       setLoading(false);
     }
-  }, [groupId, navigate]);
+  }, [groupId, navigate, showToast]);
 
   useEffect(() => {
     const userId = localStorage.getItem("currentUserId");
@@ -47,7 +52,7 @@ const TripDashboard = () => {
       setCurrentUserId(userId);
     }
 
-    loadTrip();
+    loadTrip(!FirebaseService.getCachedTripById(groupId ?? ""));
   }, [groupId, loadTrip]);
 
   const handleDeleteExpense = async (expenseId: string) => {
@@ -63,7 +68,7 @@ const TripDashboard = () => {
       await loadTrip();
     } catch (error) {
       console.error("Error deleting expense:", error);
-      alert(t("remove"));
+      showToast(t("remove"), "error");
     }
   };
 
@@ -139,7 +144,7 @@ const TripDashboard = () => {
       await loadTrip();
     } catch (error) {
       console.error("Error removing user:", error);
-      alert(t("remove"));
+      showToast(t("remove"), "error");
     }
   };
 
@@ -147,7 +152,7 @@ const TripDashboard = () => {
     const roomCode = localStorage.getItem("roomCode") || trip?.roomCode;
     if (roomCode) {
       navigator.clipboard.writeText(roomCode);
-      alert(`${t("roomCode")} ${roomCode}`);
+      showToast(`${t("roomCode")} ${roomCode}`, "success");
     }
   };
 
@@ -158,18 +163,12 @@ const TripDashboard = () => {
       if (navigator.clipboard) {
         try {
           await navigator.clipboard.writeText(shareableLink);
-          alert(
-            `${t("shareLink")}:\n${shareableLink}`
-          );
+          showToast(`${t("shareLink")}: ${shareableLink}`, "success", 5000);
         } catch {
-          alert(
-            `${t("shareLink")}:\n${shareableLink}`
-          );
+          showToast(`${t("shareLink")}: ${shareableLink}`, "success", 5000);
         }
       } else {
-        alert(
-          `${t("shareLink")}:\n${shareableLink}`
-        );
+        showToast(`${t("shareLink")}: ${shareableLink}`, "success", 5000);
       }
     }
   };
@@ -199,6 +198,7 @@ const TripDashboard = () => {
     (sum, expense) => sum + expense.amount,
     0
   );
+  const currency = trip.currency || "USD";
 
   return (
     <>
@@ -206,7 +206,8 @@ const TripDashboard = () => {
         backTo="/"
         title={trip.name}
         subtitle={`${countLabel("person", trip.participants.length)} • ${formatCurrency(
-          totalExpenses
+          totalExpenses,
+          currency
         )}`}
       />
 
@@ -507,7 +508,7 @@ const TripDashboard = () => {
                           {expense.description}
                         </div>
                         <div className="list-item-subtitle">
-                          {formatCurrency(expense.amount)} •{" "}
+                          {formatCurrency(expense.amount, currency)} •{" "}
                           {t("paidBy").replace(" *", "")}{" "}
                           {paidByUser?.name || "-"} •{" "}
                           {countLabel("person", expense.participants.length)} •{" "}
@@ -515,6 +516,12 @@ const TripDashboard = () => {
                         </div>
                       </div>
                       <div className="list-item-actions">
+                        <Link
+                          to={`/group/${trip.id}/edit-expense/${expense.id}`}
+                          className="list-item-action"
+                        >
+                          {t("editExpense")}
+                        </Link>
                         <button
                           onClick={() => handleDeleteExpense(expense.id)}
                           className="list-item-action"

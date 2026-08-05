@@ -21,12 +21,40 @@ import type {
 } from "../types";
 import { generateRoomCode, generateId } from "../utils";
 
+type TripCacheEntry = {
+  trip: Trip;
+  cachedAt: number;
+};
+
 export class FirebaseService {
+  private static readonly tripCacheTtl = 30_000;
+  private static readonly tripCache = new Map<string, TripCacheEntry>();
+  private static readonly tripRequests = new Map<string, Promise<Trip | null>>();
+
+  private static cacheTrip(trip: Trip): Trip {
+    this.tripCache.set(trip.id, { trip, cachedAt: Date.now() });
+    return trip;
+  }
+
+  private static updateCachedTrip(
+    tripId: string,
+    update: (trip: Trip) => Trip
+  ): void {
+    const cached = this.tripCache.get(tripId);
+    if (!cached) return;
+    this.cacheTrip(update(cached.trip));
+  }
+
+  static getCachedTripById(tripId: string): Trip | null {
+    return this.tripCache.get(tripId)?.trip ?? null;
+  }
+
   // Trip operations
   static async createTrip(
     name: string,
     description: string,
-    creatorName: string
+    creatorName: string,
+    currency: string = "USD"
   ): Promise<{ trip: Trip; roomCode: string }> {
     const roomCode = generateRoomCode();
     const creatorId = generateId();
@@ -42,6 +70,7 @@ export class FirebaseService {
       name,
       description,
       roomCode,
+      currency,
       createdBy: creatorId,
       participants: [creator],
       expenses: [],
@@ -60,7 +89,8 @@ export class FirebaseService {
         })),
       });
 
-      return { trip: { ...trip, id: docRef.id }, roomCode };
+      const createdTrip = this.cacheTrip({ ...trip, id: docRef.id });
+      return { trip: createdTrip, roomCode };
     } catch (error) {
       console.error("Error creating trip:", error);
       throw new Error("Failed to create trip");
@@ -82,9 +112,10 @@ export class FirebaseService {
       const doc = querySnapshot.docs[0];
       const data = doc.data() as FirestoreTripData;
 
-      return {
+      return this.cacheTrip({
         ...data,
         id: doc.id,
+        currency: data.currency ?? "USD",
         createdAt: data.createdAt.toDate(),
         updatedAt: data.updatedAt.toDate(),
         participants: data.participants.map((p: FirestoreUser) => ({
@@ -96,42 +127,65 @@ export class FirebaseService {
           date: e.date.toDate(),
           createdAt: e.createdAt.toDate(),
         })),
-      } as Trip;
+      } as Trip);
     } catch (error) {
       console.error("Error getting trip by room code:", error);
       throw new Error("Failed to find trip");
     }
   }
 
-  static async getTripById(tripId: string): Promise<Trip | null> {
-    try {
-      const docRef = doc(db, "trips", tripId);
-      const docSnap = await getDoc(docRef);
+  static async getTripById(
+    tripId: string,
+    options: { force?: boolean } = {}
+  ): Promise<Trip | null> {
+    const cached = this.tripCache.get(tripId);
+    const cacheIsFresh =
+      cached && Date.now() - cached.cachedAt < this.tripCacheTtl;
 
-      if (!docSnap.exists()) {
-        return null;
-      }
-
-      const data = docSnap.data() as FirestoreTripData;
-      return {
-        ...data,
-        id: docSnap.id,
-        createdAt: data.createdAt.toDate(),
-        updatedAt: data.updatedAt.toDate(),
-        participants: data.participants.map((p: FirestoreUser) => ({
-          ...p,
-          createdAt: p.createdAt.toDate(),
-        })),
-        expenses: data.expenses.map((e: FirestoreExpense) => ({
-          ...e,
-          date: e.date.toDate(),
-          createdAt: e.createdAt.toDate(),
-        })),
-      } as Trip;
-    } catch (error) {
-      console.error("Error getting trip:", error);
-      throw new Error("Failed to get trip");
+    if (!options.force && cacheIsFresh) {
+      return cached.trip;
     }
+
+    const pendingRequest = this.tripRequests.get(tripId);
+    if (pendingRequest) return pendingRequest;
+
+    const request = (async () => {
+      try {
+        const docRef = doc(db, "trips", tripId);
+        const docSnap = await getDoc(docRef);
+
+        if (!docSnap.exists()) {
+          this.tripCache.delete(tripId);
+          return null;
+        }
+
+        const data = docSnap.data() as FirestoreTripData;
+        return this.cacheTrip({
+          ...data,
+          id: docSnap.id,
+          currency: data.currency ?? "USD",
+          createdAt: data.createdAt.toDate(),
+          updatedAt: data.updatedAt.toDate(),
+          participants: data.participants.map((p: FirestoreUser) => ({
+            ...p,
+            createdAt: p.createdAt.toDate(),
+          })),
+          expenses: data.expenses.map((e: FirestoreExpense) => ({
+            ...e,
+            date: e.date.toDate(),
+            createdAt: e.createdAt.toDate(),
+          })),
+        } as Trip);
+      } catch (error) {
+        console.error("Error getting trip:", error);
+        throw new Error("Failed to get trip");
+      } finally {
+        this.tripRequests.delete(tripId);
+      }
+    })();
+
+    this.tripRequests.set(tripId, request);
+    return request;
   }
 
   // User operations
@@ -163,6 +217,12 @@ export class FirebaseService {
         participants: updatedParticipants,
         updatedAt: Timestamp.fromDate(new Date()),
       });
+
+      this.updateCachedTrip(tripId, (trip) => ({
+        ...trip,
+        participants: [...trip.participants, newUser],
+        updatedAt: new Date(),
+      }));
 
       return newUser;
     } catch (error) {
@@ -209,6 +269,21 @@ export class FirebaseService {
         expenses: updatedExpenses,
         updatedAt: Timestamp.fromDate(new Date()),
       });
+
+      this.updateCachedTrip(tripId, (trip) => ({
+        ...trip,
+        participants: trip.participants.filter((user) => user.id !== userId),
+        expenses: trip.expenses
+          .map((expense) => ({
+            ...expense,
+            participants: expense.participants.filter((id) => id !== userId),
+          }))
+          .filter(
+            (expense) =>
+              expense.participants.length > 0 || expense.paidBy !== userId
+          ),
+        updatedAt: new Date(),
+      }));
     } catch (error) {
       console.error("Error removing user from trip:", error);
       throw new Error("Failed to remove user from trip");
@@ -236,7 +311,7 @@ export class FirebaseService {
         id: generateId(),
         description,
         amount,
-        currency: "USD", // Default currency
+        currency: tripData.currency ?? "USD",
         paidBy,
         participants,
         date: new Date(),
@@ -258,10 +333,79 @@ export class FirebaseService {
         updatedAt: Timestamp.fromDate(new Date()),
       });
 
+      this.updateCachedTrip(tripId, (trip) => ({
+        ...trip,
+        expenses: [...trip.expenses, newExpense],
+        updatedAt: new Date(),
+      }));
+
       return newExpense;
     } catch (error) {
       console.error("Error adding expense:", error);
       throw new Error("Failed to add expense");
+    }
+  }
+
+  static async updateExpense(
+    tripId: string,
+    expenseId: string,
+    description: string,
+    amount: number,
+    paidBy: string,
+    participants: string[]
+  ): Promise<Expense> {
+    try {
+      const tripRef = doc(db, "trips", tripId);
+      const tripSnap = await getDoc(tripRef);
+
+      if (!tripSnap.exists()) {
+        throw new Error("Trip not found");
+      }
+
+      const tripData = tripSnap.data() as FirestoreTripData;
+      const existingExpense = tripData.expenses.find(
+        (expense) => expense.id === expenseId
+      );
+
+      if (!existingExpense) {
+        throw new Error("Expense not found");
+      }
+
+      const updatedExpense = {
+        ...existingExpense,
+        description,
+        amount,
+        currency: tripData.currency ?? "USD",
+        paidBy,
+        participants,
+      };
+      const updatedExpenses = tripData.expenses.map((expense) =>
+        expense.id === expenseId ? updatedExpense : expense
+      );
+
+      await updateDoc(tripRef, {
+        expenses: updatedExpenses,
+        updatedAt: Timestamp.fromDate(new Date()),
+      });
+
+      const expense: Expense = {
+        ...updatedExpense,
+        date: existingExpense.date.toDate(),
+        createdAt: existingExpense.createdAt.toDate(),
+      };
+
+      this.updateCachedTrip(tripId, (trip) => ({
+        ...trip,
+        expenses: trip.expenses.map((currentExpense) =>
+          currentExpense.id === expenseId ? expense : currentExpense
+        ),
+        updatedAt: new Date(),
+      }));
+
+      return expense;
+    } catch (error) {
+      console.error("Error updating expense:", error);
+      throw new Error("Failed to update expense");
     }
   }
 
@@ -283,6 +427,12 @@ export class FirebaseService {
         expenses: updatedExpenses,
         updatedAt: Timestamp.fromDate(new Date()),
       });
+
+      this.updateCachedTrip(tripId, (trip) => ({
+        ...trip,
+        expenses: trip.expenses.filter((expense) => expense.id !== expenseId),
+        updatedAt: new Date(),
+      }));
     } catch (error) {
       console.error("Error deleting expense:", error);
       throw new Error("Failed to delete expense");

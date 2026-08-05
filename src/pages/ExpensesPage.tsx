@@ -6,12 +6,15 @@ import { FirebaseService } from "../services/firebase";
 import type { Trip } from "../types";
 import { formatCurrency, formatDate } from "../utils";
 import { countLabel, t } from "../i18n";
+import { useToast } from "../components/ui/useToast";
 
 const ExpensesPage = () => {
   const { groupId } = useParams<{ groupId: string }>();
   const navigate = useNavigate();
-  const [trip, setTrip] = useState<Trip | null>(null);
-  const [loading, setLoading] = useState(true);
+  const { showToast } = useToast();
+  const cachedTrip = groupId ? FirebaseService.getCachedTripById(groupId) : null;
+  const [trip, setTrip] = useState<Trip | null>(cachedTrip);
+  const [loading, setLoading] = useState(!cachedTrip);
   const [currentUserId, setCurrentUserId] = useState<string>("");
   const [searchTerm, setSearchTerm] = useState("");
   const [filterBy, setFilterBy] = useState<
@@ -30,25 +33,28 @@ const ExpensesPage = () => {
     const loadTrip = async () => {
       if (!groupId) return;
 
-      setLoading(true);
+      const hasCachedTrip = Boolean(FirebaseService.getCachedTripById(groupId));
+      if (!hasCachedTrip) setLoading(true);
       try {
-        const tripData = await FirebaseService.getTripById(groupId);
+        const tripData = await FirebaseService.getTripById(groupId, {
+          force: hasCachedTrip,
+        });
         if (tripData) {
           setTrip(tripData);
         } else {
-          alert(t("groupNotFound"));
+          showToast(t("groupNotFound"), "error");
           navigate("/");
         }
       } catch (error) {
         console.error("Error loading trip:", error);
-        alert(t("groupNotFound"));
+        showToast(t("groupNotFound"), "error");
       } finally {
         setLoading(false);
       }
     };
 
     loadTrip();
-  }, [groupId, navigate]);
+  }, [groupId, navigate, showToast]);
 
   const handleDeleteExpense = async (expenseId: string) => {
     if (
@@ -66,7 +72,7 @@ const ExpensesPage = () => {
       }
     } catch (error) {
       console.error("Error deleting expense:", error);
-      alert(t("remove"));
+      showToast(t("remove"), "error");
     }
   };
 
@@ -145,6 +151,7 @@ const ExpensesPage = () => {
     (sum, expense) => sum + expense.amount,
     0
   );
+  const currency = trip.currency || "USD";
 
   return (
     <>
@@ -155,7 +162,8 @@ const ExpensesPage = () => {
           "expense",
           filteredAndSortedExpenses.length
         )} / ${countLabel("expense", trip.expenses.length)} • ${formatCurrency(
-          filteredTotal
+          filteredTotal,
+          currency
         )}`}
       />
 
@@ -276,7 +284,7 @@ const ExpensesPage = () => {
                     color: "var(--ease-color-success)",
                   }}
                 >
-                  {formatCurrency(filteredTotal)}
+                  {formatCurrency(filteredTotal, currency)}
                 </div>
                 <div style={{ fontSize: "0.75rem", color: "var(--ease-color-text-muted)" }}>
                   {t("total")}
@@ -378,7 +386,7 @@ const ExpensesPage = () => {
                           </div>
                           <div className="list-item-subtitle">
                             <div style={{ marginBottom: "0.25rem" }}>
-                              <strong>{formatCurrency(expense.amount)}</strong>{" "}
+                              <strong>{formatCurrency(expense.amount, currency)}</strong>{" "}
                               • {t("paidBy").replace(" *", "")}{" "}
                               {paidByUser?.name || "-"}
                               {userPaid && (
@@ -398,7 +406,7 @@ const ExpensesPage = () => {
                             >
                               {t("split")} {expense.participants.length}{" "}
                               {t("splitWays")} (
-                              {formatCurrency(splitAmount)} {t("each")}) •{" "}
+                              {formatCurrency(splitAmount, currency)} {t("each")}) •{" "}
                               {formatDate(expense.date)}
                               {userOwes && (
                                 <span
@@ -408,7 +416,7 @@ const ExpensesPage = () => {
                                   }}
                                 >
                                   {" "}
-                                  • {t("youOwe")} {formatCurrency(splitAmount)}
+                                  • {t("youOwe")} {formatCurrency(splitAmount, currency)}
                                 </span>
                               )}
                             </div>
@@ -418,6 +426,12 @@ const ExpensesPage = () => {
                           className="list-item-actions"
                           style={{ marginLeft: "1rem" }}
                         >
+                          <Link
+                            to={`/group/${groupId}/edit-expense/${expense.id}`}
+                            className="list-item-action"
+                          >
+                            {t("editExpense")}
+                          </Link>
                           <button
                             onClick={() => handleDeleteExpense(expense.id)}
                             className="list-item-action"
@@ -454,7 +468,7 @@ const ExpensesPage = () => {
                 }}
               >
                 <span>{t("totalExpenses")}</span>
-                <strong>{formatCurrency(filteredTotal)}</strong>
+                <strong>{formatCurrency(filteredTotal, currency)}</strong>
               </div>
               <div
                 style={{
@@ -466,7 +480,8 @@ const ExpensesPage = () => {
                 <span>{t("averagePerExpense")}</span>
                 <strong>
                   {formatCurrency(
-                    filteredTotal / filteredAndSortedExpenses.length
+                    filteredTotal / filteredAndSortedExpenses.length,
+                    currency
                   )}
                 </strong>
               </div>
@@ -476,7 +491,10 @@ const ExpensesPage = () => {
                 >
                   <span>{t("averagePerPerson")}</span>
                   <strong>
-                    {formatCurrency(filteredTotal / trip.participants.length)}
+                    {formatCurrency(
+                      filteredTotal / trip.participants.length,
+                      currency
+                    )}
                   </strong>
                 </div>
               )}

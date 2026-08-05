@@ -338,6 +338,13 @@ select {
   resize: vertical;
 }
 
+.form-help {
+  margin-top: var(--ease-space-xs);
+  color: var(--ease-color-text-soft);
+  font-size: var(--ease-type-caption-size);
+  line-height: var(--ease-type-caption-line);
+}
+
 .btn {
   display: inline-flex;
   align-items: center;
@@ -521,6 +528,104 @@ select {
   transition:
     color var(--ease-motion-fast) ease,
     opacity var(--ease-motion-fast) ease;
+}
+
+.toast-region {
+  position: fixed;
+  right: 16px;
+  bottom: calc(16px + var(--safe-area-inset-bottom));
+  left: 16px;
+  z-index: 100;
+  display: flex;
+  width: min(100% - 32px, 448px);
+  margin: 0 auto;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--ease-space-sm);
+  pointer-events: none;
+}
+
+.toast {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  gap: var(--ease-space-sm);
+  min-height: 52px;
+  padding: var(--ease-space-sm) var(--ease-space-md);
+  border: var(--ease-border-hairline) solid var(--ease-color-border-strong);
+  border-radius: var(--ease-radius-md);
+  background: var(--ease-color-surface-inverse);
+  color: var(--ease-color-text-inverse);
+  box-shadow: 0 12px 28px rgb(0 0 0 / 18%);
+  pointer-events: auto;
+  animation: toast-in 180ms ease-out both;
+}
+
+.toast-success {
+  border-color: color-mix(in srgb, var(--ease-color-success) 60%, transparent);
+}
+
+.toast-error {
+  border-color: color-mix(in srgb, var(--ease-color-danger) 70%, transparent);
+}
+
+.toast-mark {
+  display: inline-flex;
+  width: 24px;
+  min-width: 24px;
+  height: 24px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: var(--ease-color-text-inverse);
+  color: var(--ease-color-surface-inverse);
+  font-size: 0.75rem;
+  font-weight: 800;
+}
+
+.toast-message {
+  min-width: 0;
+  flex: 1;
+  font-size: 0.875rem;
+  font-weight: 620;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.toast-dismiss {
+  display: inline-flex;
+  width: 36px;
+  min-width: 36px;
+  height: 36px;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: var(--ease-radius-sm);
+  background: transparent;
+  color: var(--ease-color-text-inverse);
+  cursor: pointer;
+  font-size: 1.25rem;
+  line-height: 1;
+  opacity: 0.78;
+}
+
+.toast-dismiss:hover,
+.toast-dismiss:focus-visible {
+  background: rgb(255 255 255 / 12%);
+  opacity: 1;
+  outline: none;
+}
+
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .icon-button:hover {

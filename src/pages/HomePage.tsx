@@ -58,6 +58,7 @@ const HomePage = () => {
         to="/"
         className="home-app-brand"
         onClick={() => setSettingsOpen(false)}
+        data-google-vignette="false"
       >
         {t("appName")}
       </Link>
@@ -76,6 +77,7 @@ const HomePage = () => {
               to="/privacy"
               role="menuitem"
               onClick={() => setSettingsOpen(false)}
+              data-google-vignette="false"
             >
               {t("privacy")}
             </Link>
@@ -83,6 +85,7 @@ const HomePage = () => {
               to="/terms"
               role="menuitem"
               onClick={() => setSettingsOpen(false)}
+              data-google-vignette="false"
             >
               {t("terms")}
             </Link>

@@ -19,6 +19,14 @@ const privacySections = isKorean
         title: "삭제",
         items: ["지출 삭제", "브라우저 데이터 삭제", "GitHub 이슈로 요청"],
       },
+      {
+        title: "Google 광고",
+        items: [
+          "Google AdSense가 광고 제공과 노출 빈도 제한을 위해 쿠키 또는 유사 기술을 사용할 수 있음",
+          "페이지 URL, IP 주소, 브라우저 및 기기 정보가 Google에 전송될 수 있음",
+          "Google의 동의 관리 메시지에서 맞춤 광고 설정을 선택할 수 있음",
+        ],
+      },
     ]
   : [
       {
@@ -37,7 +45,20 @@ const privacySections = isKorean
         title: "Deletion",
         items: ["Delete expenses", "Clear browser data", "Ask through GitHub issues"],
       },
+      {
+        title: "Google advertising",
+        items: [
+          "Google AdSense may use cookies or similar technologies to serve ads and limit how often they appear",
+          "The page URL, IP address, browser, and device information may be sent to Google",
+          "Ad personalization choices can be managed through Google's consent message",
+        ],
+      },
     ];
+
+const lastUpdated = new Intl.DateTimeFormat(
+  getLocale() === "ko" ? "ko-KR" : "en-US",
+  { dateStyle: "medium", timeZone: "UTC" }
+).format(new Date(Date.UTC(2026, 6, 16)));
 
 const PrivacyPage = () => {
   return (
@@ -52,8 +73,7 @@ const PrivacyPage = () => {
         <div className="card">
           <h3>{t("privacyPolicy")}</h3>
           <p className="muted" style={{ marginBottom: "1rem" }}>
-            {isKorean ? "업데이트:" : "Last updated:"}{" "}
-            {new Date().toLocaleDateString(getLocale() === "ko" ? "ko-KR" : "en-US")}
+            {isKorean ? "업데이트:" : "Last updated:"} {lastUpdated}
           </p>
 
           <div style={{ fontSize: "0.875rem", lineHeight: "1.6" }}>
@@ -67,6 +87,26 @@ const PrivacyPage = () => {
                 </ul>
               </section>
             ))}
+
+            <section style={{ marginTop: "1.25rem" }}>
+              <h4 style={{ marginBottom: "0.5rem" }}>
+                {isKorean ? "광고 개인정보 선택" : "Advertising privacy choices"}
+              </h4>
+              <p>
+                {isKorean
+                  ? "Google이 파트너 사이트의 정보를 사용하는 방식과 광고 설정은 "
+                  : "Learn how Google uses information from partner sites and manage your ad settings in "}
+                <a
+                  href="https://policies.google.com/technologies/partner-sites"
+                  target="_blank"
+                  rel="noreferrer"
+                  style={{ color: "var(--ease-color-brand)", textDecoration: "underline" }}
+                >
+                  {isKorean ? "Google 개인정보 안내" : "Google's privacy information"}
+                </a>
+                {isKorean ? "에서 확인할 수 있습니다." : "."}
+              </p>
+            </section>
 
             <section style={{ marginTop: "1.25rem" }}>
               <h4 style={{ marginBottom: "0.5rem" }}>

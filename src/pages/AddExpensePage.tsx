@@ -3,12 +3,20 @@ import { useParams, useNavigate } from "react-router-dom";
 import { AppHeader } from "../components/ui/AppHeader";
 import { FirebaseService } from "../services/firebase";
 import { t } from "../i18n";
+import { formatCurrency } from "../utils";
+import { useToast } from "../components/ui/useToast";
 import type { Trip, AddExpenseForm } from "../types";
 
 const AddExpensePage = () => {
-  const { groupId } = useParams<{ groupId: string }>();
+  const { groupId, expenseId } = useParams<{
+    groupId: string;
+    expenseId?: string;
+  }>();
   const navigate = useNavigate();
-  const [trip, setTrip] = useState<Trip | null>(null);
+  const { showToast } = useToast();
+  const isEditing = Boolean(expenseId);
+  const cachedTrip = groupId ? FirebaseService.getCachedTripById(groupId) : null;
+  const [trip, setTrip] = useState<Trip | null>(cachedTrip);
   const [loading, setLoading] = useState(false);
   const [currentUserId, setCurrentUserId] = useState<string>("");
   const [formData, setFormData] = useState<AddExpenseForm>({
@@ -22,18 +30,20 @@ const AddExpensePage = () => {
     if (!groupId) return;
 
     try {
-      const tripData = await FirebaseService.getTripById(groupId);
+      const tripData = await FirebaseService.getTripById(groupId, {
+        force: Boolean(FirebaseService.getCachedTripById(groupId)),
+      });
       if (tripData) {
         setTrip(tripData);
       } else {
-        alert(t("noMatches"));
+        showToast(t("noMatches"), "error");
         navigate("/");
       }
     } catch (error) {
       console.error("Error loading trip:", error);
-      alert(t("noMatches"));
+      showToast(t("noMatches"), "error");
     }
-  }, [groupId, navigate]);
+  }, [groupId, navigate, showToast]);
 
   useEffect(() => {
     const userId = localStorage.getItem("currentUserId");
@@ -45,15 +55,37 @@ const AddExpensePage = () => {
   }, [groupId, loadTrip]);
 
   useEffect(() => {
+    if (!trip) return;
+
+    const expenseToEdit = expenseId
+      ? trip.expenses.find((expense) => expense.id === expenseId)
+      : null;
+
+    if (expenseId && !expenseToEdit) {
+      showToast(t("noMatches"), "error");
+      navigate(`/group/${trip.id}/expenses`);
+      return;
+    }
+
+    if (expenseToEdit) {
+      setFormData({
+        description: expenseToEdit.description,
+        amount: expenseToEdit.amount.toString(),
+        paidBy: expenseToEdit.paidBy,
+        participants: expenseToEdit.participants,
+      });
+      return;
+    }
+
     // Set current user as default payer and select all participants by default
-    if (trip && currentUserId) {
+    if (currentUserId) {
       setFormData((prev) => ({
         ...prev,
         paidBy: currentUserId,
-        participants: trip.participants.map((p) => p.id), // Select all by default
+        participants: trip.participants.map((p) => p.id),
       }));
     }
-  }, [trip, currentUserId]);
+  }, [trip, currentUserId, expenseId, navigate, showToast]);
 
   const handleInputChange = (
     e: React.ChangeEvent<
@@ -100,36 +132,49 @@ const AddExpensePage = () => {
       !formData.amount ||
       !formData.paidBy
     ) {
-      alert(t("expense"));
+      showToast(t("expense"), "error");
       return;
     }
 
     const amount = parseFloat(formData.amount);
     if (isNaN(amount) || amount <= 0) {
-      alert(t("amount"));
+      showToast(t("amount"), "error");
       return;
     }
 
     if (formData.participants.length === 0) {
-      alert(t("splitWith"));
+      showToast(t("splitWith"), "error");
       return;
     }
 
     setLoading(true);
     try {
-      await FirebaseService.addExpense(
-        trip.id,
-        formData.description.trim(),
-        amount,
-        formData.paidBy,
-        formData.participants
-      );
+      if (expenseId) {
+        await FirebaseService.updateExpense(
+          trip.id,
+          expenseId,
+          formData.description.trim(),
+          amount,
+          formData.paidBy,
+          formData.participants
+        );
+      } else {
+        await FirebaseService.addExpense(
+          trip.id,
+          formData.description.trim(),
+          amount,
+          formData.paidBy,
+          formData.participants
+        );
+      }
 
-      alert(t("addExpense"));
-      navigate(`/group/${trip.id}`);
+      showToast(isEditing ? t("saveChanges") : t("addExpense"), "success");
+      navigate(
+        isEditing ? `/group/${trip.id}/expenses` : `/group/${trip.id}`
+      );
     } catch (error) {
       console.error("Error adding expense:", error);
-      alert(t("addExpense"));
+      showToast(t("error"), "error");
     } finally {
       setLoading(false);
     }
@@ -151,8 +196,8 @@ const AddExpensePage = () => {
   return (
     <>
       <AppHeader
-        backTo={`/group/${groupId}`}
-        title={t("addExpense")}
+        backTo={isEditing ? `/group/${groupId}/expenses` : `/group/${groupId}`}
+        title={isEditing ? t("editExpense") : t("addExpense")}
         subtitle={`${t("paidBy").replace(" *", "")}? ${t("splitWith").replace(
           " *",
           ""
@@ -188,6 +233,9 @@ const AddExpensePage = () => {
               min="0.01"
               required
             />
+            <span className="form-help">
+              {t("currency")}: <strong>{trip.currency}</strong>
+            </span>
           </div>
 
           <div className="form-group">
@@ -258,7 +306,7 @@ const AddExpensePage = () => {
                 }}
               >
                 {t("splitWith").replace(" *", "")}:{" "}
-                <strong>${splitAmount.toFixed(2)}</strong>
+                <strong>{formatCurrency(splitAmount, trip.currency)}</strong>
               </div>
             )}
           </div>
@@ -274,7 +322,7 @@ const AddExpensePage = () => {
                 style={{ width: "1rem", height: "1rem", margin: "0 auto" }}
               />
             ) : (
-              t("addExpense")
+              isEditing ? t("saveChanges") : t("addExpense")
             )}
           </button>
         </form>

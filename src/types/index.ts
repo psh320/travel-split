@@ -24,6 +24,7 @@ export interface Trip {
   name: string;
   description?: string;
   roomCode: string; // 6-character unique code for joining
+  currency: string; // Currency used for every expense in this trip
   createdBy: string; // User ID of trip creator
   participants: User[];
   expenses: Expense[];
@@ -68,6 +69,7 @@ export interface CreateTripForm {
   name: string;
   description?: string;
   creatorName: string;
+  currency: string;
 }
 
 export interface JoinTripForm {
@@ -112,6 +114,7 @@ export interface FirestoreTripData {
   name: string;
   description?: string;
   roomCode: string;
+  currency?: string;
   createdBy: string;
   participants: FirestoreUser[];
   expenses: FirestoreExpense[];

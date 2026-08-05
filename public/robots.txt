@@ -1,5 +1,6 @@
 User-agent: *
 Allow: /
+Allow: /ads.txt
 
 # Important pages to crawl
 Allow: /create-group
