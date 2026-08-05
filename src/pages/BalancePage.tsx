@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { AppHeader } from "../components/ui/AppHeader";
+import { CloseIcon, IconButton } from "../components/ui/IconButton";
 import { FirebaseService } from "../services/firebase";
 import type { Trip, BalanceSummary } from "../types";
 import { calculateBalances } from "../utils/balanceCalculator";
@@ -19,6 +20,8 @@ const BalancePage = () => {
   );
   const [loading, setLoading] = useState(!cachedTrip);
   const [currentUserId, setCurrentUserId] = useState<string>("");
+  const [expandedCombinationIndex, setExpandedCombinationIndex] = useState<number | null>(null);
+  const [detailsCombinationIndex, setDetailsCombinationIndex] = useState<number | null>(null);
 
   const loadTrip = useCallback(async () => {
     if (!groupId) return;
@@ -54,6 +57,19 @@ const BalancePage = () => {
     loadTrip();
   }, [groupId, loadTrip]);
 
+  useEffect(() => {
+    if (detailsCombinationIndex === null) return;
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setDetailsCombinationIndex(null);
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [detailsCombinationIndex]);
+
   if (loading) {
     return (
       <div className="loading">
@@ -75,10 +91,6 @@ const BalancePage = () => {
     );
   }
 
-  const totalExpenses = trip.expenses.reduce(
-    (sum, expense) => sum + expense.amount,
-    0
-  );
   const currentUserBalance = balanceSummary.balances.find(
     (b) => b.userId === currentUserId
   );
@@ -86,6 +98,11 @@ const BalancePage = () => {
     (s) => s.fromUserId === currentUserId || s.toUserId === currentUserId
   );
   const currency = trip.currency || "USD";
+  const combinationBalances = balanceSummary.combinationBalances ?? [];
+  const selectedCombination =
+    detailsCombinationIndex === null
+      ? null
+      : combinationBalances[detailsCombinationIndex] ?? null;
 
   return (
     <>
@@ -96,116 +113,59 @@ const BalancePage = () => {
       />
 
       <div className="content">
-        {/* Trip Summary */}
-        <div className="card">
-          <h3>{t("summary")}</h3>
-          <div style={{ fontSize: "0.875rem", color: "var(--ease-color-text-muted)" }}>
-            <p>
-              <strong>{t("totalExpenses")}</strong>{" "}
-              {formatCurrency(totalExpenses, currency)}
-            </p>
-            <p>
-              <strong>{t("numberOfExpenses")}</strong>{" "}
-              {countLabel("expense", trip.expenses.length)}
-            </p>
-            <p>
-              <strong>{t("participants")}:</strong>{" "}
-              {countLabel("person", trip.participants.length)}
-            </p>
-          </div>
-        </div>
-
         {/* Your Balance */}
         {currentUserBalance && (
-          <div className="card">
+          <section className="card balance-result-card">
             <h3>{t("yourBalance")}</h3>
             <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                marginBottom: "1rem",
-              }}
+              className={`balance-result-message ${
+                currentUserBalance.netBalance > 0
+                  ? "is-positive"
+                  : currentUserBalance.netBalance < 0
+                  ? "is-negative"
+                  : "is-neutral"
+              }`}
             >
+              {currentUserBalance.netBalance > 0
+                ? t("receiveMessage").replace(
+                    "{amount}",
+                    formatCurrency(currentUserBalance.netBalance, currency)
+                  )
+                : currentUserBalance.netBalance < 0
+                ? t("payMessage").replace(
+                    "{amount}",
+                    formatCurrency(Math.abs(currentUserBalance.netBalance), currency)
+                  )
+                : t("settled")}
+            </div>
+            <div className="balance-result-metrics">
               <div>
-                <div style={{ fontSize: "0.875rem", color: "var(--ease-color-text-muted)" }}>
-                  {t("youPaid")}
-                </div>
-                <div style={{ fontSize: "1.125rem", fontWeight: "600" }}>
-                  {formatCurrency(currentUserBalance.totalPaid, currency)}
-                </div>
+                <span>{t("totalPaidLabel")}</span>
+                <strong>{formatCurrency(currentUserBalance.totalPaid, currency)}</strong>
               </div>
-              <div style={{ textAlign: "center" }}>
-                <div style={{ fontSize: "0.875rem", color: "var(--ease-color-text-muted)" }}>
-                  {t("youOwe")}
-                </div>
-                <div style={{ fontSize: "1.125rem", fontWeight: "600" }}>
-                  {formatCurrency(currentUserBalance.totalOwed, currency)}
-                </div>
+              <div>
+                <span>{t("yourShare")}</span>
+                <strong>{formatCurrency(currentUserBalance.totalOwed, currency)}</strong>
               </div>
-              <div style={{ textAlign: "right" }}>
-                <div style={{ fontSize: "0.875rem", color: "var(--ease-color-text-muted)" }}>
-                  {t("netBalance")}
-                </div>
-                <div
-                  style={{
-                    fontSize: "1.25rem",
-                    fontWeight: "700",
-                    color:
-                      currentUserBalance.netBalance > 0
-                        ? "var(--ease-color-success)"
-                        : currentUserBalance.netBalance < 0
-                        ? "var(--ease-color-danger)"
-                        : "var(--ease-color-text-muted)",
-                  }}
+              <div>
+                <span>{t("finalBalance")}</span>
+                <strong
+                  className={
+                    currentUserBalance.netBalance > 0
+                      ? "is-positive"
+                      : currentUserBalance.netBalance < 0
+                      ? "is-negative"
+                      : "is-neutral"
+                  }
                 >
                   {currentUserBalance.netBalance > 0 && "+"}
-                  {formatCurrency(
-                    Math.abs(currentUserBalance.netBalance),
-                    currency
-                  )}
-                </div>
+                  {formatCurrency(Math.abs(currentUserBalance.netBalance), currency)}
+                </strong>
               </div>
             </div>
-            <div
-              style={{
-                padding: "0.75rem",
-                borderRadius: "0.5rem",
-                background:
-                  currentUserBalance.netBalance > 0
-                    ? "var(--ease-color-success-soft)"
-                    : currentUserBalance.netBalance < 0
-                    ? "var(--ease-color-danger-soft)"
-                    : "var(--ease-color-surface-subtle)",
-                fontSize: "0.875rem",
-                textAlign: "center",
-              }}
-            >
-              {currentUserBalance.netBalance > 0 && (
-                <span style={{ color: "var(--ease-color-success)" }}>
-                  {t("youAreOwed")}{" "}
-                  {formatCurrency(currentUserBalance.netBalance, currency)}{" "}
-                  {t("overall")}
-                </span>
-              )}
-              {currentUserBalance.netBalance < 0 && (
-                <span style={{ color: "var(--ease-color-danger)" }}>
-                  {t("youOwe")}{" "}
-                  {formatCurrency(
-                    Math.abs(currentUserBalance.netBalance),
-                    currency
-                  )}{" "}
-                  {t("overall")}
-                </span>
-              )}
-              {currentUserBalance.netBalance === 0 && (
-                <span style={{ color: "var(--ease-color-text)" }}>
-                  {t("settled")}
-                </span>
-              )}
-            </div>
-          </div>
+          </section>
         )}
+
 
         {/* Your Settlements */}
         {currentUserSettlements.length > 0 && (
@@ -236,220 +196,6 @@ const BalancePage = () => {
           </div>
         )}
 
-        {/* Everyone's Balance */}
-        <div className="card">
-          <h3>{t("everyoneBalance")}</h3>
-          <div className="balance-summary">
-            {balanceSummary.balances
-              .sort((a, b) => b.netBalance - a.netBalance) // Sort by net balance, highest first
-              .map((balance) => (
-                <div
-                  key={balance.userId}
-                  className={`balance-item ${
-                    balance.netBalance > 0
-                      ? "balance-positive"
-                      : balance.netBalance < 0
-                      ? "balance-negative"
-                      : "balance-neutral"
-                  }`}
-                >
-                  <div>
-                    <div style={{ fontWeight: "600" }}>
-                      {balance.userName}
-                      {balance.userId === currentUserId && (
-                        <span
-                          style={{
-                            marginLeft: "0.5rem",
-                            fontSize: "0.75rem",
-                            color: "var(--ease-color-brand)",
-                          }}
-                        >
-                          ({t("you")})
-                        </span>
-                      )}
-                    </div>
-                    <div style={{ fontSize: "0.75rem", color: "var(--ease-color-text-muted)" }}>
-                      {t("paid")} {formatCurrency(balance.totalPaid, currency)} •{" "}
-                      {t("owes")}{" "}
-                      {formatCurrency(balance.totalOwed, currency)}
-                    </div>
-                  </div>
-                  <div
-                    style={{
-                      fontWeight: "700",
-                      color:
-                        balance.netBalance > 0
-                          ? "var(--ease-color-success)"
-                          : balance.netBalance < 0
-                          ? "var(--ease-color-danger)"
-                          : "var(--ease-color-text-muted)",
-                    }}
-                  >
-                    {balance.netBalance > 0 && "+"}
-                    {formatCurrency(Math.abs(balance.netBalance), currency)}
-                  </div>
-                </div>
-              ))}
-          </div>
-        </div>
-
-        {/* Balance by Combinations */}
-        {balanceSummary.combinationBalances &&
-          balanceSummary.combinationBalances.length > 0 && (
-            <div className="card">
-              <h3>{t("balanceByGroups")}</h3>
-              <p
-                style={{
-                  fontSize: "0.875rem",
-                  color: "var(--ease-color-text-muted)",
-                  marginBottom: "1rem",
-                }}
-              >
-                {t("splitWith").replace(" *", "")}
-              </p>
-              {balanceSummary.combinationBalances.map((combo, index) => (
-                <div
-                  key={index}
-                  style={{
-                    marginBottom: "1.5rem",
-                    border: "1px solid var(--ease-color-border)",
-                    borderRadius: "0.5rem",
-                    padding: "1rem",
-                  }}
-                >
-                  <div style={{ marginBottom: "0.75rem" }}>
-                    <h4 style={{ margin: "0 0 0.25rem 0", fontSize: "1rem" }}>
-                      {combo.participantNames.join(" + ")}
-                      <span
-                        style={{
-                          fontSize: "0.75rem",
-                          color: "var(--ease-color-text-muted)",
-                          fontWeight: "400",
-                          marginLeft: "0.5rem",
-                        }}
-                      >
-                        ({countLabel("expense", combo.expenses.length)})
-                      </span>
-                    </h4>
-                    <div style={{ fontSize: "0.75rem", color: "var(--ease-color-text-muted)" }}>
-                      {t("total")}: {formatCurrency(combo.totalAmount, currency)}
-                    </div>
-                  </div>
-
-                  {/* Individual balances for this combination */}
-                  <div style={{ marginBottom: "0.75rem" }}>
-                    {combo.balances
-                      .sort((a, b) => b.netBalance - a.netBalance)
-                      .map((balance) => (
-                        <div
-                          key={balance.userId}
-                          style={{
-                            display: "flex",
-                            justifyContent: "space-between",
-                            alignItems: "center",
-                            padding: "0.375rem 0",
-                            fontSize: "0.875rem",
-                          }}
-                        >
-                          <div>
-                            <span style={{ fontWeight: "500" }}>
-                              {balance.userName}
-                              {balance.userId === currentUserId && (
-                                <span
-                                  style={{
-                                    marginLeft: "0.25rem",
-                                    fontSize: "0.7rem",
-                                    color: "var(--ease-color-brand)",
-                                  }}
-                                >
-                                  ({t("you")})
-                                </span>
-                              )}
-                            </span>
-                            <div
-                              style={{ fontSize: "0.75rem", color: "var(--ease-color-text-soft)" }}
-                            >
-                              {t("paid")} {formatCurrency(balance.totalPaid, currency)} •{" "}
-                              {t("owes")}{" "}
-                              {formatCurrency(balance.totalOwed, currency)}
-                            </div>
-                          </div>
-                          <div
-                            style={{
-                              fontWeight: "600",
-                              color:
-                                balance.netBalance > 0
-                                  ? "var(--ease-color-success)"
-                                  : balance.netBalance < 0
-                                  ? "var(--ease-color-danger)"
-                                  : "var(--ease-color-text-muted)",
-                            }}
-                          >
-                            {balance.netBalance > 0 && "+"}
-                            {formatCurrency(
-                              Math.abs(balance.netBalance),
-                              currency
-                            )}
-                          </div>
-                        </div>
-                      ))}
-                  </div>
-
-                  {/* Settlements within this combination */}
-                  {combo.settlements.length > 0 && (
-                    <div>
-                      <div
-                        style={{
-                          fontSize: "0.75rem",
-                          color: "var(--ease-color-text-muted)",
-                          marginBottom: "0.5rem",
-                        }}
-                      >
-                        {t("settle")}
-                      </div>
-                      {combo.settlements.map((settlement, sIndex) => (
-                        <div
-                          key={sIndex}
-                          style={{
-                            fontSize: "0.8rem",
-                            padding: "0.25rem 0.5rem",
-                            background: "var(--ease-color-surface-raised)",
-                            borderRadius: "0.25rem",
-                            marginBottom: "0.25rem",
-                          }}
-                        >
-                          <strong>{settlement.fromUserName}</strong>{" "}
-                          {t("pays")}{" "}
-                          <strong>{settlement.toUserName}</strong>{" "}
-                          <strong style={{ color: "var(--ease-color-brand)" }}>
-                            {formatCurrency(settlement.amount, currency)}
-                          </strong>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-
-                  {combo.settlements.length === 0 &&
-                    combo.expenses.length > 0 && (
-                      <div
-                        style={{
-                          fontSize: "0.75rem",
-                          color: "var(--ease-color-success)",
-                          textAlign: "center",
-                          padding: "0.5rem",
-                          background: "var(--ease-color-success-soft)",
-                          borderRadius: "0.25rem",
-                        }}
-                      >
-                        {t("allSettledInGroup")}
-                      </div>
-                    )}
-                </div>
-              ))}
-            </div>
-          )}
-
-        {/* All Settlements */}
         {balanceSummary.settlements.length > 0 && (
           <div className="card">
             <h3>{t("suggestedSettlements")}</h3>
@@ -465,8 +211,8 @@ const BalancePage = () => {
             <div className="list">
               {balanceSummary.settlements.map((settlement, index) => (
                 <div key={index} className="settlement-item">
-                  <strong>{settlement.fromUserName}</strong> {t("pays")}{" "}
-                  <strong>{settlement.toUserName}</strong>{" "}
+                  <strong>{settlement.fromUserName}</strong> {t("pays")} {" "}
+                  <strong>{settlement.toUserName}</strong> {" "}
                   <strong style={{ color: "var(--ease-color-brand)" }}>
                     {formatCurrency(settlement.amount, currency)}
                   </strong>
@@ -475,6 +221,113 @@ const BalancePage = () => {
             </div>
           </div>
         )}
+
+        {/* Group settlements */}
+        {combinationBalances.length > 0 && (
+          <section className="card balance-groups-section">
+            <div className="balance-groups-heading">
+              <h3>{t("balanceByGroups")}</h3>
+              <p>{t("balanceByGroupsSubtitle")}</p>
+            </div>
+            <div className="combination-list">
+              {combinationBalances.map((combo, index) => {
+                const isSettled =
+                  combo.expenses.length > 0 &&
+                  combo.balances.every((balance) => Math.abs(balance.netBalance) <= 0.01);
+                const hasMultipleSettlements = combo.settlements.length > 1;
+                const isExpanded = expandedCombinationIndex === index;
+                const statusLabel = isSettled
+                  ? t("allSettled")
+                  : combo.settlements.length > 1
+                  ? `${combo.settlements.length} ${t("paymentsNeeded")}`
+                  : combo.settlements.length === 0
+                  ? t("needsSettlement")
+                  : null;
+
+                return (
+                  <div
+                    className={`combination-row ${isExpanded ? "is-expanded" : ""}`}
+                    key={index}
+                  >
+                    <div className="combination-summary">
+                      <button
+                        type="button"
+                        className={`combination-summary-toggle ${hasMultipleSettlements ? "is-expandable" : "is-static"}`}
+                        onClick={() => {
+                          if (hasMultipleSettlements) {
+                            setExpandedCombinationIndex(isExpanded ? null : index);
+                          }
+                        }}
+                        aria-expanded={hasMultipleSettlements ? isExpanded : undefined}
+                        aria-controls={hasMultipleSettlements ? `combination-routes-${index}` : undefined}
+                      >
+                        <span className="combination-summary-main">
+                          <span className="combination-names">
+                            {combo.participantNames.join(" + ")}
+                          </span>
+                          <span className="combination-meta">
+                            {countLabel("expense", combo.expenses.length)} · {t("total")} {formatCurrency(combo.totalAmount, currency)}
+                          </span>
+                          {combo.settlements.length === 1 && (
+                            <span className="combination-inline-route">
+                              <span>
+                                <strong>{combo.settlements[0].fromUserName}</strong>{" "}
+                                <span className="combination-route-arrow">→</span>{" "}
+                                <strong>{combo.settlements[0].toUserName}</strong>
+                              </span>
+                              <strong className="combination-route-amount">
+                                {formatCurrency(combo.settlements[0].amount, currency)}
+                              </strong>
+                            </span>
+                          )}
+                        </span>
+                        {statusLabel && (
+                          <span className={`combination-status ${isSettled ? "is-settled" : "needs-settlement"}`}>
+                            {statusLabel}
+                          </span>
+                        )}
+                        {hasMultipleSettlements ? (
+                          <span className="combination-chevron" aria-hidden="true" />
+                        ) : (
+                          <span className="combination-summary-spacer" aria-hidden="true" />
+                        )}
+                      </button>
+                      <button
+                        type="button"
+                        className="combination-details-trigger"
+                        onClick={() => setDetailsCombinationIndex(index)}
+                      >
+                        {t("details")}
+                      </button>
+                    </div>
+
+                    {hasMultipleSettlements && isExpanded && (
+                      <div className="combination-routes" id={`combination-routes-${index}`}>
+                        <div className="combination-routes-heading">
+                          <span>{t("paymentRoutes")}</span>
+                          <span>{combo.settlements.length}</span>
+                        </div>
+                        {combo.settlements.map((settlement, settlementIndex) => (
+                          <div className="combination-route-row" key={settlementIndex}>
+                            <span>
+                              <strong>{settlement.fromUserName}</strong>{" "}
+                              <span className="combination-route-arrow">→</span>{" "}
+                              <strong>{settlement.toUserName}</strong>
+                            </span>
+                            <strong className="combination-route-amount">
+                              {formatCurrency(settlement.amount, currency)}
+                            </strong>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </section>
+        )}
+
 
         {balanceSummary.settlements.length === 0 &&
           trip.expenses.length > 0 && (
@@ -513,6 +366,91 @@ const BalancePage = () => {
           </div>
         )}
       </div>
+
+      {selectedCombination && (
+        <div
+          className="dashboard-modal-backdrop"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget) {
+              setDetailsCombinationIndex(null);
+            }
+          }}
+        >
+          <section
+            className="dashboard-modal balance-details-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="balance-details-title"
+          >
+            <div className="dashboard-modal-header">
+              <div>
+                <span className="balance-details-eyebrow">{t("details")}</span>
+                <h2 id="balance-details-title">
+                  {selectedCombination.participantNames.join(" + ")}
+                </h2>
+              </div>
+              <IconButton
+                onClick={() => setDetailsCombinationIndex(null)}
+                label={t("close")}
+              >
+                <CloseIcon />
+              </IconButton>
+            </div>
+
+            <div className="balance-modal-section">
+              <div className="balance-modal-section-heading">
+                <strong>{t("expenses")}</strong>
+                <span>{countLabel("expense", selectedCombination.expenses.length)}</span>
+              </div>
+              <div className="balance-expense-list">
+                {selectedCombination.expenses.map((expense) => (
+                  <div className="balance-expense-row" key={expense.id}>
+                    <span>{expense.description}</span>
+                    <strong>{formatCurrency(expense.amount, currency)}</strong>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="balance-modal-section">
+              <div className="balance-modal-section-heading">
+                <strong>{t("balanceBreakdown")}</strong>
+              </div>
+              <div className="balance-modal-balance-list">
+                {[...selectedCombination.balances]
+                  .sort((a, b) => b.netBalance - a.netBalance)
+                  .map((balance) => (
+                    <div className="balance-modal-balance-row" key={balance.userId}>
+                      <div>
+                        <strong>
+                          {balance.userName}
+                          {balance.userId === currentUserId && (
+                            <span className="combination-you">{t("you")}</span>
+                          )}
+                        </strong>
+                        <span>
+                          {t("paid")} {formatCurrency(balance.totalPaid, currency)} · {t("owes")} {formatCurrency(balance.totalOwed, currency)}
+                        </span>
+                      </div>
+                      <strong
+                        className={
+                          balance.netBalance > 0
+                            ? "is-positive"
+                            : balance.netBalance < 0
+                            ? "is-negative"
+                            : "is-neutral"
+                        }
+                      >
+                        {balance.netBalance > 0 && "+"}
+                        {formatCurrency(Math.abs(balance.netBalance), currency)}
+                      </strong>
+                    </div>
+                  ))}
+              </div>
+            </div>
+          </section>
+        </div>
+      )}
     </>
   );
 };

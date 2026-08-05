@@ -11,7 +11,7 @@ import { Dropdown } from "../components/ui/Dropdown";
 import { FirebaseService } from "../services/firebase";
 import type { Trip } from "../types";
 import { formatCurrency, formatDate } from "../utils";
-import { countLabel, t } from "../i18n";
+import { t } from "../i18n";
 import { useToast } from "../components/ui/useToast";
 
 const ExpensesPage = () => {
@@ -157,6 +157,10 @@ const ExpensesPage = () => {
     (sum, expense) => sum + expense.amount,
     0
   );
+  const totalExpenses = trip.expenses.reduce(
+    (sum, expense) => sum + expense.amount,
+    0
+  );
   const currency = trip.currency || "USD";
 
   return (
@@ -164,13 +168,7 @@ const ExpensesPage = () => {
       <AppHeader
         backTo={`/group/${groupId}`}
         title={t("expenses")}
-        subtitle={`${countLabel(
-          "expense",
-          filteredAndSortedExpenses.length
-        )} / ${countLabel("expense", trip.expenses.length)} • ${formatCurrency(
-          filteredTotal,
-          currency
-        )}`}
+        subtitle={formatCurrency(totalExpenses, currency)}
       />
 
       <div className="content">

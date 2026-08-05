@@ -250,19 +250,17 @@ export class FirebaseService {
         (participant) => participant.id !== userId
       );
 
-      // Remove user from all expense participants arrays
+      // Remove expenses paid by this user, then remove them from every other
+      // split. Expenses with nobody left to split with are no longer valid.
       const updatedExpenses = tripData.expenses
+        .filter((expense) => expense.paidBy !== userId)
         .map((expense) => ({
           ...expense,
           participants: expense.participants.filter(
             (participantId) => participantId !== userId
           ),
         }))
-        .filter(
-          (expense) =>
-            // Remove expenses where this user was the only participant or the payer with no other participants
-            expense.participants.length > 0 || expense.paidBy !== userId
-        );
+        .filter((expense) => expense.participants.length > 0);
 
       await updateDoc(tripRef, {
         participants: updatedParticipants,
@@ -274,14 +272,12 @@ export class FirebaseService {
         ...trip,
         participants: trip.participants.filter((user) => user.id !== userId),
         expenses: trip.expenses
+          .filter((expense) => expense.paidBy !== userId)
           .map((expense) => ({
             ...expense,
             participants: expense.participants.filter((id) => id !== userId),
           }))
-          .filter(
-            (expense) =>
-              expense.participants.length > 0 || expense.paidBy !== userId
-          ),
+          .filter((expense) => expense.participants.length > 0),
         updatedAt: new Date(),
       }));
     } catch (error) {

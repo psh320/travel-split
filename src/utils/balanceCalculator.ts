@@ -161,9 +161,18 @@ const calculateCombinationBalances = (trip: Trip): CombinationBalance[] => {
       totalAmount += expense.amount;
 
       // Add to total paid for the payer
-      if (balances[expense.paidBy]) {
-        balances[expense.paidBy].totalPaid += expense.amount;
+      // The payer may be outside the participant combination (e.g. one person
+      // paid for another), but still needs to be part of this settlement.
+      if (!balances[expense.paidBy]) {
+        balances[expense.paidBy] = {
+          userId: expense.paidBy,
+          userName: participantMap.get(expense.paidBy) || expense.paidBy,
+          totalPaid: 0,
+          totalOwed: 0,
+          netBalance: 0,
+        };
       }
+      balances[expense.paidBy].totalPaid += expense.amount;
 
       // Add to total owed for each participant
       expense.participants.forEach((participantId) => {

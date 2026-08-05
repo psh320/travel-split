@@ -1,18 +1,43 @@
 import { useState, useEffect, useCallback } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
+import { Cell, Pie, PieChart, ResponsiveContainer } from "recharts";
 import { AppHeader } from "../components/ui/AppHeader";
 import {
+  CloseIcon,
   EditIcon,
   IconButton,
   IconLink,
+  InfoIcon,
+  LinkIcon,
   TrashIcon,
+  UsersIcon,
 } from "../components/ui/IconButton";
 import { FirebaseService } from "../services/firebase";
 import { GroupHistoryService } from "../services/groupHistory";
 import { countLabel, t } from "../i18n";
 import type { Trip } from "../types";
-import { formatCurrency, formatDate, timeAgo } from "../utils";
+import {
+  formatCompactCurrency,
+  formatCurrency,
+  formatDate,
+  timeAgo,
+} from "../utils";
 import { useToast } from "../components/ui/useToast";
+
+const spendColors = [
+  "#2F3437",
+  "#7C8794",
+  "#B58F72",
+  "#9FA8A3",
+  "#D1B8A0",
+];
+
+type DashboardModal = "details" | "participants" | null;
+type PendingRemoval = {
+  id: string;
+  name: string;
+  linkedExpenseCount: number;
+} | null;
 
 const TripDashboard = () => {
   const { groupId } = useParams<{ groupId: string }>();
@@ -26,6 +51,9 @@ const TripDashboard = () => {
   const [newUserName, setNewUserName] = useState("");
   const [addingUser, setAddingUser] = useState(false);
   const [addUserError, setAddUserError] = useState("");
+  const [activeModal, setActiveModal] = useState<DashboardModal>(null);
+  const [pendingRemoval, setPendingRemoval] = useState<PendingRemoval>(null);
+  const [removingUser, setRemovingUser] = useState(false);
 
   const loadTrip = useCallback(async (showLoading = false) => {
     if (!groupId) return;
@@ -59,6 +87,30 @@ const TripDashboard = () => {
 
     loadTrip(!FirebaseService.getCachedTripById(groupId ?? ""));
   }, [groupId, loadTrip]);
+
+  useEffect(() => {
+    if (!activeModal) return;
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        if (pendingRemoval) {
+          setPendingRemoval(null);
+          return;
+        }
+        setActiveModal(null);
+        setShowAddUser(false);
+      }
+    };
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    document.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [activeModal, pendingRemoval]);
 
   const handleDeleteExpense = async (expenseId: string) => {
     if (
@@ -121,35 +173,44 @@ const TripDashboard = () => {
     setAddUserError("");
   };
 
-  const handleRemoveUser = async (userId: string, userName: string) => {
+  const closeModal = () => {
+    setActiveModal(null);
+    setShowAddUser(false);
+  };
+
+  const handleRemoveUser = (userId: string, userName: string) => {
     if (
       !trip ||
       userId === currentUserId ||
-      userId === trip.createdBy ||
-      !window.confirm(`${t("remove")} ${userName}?`)
+      userId === trip.createdBy
     ) {
       return;
     }
 
+    const linkedExpenseCount = trip.expenses.filter(
+      (expense) =>
+        expense.paidBy === userId || expense.participants.includes(userId)
+    ).length;
+    setPendingRemoval({
+      id: userId,
+      name: userName,
+      linkedExpenseCount,
+    });
+  };
+
+  const confirmRemoveUser = async () => {
+    if (!trip || !pendingRemoval) return;
+
+    setRemovingUser(true);
     try {
-      // Check if user has expenses - for now just warn, could implement cascade deletion later
-      const userHasExpenses = trip.expenses.some(
-        (expense) =>
-          expense.paidBy === userId || expense.participants.includes(userId)
-      );
-
-      if (userHasExpenses) {
-        const confirmed = window.confirm(
-          `${userName}: ${t("remove")}?`
-        );
-        if (!confirmed) return;
-      }
-
-      await FirebaseService.removeUserFromTrip(trip.id, userId);
+      await FirebaseService.removeUserFromTrip(trip.id, pendingRemoval.id);
       await loadTrip();
+      setPendingRemoval(null);
     } catch (error) {
       console.error("Error removing user:", error);
       showToast(t("remove"), "error");
+    } finally {
+      setRemovingUser(false);
     }
   };
 
@@ -209,234 +270,155 @@ const TripDashboard = () => {
     <>
       <AppHeader
         backTo="/"
+        className="dashboard-header"
         title={trip.name}
-        subtitle={`${countLabel("person", trip.participants.length)} • ${formatCurrency(
-          totalExpenses,
-          currency
-        )}`}
+        titleAccessory={
+          <IconButton
+            className="dashboard-title-info"
+            onClick={() => setActiveModal("details")}
+            label={t("groupDetails")}
+          >
+            <InfoIcon />
+          </IconButton>
+        }
+        actions={
+          <>
+            <IconButton
+              className="dashboard-header-action dashboard-people-action"
+              onClick={() => setActiveModal("participants")}
+              label={`${t("participants")} ${countLabel("person", trip.participants.length)}`}
+            >
+              <UsersIcon />
+              <span>{trip.participants.length}</span>
+            </IconButton>
+            <IconButton
+              className="dashboard-header-action"
+              onClick={copyShareableLink}
+              label={t("shareLink")}
+            >
+              <LinkIcon />
+            </IconButton>
+          </>
+        }
       />
 
-      <div className="content">
-        {/* Group Info Card */}
-        <div className="card">
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              marginBottom: "1rem",
-            }}
-          >
-            <h3>{t("details")}</h3>
-            <div style={{ display: "flex", gap: "0.5rem" }}>
-              <button
-                onClick={copyShareableLink}
-                className="btn btn-primary"
-                style={{ padding: "0.5rem 1rem", fontSize: "0.875rem" }}
-              >
-                {t("shareLink")}
-              </button>
-              <button
-                onClick={copyRoomCode}
-                className="btn btn-secondary"
-                style={{ padding: "0.5rem 1rem", fontSize: "0.875rem" }}
-              >
-                {t("copyCode")}
-              </button>
-            </div>
-          </div>
-          <div style={{ fontSize: "0.875rem", color: "var(--ease-color-text-muted)" }}>
-            <p>
-              <strong>{t("roomCode")}</strong> {trip.roomCode}
-            </p>
-            <p>
-              <strong>{t("created")}</strong> {formatDate(trip.createdAt)}
-            </p>
-            {trip.description && (
-              <p>
-                <strong>{t("description")}</strong> {trip.description}
-              </p>
-            )}
-          </div>
-        </div>
+      <div className="content dashboard-content">
+        {(() => {
+          const paidSummary = trip.participants
+            .map((participant, index) => ({
+              id: participant.id,
+              name: participant.name,
+              amount: trip.expenses
+                .filter((expense) => expense.paidBy === participant.id)
+                .reduce((sum, expense) => sum + expense.amount, 0),
+              color: spendColors[index % spendColors.length],
+            }))
+            .filter((participant) => participant.amount > 0)
+            .sort((a, b) => b.amount - a.amount);
+          const chartData = paidSummary.length
+            ? paidSummary
+            : [
+                {
+                  id: "empty",
+                  name: t("noExpenses"),
+                  amount: 1,
+                  color: "#E5E7E9",
+                },
+              ];
 
-        {/* Participants Card */}
-        <div className="card">
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              marginBottom: "1rem",
-            }}
-          >
-            <h3>{t("participants")} ({trip.participants.length})</h3>
-            {trip.createdBy === currentUserId && (
-              <IconButton
-                onClick={() => setShowAddUser(true)}
-                label={t("addUser")}
-              >
-                +
-              </IconButton>
-            )}
-          </div>
-
-          {/* Add User Form */}
-          {showAddUser && (
-            <div
-              style={{
-                backgroundColor: "var(--ease-color-surface-raised)",
-                border: "1px solid var(--ease-color-border)",
-                borderRadius: "0.5rem",
-                padding: "1rem",
-                marginBottom: "1rem",
-              }}
-            >
-              <h4 style={{ marginTop: 0, marginBottom: "1rem", fontSize: "1rem" }}>
-                {t("addUser")}
-              </h4>
-
-              {addUserError && (
-                <div
-                  style={{
-                    color: "var(--ease-color-danger)",
-                    backgroundColor: "var(--ease-color-danger-soft)",
-                    padding: "0.75rem",
-                    borderRadius: "0.5rem",
-                    marginBottom: "1rem",
-                    fontSize: "0.875rem",
-                  }}
-                >
-                  {addUserError}
+          return (
+            <div className="card spending-summary-card">
+              <div className="summary-card-heading">
+                <div>
+                  <span className="summary-eyebrow">{t("spendingSummary")}</span>
+                  <h2>{formatCurrency(totalExpenses, currency)}</h2>
                 </div>
-              )}
-
-              <form onSubmit={handleAddUser}>
-                <div className="form-group" style={{ marginBottom: "1rem" }}>
-                  <label
-                    htmlFor="newUserName"
-                    style={{
-                      display: "block",
-                      marginBottom: "0.5rem",
-                      fontSize: "0.875rem",
-                      fontWeight: "600",
-                    }}
-                  >
-                    {t("yourName")}
-                  </label>
-                  <input
-                    type="text"
-                    id="newUserName"
-                    value={newUserName}
-                    onChange={(e) => {
-                      setNewUserName(e.target.value);
-                      if (addUserError) setAddUserError("");
-                    }}
-                    placeholder={t("yourName").replace(" *", "")}
-                    style={{ width: "100%", fontSize: "0.875rem" }}
-                    autoFocus
-                    required
-                  />
-                  <div
-                    style={{
-                      fontSize: "0.75rem",
-                      color: "var(--ease-color-text-muted)",
-                      marginTop: "0.5rem",
-                    }}
-                  >
-                    {t("splitSubtitle")}
-                  </div>
-                </div>
-
-                <div style={{ display: "flex", gap: "0.5rem" }}>
-                  <button
-                    type="submit"
-                    className="btn btn-primary"
-                    disabled={addingUser}
-                    style={{ fontSize: "0.875rem" }}
-                  >
-                    {addingUser ? (
-                      <div
-                        className="spinner"
-                        style={{
-                          width: "1rem",
-                          height: "1rem",
-                          margin: "0 auto",
-                        }}
-                      />
-                    ) : (
-                      t("addUser")
-                    )}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={handleCancelAddUser}
-                    className="btn btn-secondary"
-                    disabled={addingUser}
-                    style={{ fontSize: "0.875rem" }}
-                  >
-                    {t("cancel")}
-                  </button>
-                </div>
-              </form>
-            </div>
-          )}
-
-          <div className="list">
-            {trip.participants.map((participant) => (
-              <div key={participant.id} className="list-item">
-                <div className="list-item-content">
-                  <div className="list-item-title">
-                    {participant.name}
-                    {participant.id === currentUserId && (
-                      <span
-                        style={{
-                          marginLeft: "0.5rem",
-                          fontSize: "0.75rem",
-                          color: "var(--ease-color-brand)",
-                          fontWeight: "600",
-                        }}
-                      >
-                        ({t("you")})
-                      </span>
-                    )}
-                    {participant.id === trip.createdBy && (
-                      <span
-                        style={{
-                          marginLeft: "0.5rem",
-                          fontSize: "0.75rem",
-                          color: "var(--ease-color-warning)",
-                          fontWeight: "600",
-                        }}
-                      >
-                        ({t("creator")})
-                      </span>
-                    )}
-                  </div>
-                  <div className="list-item-subtitle">
-                    {t("joined")} {timeAgo(participant.createdAt)}
-                  </div>
-                </div>
-                {/* Show remove button for creators, but not for themselves or the trip creator */}
-                {trip.createdBy === currentUserId &&
-                  participant.id !== currentUserId &&
-                  participant.id !== trip.createdBy && (
-                    <div className="list-item-actions">
-                      <button
-                        onClick={() =>
-                          handleRemoveUser(participant.id, participant.name)
-                        }
-                        className="list-item-action"
-                        style={{ color: "var(--ease-color-danger)", fontSize: "0.875rem" }}
-                      >
-                        {t("remove")}
-                      </button>
-                    </div>
-                  )}
+                <span className="summary-count">
+                  {countLabel("expense", trip.expenses.length)}
+                </span>
               </div>
-            ))}
-          </div>
-        </div>
+
+              <div className="spending-summary-body">
+                <div
+                  className="spending-chart"
+                  role="img"
+                  aria-label={`${t("totalSpent")} ${formatCurrency(totalExpenses, currency)}`}
+                >
+                  <div className="spending-chart-canvas" aria-hidden="true">
+                    <ResponsiveContainer width="100%" height="100%" minWidth={0}>
+                      <PieChart>
+                        <Pie
+                          data={chartData}
+                          dataKey="amount"
+                          nameKey="name"
+                          cx="50%"
+                          cy="50%"
+                          innerRadius="60%"
+                          outerRadius="92%"
+                          paddingAngle={paidSummary.length > 1 ? 2 : 0}
+                          cornerRadius={4}
+                          stroke="var(--ease-color-surface-raised)"
+                          strokeWidth={2}
+                          animationBegin={80}
+                          animationDuration={720}
+                          animationEasing="ease-out"
+                          isAnimationActive="auto"
+                        >
+                          {chartData.map((participant) => (
+                            <Cell key={participant.id} fill={participant.color} />
+                          ))}
+                        </Pie>
+                      </PieChart>
+                    </ResponsiveContainer>
+                  </div>
+                  <div className="spending-chart-hole">
+                    <span>{t("totalSpent")}</span>
+                    <strong>{formatCompactCurrency(totalExpenses, currency)}</strong>
+                  </div>
+                </div>
+
+                <div className="spending-legend">
+                  {paidSummary.length ? (
+                    paidSummary.slice(0, 5).map((participant) => (
+                      <div key={participant.id} className="spending-legend-item">
+                        <span
+                          className="spending-legend-dot"
+                          style={{ background: participant.color }}
+                        />
+                        <div className="spending-legend-copy">
+                          <span className="spending-legend-name" title={participant.name}>
+                            {participant.name}
+                          </span>
+                          <strong>{formatCurrency(participant.amount, currency)}</strong>
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <p className="muted">{t("noExpenses")}</p>
+                  )}
+                </div>
+              </div>
+
+              <div className="summary-metrics">
+                <div>
+                  <span>{t("participants")}</span>
+                  <strong>{trip.participants.length}</strong>
+                </div>
+                <div>
+                  <span>{t("average")}</span>
+                  <strong>
+                    {formatCurrency(
+                      trip.participants.length
+                        ? totalExpenses / trip.participants.length
+                        : 0,
+                      currency
+                    )}
+                  </strong>
+                </div>
+              </div>
+            </div>
+          );
+        })()}
 
         {/* Quick Actions */}
         <div
@@ -455,13 +437,6 @@ const TripDashboard = () => {
             {t("addExpense")}
           </Link>
           <Link
-            to={`/group/${trip.id}/expenses`}
-            className="btn btn-secondary"
-            style={{ flex: 1, minWidth: "120px" }}
-          >
-            {t("allExpenses")}
-          </Link>
-          <Link
             to={`/group/${trip.id}/balance`}
             className="btn btn-secondary"
             style={{ flex: 1, minWidth: "120px" }}
@@ -472,10 +447,10 @@ const TripDashboard = () => {
 
         {/* Recent Expenses */}
         <div className="card">
-          <div
-            style={{
-              marginBottom: "1rem",
-            }}
+          <Link
+            to={`/group/${trip.id}/expenses`}
+            className="expense-section-link"
+            aria-label={`${t("allExpenses")} · ${countLabel("expense", trip.expenses.length)}`}
           >
             <div className="section-heading">
               <h3>{t("expenses")}</h3>
@@ -487,7 +462,8 @@ const TripDashboard = () => {
                 {trip.expenses.length}
               </span>
             </div>
-          </div>
+            <span className="expense-section-chevron" aria-hidden="true" />
+          </Link>
 
           {trip.expenses.length === 0 ? (
             <div
@@ -559,6 +535,196 @@ const TripDashboard = () => {
           </div>
         )}
       </div>
+
+      {activeModal && (
+        <div
+          className="dashboard-modal-backdrop"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget) closeModal();
+          }}
+        >
+          <section
+            className="dashboard-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="dashboard-modal-title"
+          >
+            <div className="dashboard-modal-header">
+              <h2 id="dashboard-modal-title">
+                {activeModal === "details" ? t("groupDetails") : t("participants")}
+              </h2>
+              <IconButton onClick={closeModal} label={t("close")}>
+                <CloseIcon />
+              </IconButton>
+            </div>
+
+            {activeModal === "details" ? (
+              <>
+                <div className="dashboard-detail-list">
+                  <div>
+                    <span>{t("roomCode")}</span>
+                    <strong>{trip.roomCode}</strong>
+                  </div>
+                  <div>
+                    <span>{t("created")}</span>
+                    <strong>{formatDate(trip.createdAt)}</strong>
+                  </div>
+                  {trip.description && (
+                    <div>
+                      <span>{t("description")}</span>
+                      <strong>{trip.description}</strong>
+                    </div>
+                  )}
+                </div>
+                <div className="dashboard-modal-actions">
+                  <button type="button" className="btn btn-secondary" onClick={copyRoomCode}>
+                    {t("copyCode")}
+                  </button>
+                  <button type="button" className="btn btn-primary" onClick={copyShareableLink}>
+                    {t("shareLink")}
+                  </button>
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="participants-modal-heading">
+                  <div>
+                    <strong>{countLabel("person", trip.participants.length)}</strong>
+                    <span>{t("tapYourName")}</span>
+                  </div>
+                  {trip.createdBy === currentUserId && !showAddUser && (
+                    <button
+                      type="button"
+                      className="btn btn-secondary participants-add-button"
+                      onClick={() => setShowAddUser(true)}
+                    >
+                      <span aria-hidden="true">+</span>
+                      {t("addUser")}
+                    </button>
+                  )}
+                </div>
+
+                {showAddUser && (
+                  <div className="add-user-panel">
+                    <h3>{t("addUser")}</h3>
+                    {addUserError && (
+                      <div className="callout callout-danger">{addUserError}</div>
+                    )}
+                    <form onSubmit={handleAddUser} className="form">
+                      <div className="form-group">
+                        <label htmlFor="newUserName">{t("yourName")}</label>
+                        <input
+                          type="text"
+                          id="newUserName"
+                          value={newUserName}
+                          onChange={(event) => {
+                            setNewUserName(event.target.value);
+                            if (addUserError) setAddUserError("");
+                          }}
+                          placeholder={t("yourName").replace(" *", "")}
+                          autoFocus
+                          required
+                        />
+                      </div>
+                      <div className="dashboard-modal-actions">
+                        <button
+                          type="button"
+                          className="btn btn-secondary"
+                          onClick={handleCancelAddUser}
+                          disabled={addingUser}
+                        >
+                          {t("cancel")}
+                        </button>
+                        <button type="submit" className="btn btn-primary" disabled={addingUser}>
+                          {addingUser ? <div className="spinner spinner-small" /> : t("addUser")}
+                        </button>
+                      </div>
+                    </form>
+                  </div>
+                )}
+
+                <div className="participants-modal-list">
+                  {trip.participants.map((participant) => (
+                    <div key={participant.id} className="participant-modal-item">
+                      <div>
+                        <strong>
+                          {participant.name}
+                          {participant.id === currentUserId && ` (${t("you")})`}
+                          {participant.id === trip.createdBy && ` (${t("creator")})`}
+                        </strong>
+                      </div>
+                      {trip.createdBy === currentUserId &&
+                        participant.id !== currentUserId &&
+                        participant.id !== trip.createdBy && (
+                          <IconButton
+                            className="participant-remove-icon"
+                            label={`${t("remove")} ${participant.name}`}
+                            onClick={() => handleRemoveUser(participant.id, participant.name)}
+                          >
+                            <TrashIcon />
+                          </IconButton>
+                        )}
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
+          </section>
+        </div>
+      )}
+
+      {pendingRemoval && (
+        <div className="participant-confirm-backdrop">
+          <section
+            className="participant-confirm-dialog"
+            role="alertdialog"
+            aria-modal="true"
+            aria-labelledby="participant-confirm-title"
+            aria-describedby="participant-confirm-description"
+          >
+            <div className="participant-confirm-icon" aria-hidden="true">
+              <TrashIcon />
+            </div>
+            <h2 id="participant-confirm-title">
+              {pendingRemoval.linkedExpenseCount > 0
+                ? t("participantLinkedTitle")
+                : t("participantRemoveTitle")}
+            </h2>
+            <strong className="participant-confirm-name">{pendingRemoval.name}</strong>
+            <p id="participant-confirm-description">
+              {pendingRemoval.linkedExpenseCount > 0
+                ? t("participantLinkedBody")
+                : t("participantRemoveBody")}
+            </p>
+
+            {pendingRemoval.linkedExpenseCount > 0 && (
+              <div className="participant-linked-count">
+                <span>{t("relatedExpenses")}</span>
+                <strong>{pendingRemoval.linkedExpenseCount}</strong>
+              </div>
+            )}
+
+            <div className="participant-confirm-actions">
+              <button
+                type="button"
+                className="btn btn-secondary"
+                onClick={() => setPendingRemoval(null)}
+                disabled={removingUser}
+              >
+                {t("cancel")}
+              </button>
+              <button
+                type="button"
+                className="btn btn-danger"
+                onClick={confirmRemoveUser}
+                disabled={removingUser}
+              >
+                {removingUser ? <div className="spinner spinner-small" /> : t("remove")}
+              </button>
+            </div>
+          </section>
+        </div>
+      )}
     </>
   );
 };

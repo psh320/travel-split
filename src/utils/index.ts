@@ -27,6 +27,18 @@ export const formatCurrency = (
   }).format(amount);
 };
 
+export const formatCompactCurrency = (
+  amount: number,
+  currency: string = "USD"
+): string => {
+  return new Intl.NumberFormat(isKorean ? "ko-KR" : "en-US", {
+    style: "currency",
+    currency,
+    notation: "compact",
+    maximumFractionDigits: 1,
+  }).format(amount);
+};
+
 // Format date
 export const formatDate = (date: Date): string => {
   return new Intl.DateTimeFormat(isKorean ? "ko-KR" : "en-US", {

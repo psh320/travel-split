@@ -198,10 +198,6 @@ const AddExpensePage = () => {
       <AppHeader
         backTo={isEditing ? `/group/${groupId}/expenses` : `/group/${groupId}`}
         title={isEditing ? t("editExpense") : t("addExpense")}
-        subtitle={`${t("paidBy").replace(" *", "")}? ${t("splitWith").replace(
-          " *",
-          ""
-        )}?`}
       />
 
       <div className="content">
