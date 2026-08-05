@@ -1,7 +1,8 @@
-import { lazy, Suspense } from "react";
+import { lazy, Suspense, useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import HomePage from "./pages/HomePage";
 import { ToastProvider } from "./components/ui/Toast";
+import { getLocale, t } from "./i18n";
 import "./App.css";
 
 const CreateTripPage = lazy(() => import("./pages/CreateTripPage"));
@@ -15,6 +16,23 @@ const PrivacyPage = lazy(() => import("./pages/PrivacyPage"));
 const TermsPage = lazy(() => import("./pages/TermsPage"));
 
 function App() {
+  useEffect(() => {
+    const locale = getLocale();
+    document.documentElement.lang = locale;
+    document.title = t("appTitle");
+
+    document
+      .querySelector('meta[name="description"]')
+      ?.setAttribute("content", t("appDescription"));
+
+    const manifestLink = document.querySelector<HTMLLinkElement>(
+      'link[rel="manifest"]'
+    );
+    if (manifestLink && locale === "ko") {
+      manifestLink.href = "/manifest.ko.json";
+    }
+  }, []);
+
   return (
     <ToastProvider>
       <div className="app">

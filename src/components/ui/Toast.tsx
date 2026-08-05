@@ -5,6 +5,7 @@ import {
   type ReactNode,
 } from "react";
 import { ToastContext, type ToastType } from "./toastContext";
+import { t } from "../../i18n";
 
 type ToastItem = {
   id: number;
@@ -69,7 +70,7 @@ function Toast({
         type="button"
         className="toast-dismiss"
         onClick={onDismiss}
-        aria-label="Dismiss notification"
+        aria-label={t("dismissNotification")}
       >
         ×
       </button>

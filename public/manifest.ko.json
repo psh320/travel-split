@@ -1,14 +1,14 @@
 {
-  "name": "Split Expenses Online Free - Bill Splitting Calculator",
-  "short_name": "Split Expense",
-  "description": "Split expenses online free with friends and groups. Easy bill splitting calculator for shared costs, travel expenses, and group spending. No registration required - start splitting expenses instantly!",
+  "name": "정산도우미 — 모임비·공동지출 정산",
+  "short_name": "정산도우미",
+  "description": "친구, 모임, 공동생활비를 간편하게 나누고 정산하세요.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#667eea",
   "orientation": "portrait-primary",
   "scope": "/",
-  "lang": "en",
+  "lang": "ko",
   "categories": ["finance", "productivity", "utilities"],
   "icons": [
     {
@@ -28,21 +28,8 @@
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
-    },
-    {
-      "src": "/icons/apple-touch-icon-180x180.png",
-      "sizes": "180x180",
-      "type": "image/png",
-      "purpose": "any"
-    },
-    {
-      "src": "/icons/app-icon-v2.png",
-      "sizes": "1024x1024",
-      "type": "image/png",
-      "purpose": "favicon"
     }
   ],
-
   "prefer_related_applications": false,
   "related_applications": []
 }

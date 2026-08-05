@@ -1,7 +1,12 @@
 import { useState, useEffect, useCallback } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { AppHeader } from "../components/ui/AppHeader";
-import { IconButton } from "../components/ui/IconButton";
+import {
+  EditIcon,
+  IconButton,
+  IconLink,
+  TrashIcon,
+} from "../components/ui/IconButton";
 import { FirebaseService } from "../services/firebase";
 import { GroupHistoryService } from "../services/groupHistory";
 import { countLabel, t } from "../i18n";
@@ -469,16 +474,19 @@ const TripDashboard = () => {
         <div className="card">
           <div
             style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
               marginBottom: "1rem",
             }}
           >
-            <h3>{t("expenses")}</h3>
-            <span className="badge badge-success">
-              {countLabel("expense", trip.expenses.length)}
-            </span>
+            <div className="section-heading">
+              <h3>{t("expenses")}</h3>
+              <span
+                className="count-dot"
+                aria-label={countLabel("expense", trip.expenses.length)}
+                title={countLabel("expense", trip.expenses.length)}
+              >
+                {trip.expenses.length}
+              </span>
+            </div>
           </div>
 
           {trip.expenses.length === 0 ? (
@@ -516,19 +524,20 @@ const TripDashboard = () => {
                         </div>
                       </div>
                       <div className="list-item-actions">
-                        <Link
+                        <IconLink
                           to={`/group/${trip.id}/edit-expense/${expense.id}`}
-                          className="list-item-action"
+                          className="list-item-icon-action"
+                          label={t("editExpense")}
                         >
-                          {t("editExpense")}
-                        </Link>
-                        <button
+                          <EditIcon />
+                        </IconLink>
+                        <IconButton
                           onClick={() => handleDeleteExpense(expense.id)}
-                          className="list-item-action"
-                          style={{ color: "var(--ease-color-danger)" }}
+                          className="list-item-icon-action list-item-delete-action"
+                          label={t("remove")}
                         >
-                          {t("remove")}
-                        </button>
+                          <TrashIcon />
+                        </IconButton>
                       </div>
                     </div>
                   );

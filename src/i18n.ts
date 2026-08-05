@@ -2,7 +2,15 @@ export type Locale = "en" | "ko";
 
 export const getLocale = (): Locale => {
   if (typeof navigator === "undefined") return "en";
-  return navigator.language.toLowerCase().startsWith("ko") ? "ko" : "en";
+
+  const preferredLanguages = navigator.languages?.length
+    ? navigator.languages
+    : [navigator.language];
+  const supportedLanguage = preferredLanguages.find((language) =>
+    /^(ko|en)(-|$)/i.test(language)
+  );
+
+  return supportedLanguage?.toLowerCase().startsWith("ko") ? "ko" : "en";
 };
 
 export const isKorean = getLocale() === "ko";
@@ -16,6 +24,9 @@ const copy = {
     actions: "Actions",
     addYourName: "Add your name.",
     appName: "Split",
+    appTitle: "Split Expenses Online Free - Easy Bill Splitting Calculator",
+    appDescription:
+      "Split expenses with friends and groups. Easy bill splitting for shared costs and group spending.",
     allExpenses: "All Expenses",
     allSettled: "All Settled!",
     allSettledInGroup: "All settled in this group.",
@@ -45,12 +56,29 @@ const copy = {
     enterCode: "Enter the room code.",
     enterCodeManually: "Enter Code Manually",
     error: "Error",
+    dismissNotification: "Dismiss notification",
     everyoneBalance: "Everyone's Balance",
     expense: "Expense *",
     expenses: "Expenses",
     filter: "Filter",
     findGroup: "Find Group",
     flow: "Flow",
+    faqTitle: "Frequently Asked Questions",
+    faqQuestion1: "How do I split expenses online for free?",
+    faqAnswer1:
+      'Click "Create New Group" to start. Add your friends, enter shared expenses, and the calculator will show who owes whom. It is completely free and requires no registration.',
+    faqQuestion2: "Is this expense splitter really free?",
+    faqAnswer2:
+      "Yes! The bill splitting calculator is 100% free. There are no hidden fees, premium plans, or subscription costs.",
+    faqQuestion3: "Do I need to create an account to split costs online?",
+    faqAnswer3:
+      "No account is needed. Create a group, share the room code with friends, and start tracking shared costs right away.",
+    faqQuestion4: "Can I use this bill splitter on my phone?",
+    faqAnswer4:
+      "Absolutely. The app works on phones, tablets, and computers, and can be installed for quick access.",
+    faqQuestion5: "How does the expense calculation work?",
+    faqAnswer5:
+      "The calculator shows who owes whom and minimizes the number of transactions needed to settle all debts.",
     found: "Found",
     goBack: "Go Back",
     goHome: "Go Home",
@@ -118,6 +146,10 @@ const copy = {
     splitWithMe: "Split with Me",
     splitWith: "Split with *",
     startSplit: "Start a split",
+    storageWarningMemory:
+      "Your group history will not be saved when you close the browser. Enable cookies or disable private browsing to keep it.",
+    storageWarningCookie:
+      "Group history is saved using cookies. For better performance, enable local storage by disabling private browsing.",
     suggestedSettlements: "Suggested Settlements",
     summary: "Summary",
     tapYourName: "Tap your name.",
@@ -146,7 +178,10 @@ const copy = {
     addUser: "멤버 추가",
     actions: "액션",
     addYourName: "이름을 추가하세요.",
-    appName: "Split",
+    appName: "정산도우미",
+    appTitle: "정산도우미 — 모임비·공동지출 정산",
+    appDescription:
+      "친구, 모임, 공동생활비를 간편하게 나누고 정산하세요. 회원가입 없이 바로 사용할 수 있어요.",
     allExpenses: "전체 지출",
     allSettled: "정산 완료",
     allSettledInGroup: "이 그룹은 정산 완료.",
@@ -176,12 +211,29 @@ const copy = {
     enterCode: "방 코드를 입력하세요.",
     enterCodeManually: "코드 직접 입력",
     error: "오류",
+    dismissNotification: "알림 닫기",
     everyoneBalance: "전체 정산",
     expense: "지출 *",
     expenses: "지출",
     filter: "필터",
     findGroup: "그룹 찾기",
     flow: "흐름",
+    faqTitle: "자주 묻는 질문",
+    faqQuestion1: "온라인에서 지출을 무료로 나누려면 어떻게 하나요?",
+    faqAnswer1:
+      '"새 그룹 만들기"를 누르고 친구를 추가한 뒤 공동 지출을 입력하세요. 누가 누구에게 얼마를 보내야 하는지 바로 확인할 수 있어요. 회원가입도 필요 없어요.',
+    faqQuestion2: "정말 무료로 사용할 수 있나요?",
+    faqAnswer2:
+      "네! 정산도우미는 완전히 무료예요. 숨은 비용, 유료 플랜, 구독료가 없어요.",
+    faqQuestion3: "온라인 지출 정산에 계정이 필요한가요?",
+    faqAnswer3:
+      "계정이 없어도 돼요. 그룹을 만들고 방 코드를 친구들과 공유하면 바로 공동 지출을 기록할 수 있어요.",
+    faqQuestion4: "휴대폰에서도 사용할 수 있나요?",
+    faqAnswer4:
+      "물론이에요. 휴대폰, 태블릿, 컴퓨터에서 사용할 수 있고 홈 화면에 앱처럼 설치할 수도 있어요.",
+    faqQuestion5: "지출 정산은 어떻게 계산되나요?",
+    faqAnswer5:
+      "누가 누구에게 얼마를 보내야 하는지 계산하고, 정산에 필요한 송금 횟수도 최소화해 줘요.",
     found: "검색됨",
     goBack: "돌아가기",
     goHome: "홈으로",
@@ -249,6 +301,10 @@ const copy = {
     splitWithMe: "내가 포함",
     splitWith: "나눌 사람 *",
     startSplit: "나누기 시작",
+    storageWarningMemory:
+      "브라우저를 닫으면 그룹 기록이 저장되지 않아요. 계속 보관하려면 쿠키를 허용하거나 시크릿 모드를 꺼주세요.",
+    storageWarningCookie:
+      "그룹 기록이 쿠키에 저장되고 있어요. 더 빠르고 안정적으로 사용하려면 시크릿 모드를 꺼주세요.",
     suggestedSettlements: "추천 정산",
     summary: "요약",
     tapYourName: "내 이름을 선택하세요.",

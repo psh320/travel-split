@@ -1,7 +1,13 @@
 import { useState, useEffect, useMemo } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { AppHeader } from "../components/ui/AppHeader";
-import { IconLink } from "../components/ui/IconButton";
+import {
+  EditIcon,
+  IconButton,
+  IconLink,
+  TrashIcon,
+} from "../components/ui/IconButton";
+import { Dropdown } from "../components/ui/Dropdown";
 import { FirebaseService } from "../services/firebase";
 import type { Trip } from "../types";
 import { formatCurrency, formatDate } from "../utils";
@@ -182,68 +188,28 @@ const ExpensesPage = () => {
           </div>
 
           {/* Filters and Sort */}
-          <div
-            style={{
-              display: "flex",
-              gap: "1rem",
-              flexWrap: "wrap",
-              alignItems: "center",
-            }}
-          >
-            <div
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                gap: "0.25rem",
-              }}
-            >
-              <label
-                style={{
-                  fontSize: "0.75rem",
-                  color: "var(--ease-color-text-muted)",
-                  fontWeight: "600",
-                }}
-              >
-                {t("filter").toUpperCase()}
-              </label>
-              <select
-                value={filterBy}
-                onChange={(e) => setFilterBy(e.target.value as typeof filterBy)}
-                style={{ fontSize: "0.875rem" }}
-              >
-                <option value="all">{t("allExpenses")}</option>
-                <option value="paid-by-me">{t("paidByMe")}</option>
-                <option value="split-with-me">{t("splitWithMe")}</option>
-              </select>
-            </div>
-
-            <div
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                gap: "0.25rem",
-              }}
-            >
-              <label
-                style={{
-                  fontSize: "0.75rem",
-                  color: "var(--ease-color-text-muted)",
-                  fontWeight: "600",
-                }}
-              >
-                {t("sortBy").toUpperCase()}
-              </label>
-              <select
-                value={sortBy}
-                onChange={(e) => setSortBy(e.target.value as typeof sortBy)}
-                style={{ fontSize: "0.875rem" }}
-              >
-                <option value="date-desc">{t("newestFirst")}</option>
-                <option value="date-asc">{t("oldestFirst")}</option>
-                <option value="amount-desc">{t("highestAmount")}</option>
-                <option value="amount-asc">{t("lowestAmount")}</option>
-              </select>
-            </div>
+          <div className="filter-controls">
+            <Dropdown
+              label={t("filter")}
+              value={filterBy}
+              onChange={setFilterBy}
+              options={[
+                { value: "all", label: t("allExpenses") },
+                { value: "paid-by-me", label: t("paidByMe") },
+                { value: "split-with-me", label: t("splitWithMe") },
+              ]}
+            />
+            <Dropdown
+              label={t("sortBy")}
+              value={sortBy}
+              onChange={setSortBy}
+              options={[
+                { value: "date-desc", label: t("newestFirst") },
+                { value: "date-asc", label: t("oldestFirst") },
+                { value: "amount-desc", label: t("highestAmount") },
+                { value: "amount-asc", label: t("lowestAmount") },
+              ]}
+            />
           </div>
         </div>
 
@@ -428,17 +394,19 @@ const ExpensesPage = () => {
                         >
                           <Link
                             to={`/group/${groupId}/edit-expense/${expense.id}`}
-                            className="list-item-action"
+                            className="list-item-icon-action"
+                            aria-label={t("editExpense")}
+                            title={t("editExpense")}
                           >
-                            {t("editExpense")}
+                            <EditIcon />
                           </Link>
-                          <button
+                          <IconButton
                             onClick={() => handleDeleteExpense(expense.id)}
-                            className="list-item-action"
-                            style={{ color: "var(--ease-color-danger)" }}
+                            className="list-item-icon-action list-item-delete-action"
+                            label={t("remove")}
                           >
-                            {t("remove")}
-                          </button>
+                            <TrashIcon />
+                          </IconButton>
                         </div>
                       </div>
                     </div>

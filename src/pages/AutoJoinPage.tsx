@@ -234,50 +234,18 @@ const AutoJoinPage = () => {
           </p>
           <div className="list">
             {trip.participants.map((participant: User) => (
-              <div
+              <button
                 key={participant.id}
-                className="list-item"
+                type="button"
+                className="participant-option"
                 onClick={() => handleParticipantClick(participant)}
-                style={{
-                  cursor: "pointer",
-                  transition: "all 0.2s ease",
-                  backgroundColor: "var(--ease-color-surface-raised)",
-                  border: "1px solid var(--ease-color-border)",
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = "var(--ease-color-surface-subtle)";
-                  e.currentTarget.style.borderColor = "var(--ease-color-brand)";
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = "var(--ease-color-surface-raised)";
-                  e.currentTarget.style.borderColor = "var(--ease-color-border)";
-                }}
+                aria-label={participant.name}
               >
-                <div className="list-item-content">
-                  <div className="list-item-title">
-                    {participant.name}
-                    <span
-                      style={{
-                        marginLeft: "0.5rem",
-                        fontSize: "0.75rem",
-                        color: "var(--ease-color-brand)",
-                        fontWeight: "500",
-                      }}
-                    >
-                      ({t("clickToContinue")})
-                    </span>
-                  </div>
-                </div>
-                <div
-                  style={{
-                    fontSize: "1.25rem",
-                    color: "var(--ease-color-brand)",
-                    opacity: 0.6,
-                  }}
-                >
-                  →
-                </div>
-              </div>
+                <span className="participant-option-name">
+                  {participant.name}
+                </span>
+                <span className="participant-option-arrow" aria-hidden="true" />
+              </button>
             ))}
           </div>
         </div>

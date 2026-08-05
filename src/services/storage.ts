@@ -1,5 +1,6 @@
 // Cross-browser storage service with Safari compatibility
 // Handles localStorage issues in Safari, especially private browsing mode
+import { t } from "../i18n";
 
 export interface StorageService {
   getItem(key: string): string | null;
@@ -198,9 +199,9 @@ class CrossBrowserStorage implements StorageService {
   getStorageWarning(): string | null {
     switch (this.storageType) {
       case "memory":
-        return "Your group history will not be saved when you close the browser. For persistent history, please enable cookies or disable private browsing mode.";
+        return t("storageWarningMemory");
       case "cookie":
-        return "Group history is saved using cookies. For better performance, consider enabling localStorage by disabling private browsing mode.";
+        return t("storageWarningCookie");
       default:
         return null;
     }

@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/coin.svg" />
+    <link rel="icon" type="image/png" href="/icons/app-icon-v2.png" />
     <meta
       name="viewport"
       content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, viewport-fit=cover, user-scalable=no, shrink-to-fit=no"
@@ -53,7 +53,7 @@
     <meta property="og:url" content="https://splitexpense.web.app/" />
     <meta
       property="og:image"
-      content="https://splitexpense.web.app/icons/app-icon.svg"
+      content="https://splitexpense.web.app/icons/app-icon-v2.png"
     />
     <meta property="og:image:width" content="512" />
     <meta property="og:image:height" content="512" />
@@ -71,7 +71,7 @@
     />
     <meta
       name="twitter:image"
-      content="https://splitexpense.web.app/icons/app-icon.svg"
+      content="https://splitexpense.web.app/icons/app-icon-v2.png"
     />
     <meta name="twitter:site" content="@splitexpense" />
 
@@ -110,7 +110,7 @@
           "Real-time collaboration",
           "Minimal transaction optimization"
         ],
-        "screenshot": "https://splitexpense.web.app/icons/app-icon.svg",
+        "screenshot": "https://splitexpense.web.app/icons/app-icon-v2.png",
         "aggregateRating": {
           "@type": "AggregateRating",
           "ratingValue": "4.8",
@@ -200,7 +200,7 @@
 
     <!-- Microsoft Tile Meta Tags -->
     <meta name="msapplication-TileColor" content="#667eea" />
-    <meta name="msapplication-TileImage" content="/icons/app-icon.svg" />
+    <meta name="msapplication-TileImage" content="/icons/app-icon-v2.png" />
     <meta
       name="msapplication-tooltip"
       content="Split Expense - Share costs easily"
@@ -227,6 +227,28 @@
 
     <!-- Service Worker Registration -->
     <script>
+      const preferredLanguages = navigator.languages?.length
+        ? navigator.languages
+        : [navigator.language];
+      const preferredLanguage = preferredLanguages.find((language) =>
+        /^(ko|en)(-|$)/i.test(language)
+      );
+      const browserIsKorean = preferredLanguage?.toLowerCase().startsWith("ko");
+      const pwaCopy = browserIsKorean
+        ? {
+            update: "정산도우미의 새 버전이 있습니다. 업데이트할까요?",
+            title: "📱 정산도우미 설치",
+            description: "홈 화면에 추가하면 더 빠르게 이용할 수 있어요.",
+            install: "설치",
+          }
+        : {
+            update: "A new version of Split Expense is available. Refresh to update?",
+            title: "📱 Install Split Expense",
+            description: "Add it to your home screen for easy access!",
+            install: "Install",
+          };
+      document.documentElement.lang = browserIsKorean ? "ko" : "en";
+
       // Register Service Worker for PWA functionality
       if ("serviceWorker" in navigator) {
         window.addEventListener("load", async () => {
@@ -250,7 +272,7 @@
                     // New version available
                     if (
                       confirm(
-                        "New version of Split Expense is available. Refresh to update?"
+                        pwaCopy.update
                       )
                     ) {
                       window.location.reload();
@@ -309,11 +331,11 @@
 
         installBanner.innerHTML = `
           <div>
-            <div style="font-weight: 600; margin-bottom: 4px;">📱 Install Split Expense</div>
-            <div style="opacity: 0.9; font-size: 12px;">Add to home screen for easy access!</div>
+            <div style="font-weight: 600; margin-bottom: 4px;">${pwaCopy.title}</div>
+            <div style="opacity: 0.9; font-size: 12px;">${pwaCopy.description}</div>
           </div>
           <div>
-            <button id="install-btn" style="background: rgba(255,255,255,0.2); border: none; color: white; padding: 8px 12px; border-radius: 4px; font-size: 12px; margin-right: 8px; cursor: pointer;">Install</button>
+            <button id="install-btn" style="background: rgba(255,255,255,0.2); border: none; color: white; padding: 8px 12px; border-radius: 4px; font-size: 12px; margin-right: 8px; cursor: pointer;">${pwaCopy.install}</button>
             <button id="dismiss-btn" style="background: none; border: none; color: white; padding: 8px; cursor: pointer; opacity: 0.7;">✕</button>
           </div>
         `;

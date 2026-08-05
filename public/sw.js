@@ -1,14 +1,13 @@
 // Split Expense - Service Worker
-const CACHE_NAME = "split-expense-v2.4";
-const STATIC_CACHE_NAME = "split-expense-static-v2.4";
+const CACHE_NAME = "split-expense-v2.5";
+const STATIC_CACHE_NAME = "split-expense-static-v2.5";
 
 // Files to cache immediately (App Shell)
 const STATIC_FILES = [
   "/",
   "/index.html",
   "/manifest.json",
-  "/coin.svg",
-  "/icons/app-icon.svg",
+  "/icons/app-icon-v2.png",
   "/sitemap.xml",
   "/robots.txt",
   // Safari PNG icons for PWA compatibility
@@ -27,7 +26,7 @@ const STATIC_FILES = [
 ];
 
 // Runtime cache for dynamic content
-const RUNTIME_CACHE = "split-expense-runtime-v2.1";
+const RUNTIME_CACHE = "split-expense-runtime-v2.2";
 
 // Install event - cache static assets
 self.addEventListener("install", (event) => {
@@ -131,10 +130,15 @@ async function handleGetRequest(request) {
       const cachedResponse = await caches.match("/");
       return (
         cachedResponse ||
-        new Response("Offline - Split Expense app is not available", {
-          status: 503,
-          statusText: "Service Unavailable",
-        })
+        new Response(
+          isKoreanRequest(request)
+            ? "오프라인 상태입니다. 정산도우미를 사용할 수 없어요."
+            : "Offline - Split Expense app is not available",
+          {
+            status: 503,
+            statusText: "Service Unavailable",
+          }
+        )
       );
     }
   }
@@ -191,6 +195,10 @@ async function handleGetRequest(request) {
   return fetch(request);
 }
 
+function isKoreanRequest(request) {
+  return request.headers.get("accept-language")?.toLowerCase().startsWith("ko");
+}
+
 function isStaticAsset(pathname) {
   return pathname.match(
     /\.(css|js|png|jpg|jpeg|gif|svg|ico|woff|woff2|ttf|eot)$/
@@ -216,15 +224,15 @@ self.addEventListener("push", (event) => {
     const data = event.data.json();
     const options = {
       body: data.body,
-      icon: "/icons/app-icon.svg",
-      badge: "/coin.svg",
+      icon: "/icons/app-icon-v2.png",
+      badge: "/icons/app-icon-v2.png",
       vibrate: [100, 50, 100],
       data: data.data,
       actions: [
         {
           action: "view",
           title: "View",
-          icon: "/coin.svg",
+          icon: "/icons/app-icon-v2.png",
         },
         {
           action: "close",
