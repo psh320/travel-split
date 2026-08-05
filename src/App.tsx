@@ -2,7 +2,8 @@ import { lazy, Suspense, useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import HomePage from "./pages/HomePage";
 import { ToastProvider } from "./components/ui/Toast";
-import { getLocale, t } from "./i18n";
+import RouteMeta from "./components/RouteMeta";
+import { getLocale } from "./i18n";
 import "./App.css";
 
 const CreateTripPage = lazy(() => import("./pages/CreateTripPage"));
@@ -14,16 +15,14 @@ const ExpensesPage = lazy(() => import("./pages/ExpensesPage"));
 const BalancePage = lazy(() => import("./pages/BalancePage"));
 const PrivacyPage = lazy(() => import("./pages/PrivacyPage"));
 const TermsPage = lazy(() => import("./pages/TermsPage"));
+const GuidesPage = lazy(() => import("./pages/GuidesPage"));
+const GuideArticlePage = lazy(() => import("./pages/GuideArticlePage"));
+const AboutPage = lazy(() => import("./pages/AboutPage"));
 
 function App() {
   useEffect(() => {
     const locale = getLocale();
     document.documentElement.lang = locale;
-    document.title = t("appTitle");
-
-    document
-      .querySelector('meta[name="description"]')
-      ?.setAttribute("content", t("appDescription"));
 
     const manifestLink = document.querySelector<HTMLLinkElement>(
       'link[rel="manifest"]'
@@ -38,6 +37,7 @@ function App() {
       <div className="app">
         <div className="container">
           <Router>
+          <RouteMeta />
           <Suspense
             fallback={
               <div className="loading">
@@ -63,6 +63,9 @@ function App() {
               <Route path="/group/:groupId/balance" element={<BalancePage />} />
               <Route path="/privacy" element={<PrivacyPage />} />
               <Route path="/terms" element={<TermsPage />} />
+              <Route path="/guides" element={<GuidesPage />} />
+              <Route path="/guides/:slug" element={<GuideArticlePage />} />
+              <Route path="/about" element={<AboutPage />} />
             </Routes>
           </Suspense>
           </Router>

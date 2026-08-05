@@ -19,7 +19,7 @@
       content="split expenses online, split expense online free, split costs online, bill splitting calculator, expense splitting app, split expenses free, online expense splitter, group expense calculator, shared expense tracker, split bills online, expense sharing tool"
     />
     <meta name="robots" content="index, follow" />
-    <meta name="author" content="Split Expense App" />
+    <meta name="author" content="psh320" />
     <meta
       name="google-site-verification"
       content="T0xds5i4wDvQYs4v4j_JsS6z51XxkTnlhS-AWxiX8YE"
@@ -31,13 +31,8 @@
     <link rel="canonical" href="https://splitexpense.web.app/" />
     <link rel="sitemap" type="application/xml" href="/sitemap.xml" />
 
-    <!-- Google AdSense Auto ads: bottom anchor + account-controlled vignettes -->
-    <script
-      async
-      src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7682850870038833"
-      data-overlays="bottom"
-      crossorigin="anonymous"
-    ></script>
+    <!-- The account meta tag verifies site ownership during AdSense review.
+         Ad code is intentionally not loaded on application and empty-state routes. -->
 
     <!-- Open Graph Meta Tags for Social Sharing -->
     <meta property="og:type" content="website" />
@@ -73,13 +68,6 @@
       name="twitter:image"
       content="https://splitexpense.web.app/icons/app-icon-v2.png"
     />
-    <meta name="twitter:site" content="@splitexpense" />
-
-    <!-- Additional SEO Meta Tags -->
-    <meta name="geo.region" content="US" />
-    <meta name="geo.placename" content="United States" />
-    <meta name="geo.position" content="39.78373;-100.445882" />
-    <meta name="ICBM" content="39.78373, -100.445882" />
 
     <!-- Structured Data (JSON-LD) -->
     <script type="application/ld+json">
@@ -111,18 +99,15 @@
           "Minimal transaction optimization"
         ],
         "screenshot": "https://splitexpense.web.app/icons/app-icon-v2.png",
-        "aggregateRating": {
-          "@type": "AggregateRating",
-          "ratingValue": "4.8",
-          "reviewCount": "127"
-        },
         "author": {
-          "@type": "Organization",
-          "name": "Split Expense Team"
+          "@type": "Person",
+          "name": "psh320",
+          "url": "https://github.com/psh320"
         },
         "creator": {
-          "@type": "Organization",
-          "name": "Split Expense Team"
+          "@type": "Person",
+          "name": "psh320",
+          "url": "https://github.com/psh320"
         },
         "provider": {
           "@type": "Organization",
@@ -222,7 +207,34 @@
     />
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <main class="static-fallback">
+        <h1>Split expenses with a clear, verifiable settlement</h1>
+        <p>
+          Record who paid and who shared each cost. Split Expense combines the
+          full ledger to calculate what every participant should send or receive,
+          without requiring an account or connecting to a bank.
+        </p>
+        <h2>How shared expense settlement works</h2>
+        <ol>
+          <li>Create a group and share its room code with the participants.</li>
+          <li>For each purchase, enter the payer, amount, and people sharing it.</li>
+          <li>Review the expense list, then use net balances to settle with fewer transfers.</li>
+        </ol>
+        <p>
+          Equal splitting works for costs everyone used. Optional activities and
+          individual items should include only the relevant participants. The
+          service calculates results from the information entered by the group and
+          does not process payments.
+        </p>
+        <nav aria-label="Information">
+          <a href="/guides">Shared expense guides</a>
+          <a href="/about">About and methodology</a>
+          <a href="/privacy">Privacy policy</a>
+          <a href="/terms">Terms of service</a>
+        </nav>
+      </main>
+    </div>
     <script type="module" src="/src/main.tsx"></script>
 
     <!-- Service Worker Registration -->

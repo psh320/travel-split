@@ -1,6 +1,5 @@
 // Split Expense - Service Worker
-const CACHE_NAME = "split-expense-v2.5";
-const STATIC_CACHE_NAME = "split-expense-static-v2.5";
+const STATIC_CACHE_NAME = "split-expense-static-v3.0";
 
 // Files to cache immediately (App Shell)
 const STATIC_FILES = [
@@ -26,7 +25,7 @@ const STATIC_FILES = [
 ];
 
 // Runtime cache for dynamic content
-const RUNTIME_CACHE = "split-expense-runtime-v2.2";
+const RUNTIME_CACHE = "split-expense-runtime-v3.0";
 
 // Install event - cache static assets
 self.addEventListener("install", (event) => {
@@ -94,31 +93,13 @@ self.addEventListener("fetch", (event) => {
 async function handleGetRequest(request) {
   const requestUrl = new URL(request.url);
 
-  // For HTML pages, try cache first, then network
+  // Always prefer the latest HTML. This prevents an old app shell (including
+  // outdated policy or advertising code) from persisting after a deployment.
   if (
     request.headers.get("accept") &&
     request.headers.get("accept").includes("text/html")
   ) {
     try {
-      // Try cache first for better Safari compatibility
-      const cachedResponse = await caches.match(request);
-      if (cachedResponse) {
-        // Fetch network in background for Safari
-        fetch(request)
-          .then((networkResponse) => {
-            if (networkResponse.ok) {
-              caches.open(RUNTIME_CACHE).then((cache) => {
-                cache.put(request, networkResponse.clone());
-              });
-            }
-          })
-          .catch(() => {
-            // Ignore background fetch errors
-          });
-        return cachedResponse;
-      }
-
-      // Try network, cache the response
       const networkResponse = await fetch(request);
       if (networkResponse.ok) {
         const cache = await caches.open(RUNTIME_CACHE);
@@ -126,8 +107,9 @@ async function handleGetRequest(request) {
       }
       return networkResponse;
     } catch (error) {
-      // Fallback to offline page or cached index
-      const cachedResponse = await caches.match("/");
+      // Fall back to the exact cached route, then the cached app shell.
+      const cachedResponse =
+        (await caches.match(request)) || (await caches.match("/"));
       return (
         cachedResponse ||
         new Response(

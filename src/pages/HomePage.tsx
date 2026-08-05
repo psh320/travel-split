@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { AppHeader } from "../components/ui/AppHeader";
-import { IconButton } from "../components/ui/IconButton";
-import { countLabel, t } from "../i18n";
+import SEOContent from "../components/SEOContent";
+import SiteFooter from "../components/SiteFooter";
+import { countLabel, isKorean, t } from "../i18n";
 import { GroupHistoryService } from "../services/groupHistory";
 import type { GroupHistoryItem } from "../services/groupHistory";
 import { timeAgo } from "../utils";
@@ -11,7 +12,6 @@ const HomePage = () => {
   const [groupHistory, setGroupHistory] = useState<GroupHistoryItem[]>([]);
   const [isNewUser, setIsNewUser] = useState(true);
   const [storageWarning, setStorageWarning] = useState<string | null>(null);
-  const [settingsOpen, setSettingsOpen] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -54,44 +54,17 @@ const HomePage = () => {
 
   const HomeTopBar = () => (
     <div className="home-app-bar">
-      <Link
-        to="/"
-        className="home-app-brand"
-        onClick={() => setSettingsOpen(false)}
-        data-google-vignette="false"
-      >
+      <Link to="/" className="home-app-brand" data-google-vignette="false">
         {t("appName")}
       </Link>
-      <div className="home-settings">
-        <IconButton
-          aria-expanded={settingsOpen}
-          aria-haspopup="menu"
-          label={t("settings")}
-          onClick={() => setSettingsOpen((open) => !open)}
-        >
-          ⚙
-        </IconButton>
-        {settingsOpen && (
-          <div className="settings-menu" role="menu">
-            <Link
-              to="/privacy"
-              role="menuitem"
-              onClick={() => setSettingsOpen(false)}
-              data-google-vignette="false"
-            >
-              {t("privacy")}
-            </Link>
-            <Link
-              to="/terms"
-              role="menuitem"
-              onClick={() => setSettingsOpen(false)}
-              data-google-vignette="false"
-            >
-              {t("terms")}
-            </Link>
-          </div>
-        )}
-      </div>
+      <nav className="home-nav" aria-label={isKorean ? "주요 메뉴" : "Main navigation"}>
+        <Link to="/guides" data-google-vignette="false">
+          {isKorean ? "가이드" : "Guides"}
+        </Link>
+        <Link to="/about" data-google-vignette="false">
+          {isKorean ? "소개" : "About"}
+        </Link>
+      </nav>
     </div>
   );
 
@@ -151,8 +124,9 @@ const HomePage = () => {
             </div>
           </div>
         </div>
-
+        <SEOContent />
       </div>
+      <SiteFooter />
     </>
   );
 
@@ -319,8 +293,9 @@ const HomePage = () => {
             </div>
           )}
         </div>
-
+        <SEOContent />
       </div>
+      <SiteFooter />
     </>
   );
 

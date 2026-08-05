@@ -2,9 +2,10 @@ User-agent: *
 Allow: /
 Allow: /ads.txt
 
-# Important pages to crawl
-Allow: /create-group
-Allow: /join-group
+# Public information pages
+Allow: /guides
+Allow: /guides/*
+Allow: /about
 Allow: /privacy
 Allow: /terms
 
@@ -14,6 +15,3 @@ Disallow: /join/*
 
 # Sitemap location
 Sitemap: https://splitexpense.web.app/sitemap.xml
-
-# Crawl-delay for respectful crawling
-Crawl-delay: 1

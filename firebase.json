@@ -3,6 +3,24 @@
     "site": "splitexpense",
     "public": "dist",
     "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
+    "headers": [
+      {
+        "source": "/create-group",
+        "headers": [{ "key": "X-Robots-Tag", "value": "noindex, nofollow, noarchive" }]
+      },
+      {
+        "source": "/join-group",
+        "headers": [{ "key": "X-Robots-Tag", "value": "noindex, nofollow, noarchive" }]
+      },
+      {
+        "source": "/group/**",
+        "headers": [{ "key": "X-Robots-Tag", "value": "noindex, nofollow, noarchive" }]
+      },
+      {
+        "source": "/join/**",
+        "headers": [{ "key": "X-Robots-Tag", "value": "noindex, nofollow, noarchive" }]
+      }
+    ],
     "rewrites": [
       {
         "source": "**",
