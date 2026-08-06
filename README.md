@@ -1,5 +1,20 @@
 # React + TypeScript + Vite
 
+## Google Analytics
+
+Production builds load Google Analytics when either
+`VITE_GOOGLE_ANALYTICS_ID` or the existing
+`VITE_FIREBASE_MEASUREMENT_ID` environment variable is set to a GA4
+measurement ID (for example, `G-XXXXXXXXXX`). Analytics is disabled during
+local development. Dynamic room, group, and expense identifiers are replaced
+with route patterns before page views are sent.
+
+Because the app sends its own sanitized SPA page views, turn off **Page changes
+based on browser history events** under Google Analytics → Admin → Data Streams
+→ Web → Enhanced measurement → Page views → Advanced settings. Leaving that
+option enabled can count route changes twice and can expose dynamic identifiers
+through the automatic event.
+
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
 Currently, two official plugins are available:

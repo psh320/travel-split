@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import HomePage from "./pages/HomePage";
 import { ToastProvider } from "./components/ui/Toast";
 import RouteMeta from "./components/RouteMeta";
+import GoogleAnalytics from "./components/GoogleAnalytics";
 import { getLocale } from "./i18n";
 import "./App.css";
 
@@ -37,37 +38,44 @@ function App() {
       <div className="app">
         <div className="container">
           <Router>
-          <RouteMeta />
-          <Suspense
-            fallback={
-              <div className="loading">
-                <div className="spinner" />
-              </div>
-            }
-          >
-            <Routes>
-              <Route path="/" element={<HomePage />} />
-              <Route path="/create-group" element={<CreateTripPage />} />
-              <Route path="/join-group" element={<JoinTripPage />} />
-              <Route path="/join/:roomCode" element={<AutoJoinPage />} />
-              <Route path="/group/:groupId" element={<TripDashboard />} />
-              <Route
-                path="/group/:groupId/add-expense"
-                element={<AddExpensePage />}
-              />
-              <Route
-                path="/group/:groupId/edit-expense/:expenseId"
-                element={<AddExpensePage />}
-              />
-              <Route path="/group/:groupId/expenses" element={<ExpensesPage />} />
-              <Route path="/group/:groupId/balance" element={<BalancePage />} />
-              <Route path="/privacy" element={<PrivacyPage />} />
-              <Route path="/terms" element={<TermsPage />} />
-              <Route path="/guides" element={<GuidesPage />} />
-              <Route path="/guides/:slug" element={<GuideArticlePage />} />
-              <Route path="/about" element={<AboutPage />} />
-            </Routes>
-          </Suspense>
+            <RouteMeta />
+            <GoogleAnalytics />
+            <Suspense
+              fallback={
+                <div className="loading">
+                  <div className="spinner" />
+                </div>
+              }
+            >
+              <Routes>
+                <Route path="/" element={<HomePage />} />
+                <Route path="/create-group" element={<CreateTripPage />} />
+                <Route path="/join-group" element={<JoinTripPage />} />
+                <Route path="/join/:roomCode" element={<AutoJoinPage />} />
+                <Route path="/group/:groupId" element={<TripDashboard />} />
+                <Route
+                  path="/group/:groupId/add-expense"
+                  element={<AddExpensePage />}
+                />
+                <Route
+                  path="/group/:groupId/edit-expense/:expenseId"
+                  element={<AddExpensePage />}
+                />
+                <Route
+                  path="/group/:groupId/expenses"
+                  element={<ExpensesPage />}
+                />
+                <Route
+                  path="/group/:groupId/balance"
+                  element={<BalancePage />}
+                />
+                <Route path="/privacy" element={<PrivacyPage />} />
+                <Route path="/terms" element={<TermsPage />} />
+                <Route path="/guides" element={<GuidesPage />} />
+                <Route path="/guides/:slug" element={<GuideArticlePage />} />
+                <Route path="/about" element={<AboutPage />} />
+              </Routes>
+            </Suspense>
           </Router>
         </div>
       </div>

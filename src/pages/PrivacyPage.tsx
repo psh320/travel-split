@@ -27,6 +27,14 @@ const privacySections = isKorean
           "Google의 동의 관리 메시지에서 맞춤 광고 설정을 선택할 수 있음",
         ],
       },
+      {
+        title: "Google Analytics",
+        items: [
+          "방문한 화면, 접속 시간, 브라우저 및 기기 유형 같은 이용 정보를 수집",
+          "서비스 이용 현황과 개선이 필요한 부분을 파악하는 데 사용",
+          "방 코드, 그룹 ID, 지출 ID는 분석 데이터에 전송하지 않음",
+        ],
+      },
     ]
   : [
       {
@@ -53,12 +61,20 @@ const privacySections = isKorean
           "Ad personalization choices can be managed through Google's consent message",
         ],
       },
+      {
+        title: "Google Analytics",
+        items: [
+          "Collects usage information such as pages viewed, visit times, browser, and device type",
+          "Used to understand service usage and identify areas for improvement",
+          "Room codes, group IDs, and expense IDs are not sent in analytics data",
+        ],
+      },
     ];
 
 const lastUpdated = new Intl.DateTimeFormat(
   getLocale() === "ko" ? "ko-KR" : "en-US",
   { dateStyle: "medium", timeZone: "UTC" }
-).format(new Date(Date.UTC(2026, 6, 16)));
+).format(new Date(Date.UTC(2026, 7, 7)));
 
 const PrivacyPage = () => {
   return (
