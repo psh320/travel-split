@@ -17,6 +17,7 @@ const CreateTripPage = () => {
     description: "",
     creatorName: "",
     currency: "USD",
+    perPersonBudget: "",
   });
 
   const handleInputChange = (
@@ -38,13 +39,22 @@ const CreateTripPage = () => {
       return;
     }
 
+    const perPersonBudget = formData.perPersonBudget.trim()
+      ? Number(formData.perPersonBudget)
+      : undefined;
+    if (perPersonBudget !== undefined && (!Number.isFinite(perPersonBudget) || perPersonBudget <= 0)) {
+      showToast(t("budgetInvalid"), "error");
+      return;
+    }
+
     setLoading(true);
     try {
       const { trip, roomCode } = await FirebaseService.createTrip(
         formData.name.trim(),
         formData.description?.trim() || "",
         formData.creatorName.trim(),
-        formData.currency
+        formData.currency,
+        perPersonBudget
       );
 
       // Store room code and user info in localStorage for easy access
@@ -138,6 +148,24 @@ const CreateTripPage = () => {
           </div>
 
           <div className="form-group">
+            <label htmlFor="perPersonBudget">{t("perPersonBudget")}</label>
+            <input
+              type="number"
+              inputMode="decimal"
+              id="perPersonBudget"
+              name="perPersonBudget"
+              value={formData.perPersonBudget}
+              onChange={handleInputChange}
+              placeholder="0.00"
+              step="0.01"
+              min="0.01"
+            />
+            <span className="form-help">
+              {t("perPersonBudgetHelp")} · {formData.currency}
+            </span>
+          </div>
+
+          <div className="form-group">
             <label htmlFor="description">{t("notes")}</label>
             <textarea
               id="description"
@@ -177,7 +205,7 @@ const CreateTripPage = () => {
           </button>
         </form>
 
-        <div className="card" style={{ marginTop: "2rem" }}>
+        <div className="card">
           <h3>{t("next")}</h3>
           <div
             style={{

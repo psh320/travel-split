@@ -199,7 +199,7 @@ const JoinTripPage = () => {
             </button>
           </form>
 
-          <div className="card" style={{ marginTop: "2rem" }}>
+          <div className="card">
             <h3>{t("help")}</h3>
             <div
               style={{

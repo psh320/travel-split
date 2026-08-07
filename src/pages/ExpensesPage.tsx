@@ -173,7 +173,7 @@ const ExpensesPage = () => {
 
       <div className="content">
         {/* Search and Filter Controls */}
-        <div className="card" style={{ marginBottom: "1rem" }}>
+        <div className="card">
           {/* Search */}
           <div className="form-group" style={{ marginBottom: "1rem" }}>
             <input
@@ -213,7 +213,7 @@ const ExpensesPage = () => {
 
         {/* Quick Stats */}
         {(searchTerm || filterBy !== "all") && (
-          <div className="card" style={{ marginBottom: "1rem" }}>
+          <div className="card">
             <div
               style={{
                 display: "grid",

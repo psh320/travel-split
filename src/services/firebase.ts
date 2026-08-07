@@ -9,6 +9,7 @@ import {
   query,
   where,
   Timestamp,
+  deleteField,
 } from "firebase/firestore";
 import { db } from "../config/firebase";
 import type {
@@ -54,7 +55,8 @@ export class FirebaseService {
     name: string,
     description: string,
     creatorName: string,
-    currency: string = "USD"
+    currency: string = "USD",
+    perPersonBudget?: number
   ): Promise<{ trip: Trip; roomCode: string }> {
     const roomCode = generateRoomCode();
     const creatorId = generateId();
@@ -71,6 +73,7 @@ export class FirebaseService {
       description,
       roomCode,
       currency,
+      ...(perPersonBudget ? { perPersonBudget } : {}),
       createdBy: creatorId,
       participants: [creator],
       expenses: [],
@@ -116,6 +119,10 @@ export class FirebaseService {
         ...data,
         id: doc.id,
         currency: data.currency ?? "USD",
+        perPersonBudget:
+          typeof data.perPersonBudget === "number" && data.perPersonBudget > 0
+            ? data.perPersonBudget
+            : undefined,
         createdAt: data.createdAt.toDate(),
         updatedAt: data.updatedAt.toDate(),
         participants: data.participants.map((p: FirestoreUser) => ({
@@ -164,6 +171,10 @@ export class FirebaseService {
           ...data,
           id: docSnap.id,
           currency: data.currency ?? "USD",
+          perPersonBudget:
+            typeof data.perPersonBudget === "number" && data.perPersonBudget > 0
+              ? data.perPersonBudget
+              : undefined,
           createdAt: data.createdAt.toDate(),
           updatedAt: data.updatedAt.toDate(),
           participants: data.participants.map((p: FirestoreUser) => ({
@@ -186,6 +197,30 @@ export class FirebaseService {
 
     this.tripRequests.set(tripId, request);
     return request;
+  }
+
+  static async updateTripBudget(
+    tripId: string,
+    perPersonBudget: number | null
+  ): Promise<void> {
+    try {
+      const tripRef = doc(db, "trips", tripId);
+      const updatedAt = new Date();
+
+      await updateDoc(tripRef, {
+        perPersonBudget: perPersonBudget ?? deleteField(),
+        updatedAt: Timestamp.fromDate(updatedAt),
+      });
+
+      this.updateCachedTrip(tripId, (trip) => ({
+        ...trip,
+        perPersonBudget: perPersonBudget ?? undefined,
+        updatedAt,
+      }));
+    } catch (error) {
+      console.error("Error updating trip budget:", error);
+      throw new Error("Failed to update trip budget");
+    }
   }
 
   // User operations

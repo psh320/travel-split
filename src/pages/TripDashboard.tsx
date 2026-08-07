@@ -32,7 +32,7 @@ const spendColors = [
   "#D1B8A0",
 ];
 
-type DashboardModal = "details" | "participants" | null;
+type DashboardModal = "details" | "participants" | "budget" | null;
 type PendingRemoval = {
   id: string;
   name: string;
@@ -52,6 +52,9 @@ const TripDashboard = () => {
   const [addingUser, setAddingUser] = useState(false);
   const [addUserError, setAddUserError] = useState("");
   const [activeModal, setActiveModal] = useState<DashboardModal>(null);
+  const [budgetValue, setBudgetValue] = useState("");
+  const [budgetError, setBudgetError] = useState("");
+  const [savingBudget, setSavingBudget] = useState(false);
   const [pendingRemoval, setPendingRemoval] = useState<PendingRemoval>(null);
   const [removingUser, setRemovingUser] = useState(false);
 
@@ -176,6 +179,47 @@ const TripDashboard = () => {
   const closeModal = () => {
     setActiveModal(null);
     setShowAddUser(false);
+    setBudgetError("");
+  };
+
+  const openBudgetModal = () => {
+    if (!trip || trip.createdBy !== currentUserId) return;
+    setBudgetValue(trip.perPersonBudget?.toString() ?? "");
+    setBudgetError("");
+    setActiveModal("budget");
+  };
+
+  const handleBudgetSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
+    if (!trip || trip.createdBy !== currentUserId) return;
+
+    const nextBudget = budgetValue.trim() ? Number(budgetValue) : null;
+    if (nextBudget !== null && (!Number.isFinite(nextBudget) || nextBudget <= 0)) {
+      setBudgetError(t("budgetInvalid"));
+      return;
+    }
+
+    setSavingBudget(true);
+    setBudgetError("");
+    try {
+      await FirebaseService.updateTripBudget(trip.id, nextBudget);
+      setTrip((currentTrip) =>
+        currentTrip
+          ? {
+              ...currentTrip,
+              perPersonBudget: nextBudget ?? undefined,
+              updatedAt: new Date(),
+            }
+          : currentTrip
+      );
+      showToast(t("budgetSaved"), "success");
+      closeModal();
+    } catch (error) {
+      console.error("Error saving trip budget:", error);
+      setBudgetError(t("error"));
+    } finally {
+      setSavingBudget(false);
+    }
   };
 
   const handleRemoveUser = (userId: string, userName: string) => {
@@ -325,17 +369,92 @@ const TripDashboard = () => {
                   color: "#E5E7E9",
                 },
               ];
+          const participantCount = Math.max(trip.participants.length, 1);
+          const spentPerPerson = totalExpenses / participantCount;
+          const perPersonBudget = trip.perPersonBudget;
+          const groupBudget = perPersonBudget
+            ? perPersonBudget * participantCount
+            : null;
+          const budgetUsage = perPersonBudget
+            ? (spentPerPerson / perPersonBudget) * 100
+            : 0;
+          const isOverBudget = Boolean(
+            perPersonBudget && spentPerPerson > perPersonBudget
+          );
+          const budgetDifference = perPersonBudget
+            ? Math.abs(perPersonBudget - spentPerPerson)
+            : 0;
 
           return (
             <div className="card spending-summary-card">
               <div className="summary-card-heading">
                 <div>
-                  <span className="summary-eyebrow">{t("spendingSummary")}</span>
-                  <h2>{formatCurrency(totalExpenses, currency)}</h2>
+                  <span className="summary-eyebrow">{t("budgetAtGlance")}</span>
+                  <h2>{formatCurrency(spentPerPerson, currency)}</h2>
+                  <span className="budget-headline-label">{t("perPersonSpent")}</span>
                 </div>
                 <span className="summary-count">
                   {countLabel("expense", trip.expenses.length)}
                 </span>
+              </div>
+
+              {perPersonBudget ? (
+                <div
+                  className={`budget-progress${isOverBudget ? " is-over" : ""}`}
+                  role="img"
+                  aria-label={`${t("perPersonSpent")} ${formatCurrency(
+                    spentPerPerson,
+                    currency
+                  )}. ${t("budgetTarget")} ${formatCurrency(
+                    perPersonBudget,
+                    currency
+                  )}. ${Math.round(budgetUsage)}% ${t("budgetUsed")}.`}
+                >
+                  <div className="budget-progress-labels">
+                    <span>{t("budgetTarget")}</span>
+                    <strong>{formatCurrency(perPersonBudget, currency)}</strong>
+                  </div>
+                  <div className="budget-progress-track" aria-hidden="true">
+                    <span style={{ width: `${Math.min(budgetUsage, 100)}%` }} />
+                  </div>
+                  <div className="budget-progress-meta">
+                    <strong>
+                      {formatCurrency(budgetDifference, currency)} {t(
+                        isOverBudget ? "overPerPerson" : "remainingPerPerson"
+                      )}
+                    </strong>
+                    <span>{Math.round(budgetUsage)}% {t("budgetUsed")}</span>
+                  </div>
+                  {trip.createdBy === currentUserId && (
+                    <button
+                      type="button"
+                      className="budget-edit-trigger"
+                      onClick={openBudgetModal}
+                    >
+                      {t("editBudget")}
+                    </button>
+                  )}
+                </div>
+              ) : (
+                <div className="budget-empty-state">
+                  <div>
+                    <strong>{t("budgetNotSet")}</strong>
+                    <span>{t("perPersonBudgetHelp")}</span>
+                  </div>
+                  {trip.createdBy === currentUserId && (
+                    <button
+                      type="button"
+                      className="btn btn-secondary"
+                      onClick={openBudgetModal}
+                    >
+                      {t("setBudget")}
+                    </button>
+                  )}
+                </div>
+              )}
+
+              <div className="spending-breakdown-heading">
+                <span className="summary-eyebrow">{t("spendingByPerson")}</span>
               </div>
 
               <div className="spending-summary-body">
@@ -346,11 +465,12 @@ const TripDashboard = () => {
                 >
                   <div className="spending-chart-canvas" aria-hidden="true">
                     <ResponsiveContainer width="100%" height="100%" minWidth={0}>
-                      <PieChart>
+                      <PieChart accessibilityLayer={false}>
                         <Pie
                           data={chartData}
                           dataKey="amount"
                           nameKey="name"
+                          rootTabIndex={-1}
                           cx="50%"
                           cy="50%"
                           innerRadius="60%"
@@ -405,14 +525,9 @@ const TripDashboard = () => {
                   <strong>{trip.participants.length}</strong>
                 </div>
                 <div>
-                  <span>{t("average")}</span>
+                  <span>{groupBudget ? t("groupBudget") : t("totalSpent")}</span>
                   <strong>
-                    {formatCurrency(
-                      trip.participants.length
-                        ? totalExpenses / trip.participants.length
-                        : 0,
-                      currency
-                    )}
+                    {formatCurrency(groupBudget ?? totalExpenses, currency)}
                   </strong>
                 </div>
               </div>
@@ -422,10 +537,10 @@ const TripDashboard = () => {
 
         {/* Quick Actions */}
         <div
+          className="dashboard-actions"
           style={{
             display: "flex",
             gap: "0.75rem",
-            marginBottom: "1rem",
             flexWrap: "wrap",
           }}
         >
@@ -551,7 +666,13 @@ const TripDashboard = () => {
           >
             <div className="dashboard-modal-header">
               <h2 id="dashboard-modal-title">
-                {activeModal === "details" ? t("groupDetails") : t("participants")}
+                {activeModal === "details"
+                  ? t("groupDetails")
+                  : activeModal === "budget"
+                    ? trip.perPersonBudget
+                      ? t("editBudget")
+                      : t("setBudget")
+                    : t("participants")}
               </h2>
               <IconButton onClick={closeModal} label={t("close")}>
                 <CloseIcon />
@@ -569,6 +690,14 @@ const TripDashboard = () => {
                     <span>{t("created")}</span>
                     <strong>{formatDate(trip.createdAt)}</strong>
                   </div>
+                  <div>
+                    <span>{t("budgetTarget")}</span>
+                    <strong>
+                      {trip.perPersonBudget
+                        ? formatCurrency(trip.perPersonBudget, currency)
+                        : t("budgetNotSet")}
+                    </strong>
+                  </div>
                   {trip.description && (
                     <div>
                       <span>{t("description")}</span>
@@ -585,6 +714,53 @@ const TripDashboard = () => {
                   </button>
                 </div>
               </>
+            ) : activeModal === "budget" ? (
+              <form className="form budget-form" onSubmit={handleBudgetSubmit}>
+                <div className="form-group">
+                  <label htmlFor="dashboardBudget">{t("perPersonBudget")}</label>
+                  <input
+                    type="number"
+                    inputMode="decimal"
+                    id="dashboardBudget"
+                    value={budgetValue}
+                    onChange={(event) => {
+                      setBudgetValue(event.target.value);
+                      if (budgetError) setBudgetError("");
+                    }}
+                    placeholder="0.00"
+                    step="0.01"
+                    min="0.01"
+                    autoFocus
+                  />
+                  <span className="form-help">
+                    {t("budgetEditHelp")} · {currency}
+                  </span>
+                </div>
+                {budgetError && (
+                  <div className="callout callout-danger">{budgetError}</div>
+                )}
+                <div className="dashboard-modal-actions">
+                  <button
+                    type="button"
+                    className="btn btn-secondary"
+                    onClick={closeModal}
+                    disabled={savingBudget}
+                  >
+                    {t("cancel")}
+                  </button>
+                  <button
+                    type="submit"
+                    className="btn btn-primary"
+                    disabled={savingBudget}
+                  >
+                    {savingBudget ? (
+                      <div className="spinner spinner-small" />
+                    ) : (
+                      t("saveChanges")
+                    )}
+                  </button>
+                </div>
+              </form>
             ) : (
               <>
                 <div className="participants-modal-heading">
