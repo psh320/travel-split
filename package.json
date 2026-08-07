@@ -7,6 +7,7 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
+    "test": "vitest run",
     "preview": "vite preview",
     "deploy": "npm run build && firebase deploy --only hosting --project travel-split-78317"
   },
@@ -31,6 +32,7 @@
     "sharp": "^0.34.3",
     "typescript": "~5.8.3",
     "typescript-eslint": "^8.39.1",
-    "vite": "^7.1.2"
+    "vite": "^7.1.2",
+    "vitest": "^4.1.10"
   }
 }

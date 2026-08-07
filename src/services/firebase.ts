@@ -4,7 +4,7 @@ import {
   doc,
   getDoc,
   getDocs,
-  addDoc,
+  setDoc,
   updateDoc,
   query,
   where,
@@ -88,6 +88,7 @@ export class FirebaseService {
   ): Promise<{ trip: Trip; roomCode: string }> {
     const roomCode = generateRoomCode();
     const creatorId = generateId();
+    const docRef = doc(collection(db, "trips"));
 
     const creator: User = {
       id: creatorId,
@@ -97,7 +98,7 @@ export class FirebaseService {
     };
 
     const trip: Trip = {
-      id: generateId(),
+      id: docRef.id,
       name,
       description,
       roomCode,
@@ -110,7 +111,7 @@ export class FirebaseService {
     };
 
     try {
-      const docRef = await addDoc(collection(db, "trips"), {
+      await setDoc(docRef, {
         ...trip,
         createdAt: Timestamp.fromDate(trip.createdAt),
         updatedAt: Timestamp.fromDate(trip.updatedAt),
@@ -120,7 +121,7 @@ export class FirebaseService {
         })),
       });
 
-      const createdTrip = this.cacheTrip({ ...trip, id: docRef.id });
+      const createdTrip = this.cacheTrip(trip);
       return { trip: createdTrip, roomCode };
     } catch (error) {
       console.error("Error creating trip:", error);
@@ -170,8 +171,34 @@ export class FirebaseService {
         const docSnap = await getDoc(docRef);
 
         if (!docSnap.exists()) {
-          this.tripCache.delete(tripId);
-          return null;
+          const legacyQuery = query(
+            collection(db, "trips"),
+            where("id", "==", tripId)
+          );
+          let legacySnapshot = await getDocs(legacyQuery);
+
+          if (legacySnapshot.empty) {
+            const migratedLegacyQuery = query(
+              collection(db, "trips"),
+              where("legacyId", "==", tripId)
+            );
+            legacySnapshot = await getDocs(migratedLegacyQuery);
+          }
+
+          if (legacySnapshot.empty) {
+            this.tripCache.delete(tripId);
+            return null;
+          }
+
+          const legacyDoc = legacySnapshot.docs[0];
+          const legacyTrip = this.cacheTrip(
+            this.toTrip(legacyDoc.id, legacyDoc.data() as FirestoreTripData)
+          );
+          this.tripCache.set(tripId, {
+            trip: legacyTrip,
+            cachedAt: Date.now(),
+          });
+          return legacyTrip;
         }
 
         const data = docSnap.data() as FirestoreTripData;
