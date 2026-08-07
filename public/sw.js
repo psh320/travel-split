@@ -1,5 +1,5 @@
 // Split Expense - Service Worker
-const STATIC_CACHE_NAME = "split-expense-static-v3.0";
+const STATIC_CACHE_NAME = "split-expense-static-v3.1";
 
 // Files to cache immediately (App Shell)
 const STATIC_FILES = [
@@ -25,7 +25,7 @@ const STATIC_FILES = [
 ];
 
 // Runtime cache for dynamic content
-const RUNTIME_CACHE = "split-expense-runtime-v3.0";
+const RUNTIME_CACHE = "split-expense-runtime-v3.1";
 
 // Install event - cache static assets
 self.addEventListener("install", (event) => {
@@ -100,7 +100,7 @@ async function handleGetRequest(request) {
     request.headers.get("accept").includes("text/html")
   ) {
     try {
-      const networkResponse = await fetch(request);
+      const networkResponse = await fetch(request, { cache: "no-store" });
       if (networkResponse.ok) {
         const cache = await caches.open(RUNTIME_CACHE);
         cache.put(request, networkResponse.clone());

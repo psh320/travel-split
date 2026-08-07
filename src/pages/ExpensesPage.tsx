@@ -1,16 +1,12 @@
 import { useState, useEffect, useMemo } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { AppHeader } from "../components/ui/AppHeader";
-import {
-  EditIcon,
-  IconButton,
-  IconLink,
-  TrashIcon,
-} from "../components/ui/IconButton";
+import { IconLink } from "../components/ui/IconButton";
+import { ExpenseListItem } from "../components/ExpenseListItem";
 import { Dropdown } from "../components/ui/Dropdown";
 import { FirebaseService } from "../services/firebase";
 import type { Trip } from "../types";
-import { formatCurrency, formatDate } from "../utils";
+import { formatCurrency, timeAgo } from "../utils";
 import { t } from "../i18n";
 import { useToast } from "../components/ui/useToast";
 
@@ -172,6 +168,59 @@ const ExpensesPage = () => {
       />
 
       <div className="content">
+        {/* Summary Card */}
+        {filteredAndSortedExpenses.length > 0 && (
+          <div className="card">
+            <h3>{t("summary")}</h3>
+            <div
+              style={{
+                fontSize: "0.875rem",
+                color: "var(--ease-color-text-muted)",
+                lineHeight: "1.6",
+              }}
+            >
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  marginBottom: "0.5rem",
+                }}
+              >
+                <span>{t("totalExpenses")}</span>
+                <strong>{formatCurrency(filteredTotal, currency)}</strong>
+              </div>
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  marginBottom: "0.5rem",
+                }}
+              >
+                <span>{t("averagePerExpense")}</span>
+                <strong>
+                  {formatCurrency(
+                    filteredTotal / filteredAndSortedExpenses.length,
+                    currency
+                  )}
+                </strong>
+              </div>
+              {filterBy === "all" && (
+                <div
+                  style={{ display: "flex", justifyContent: "space-between" }}
+                >
+                  <span>{t("averagePerPerson")}</span>
+                  <strong>
+                    {formatCurrency(
+                      filteredTotal / trip.participants.length,
+                      currency
+                    )}
+                  </strong>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
         {/* Search and Filter Controls */}
         <div className="card">
           {/* Search */}
@@ -323,150 +372,22 @@ const ExpensesPage = () => {
                 const paidByUser = trip.participants.find(
                   (p) => p.id === expense.paidBy
                 );
-                const splitAmount =
-                  expense.amount / expense.participants.length;
-                const isUserInvolved =
-                  expense.participants.includes(currentUserId);
-                const userOwes =
-                  isUserInvolved && expense.paidBy !== currentUserId;
-                const userPaid = expense.paidBy === currentUserId;
-
                 return (
-                  <div key={expense.id} className="list-item">
-                    <div className="list-item-content">
-                      <div
-                        style={{
-                          display: "flex",
-                          justifyContent: "space-between",
-                          alignItems: "start",
-                        }}
-                      >
-                        <div style={{ flex: 1 }}>
-                          <div
-                            className="list-item-title"
-                            style={{ marginBottom: "0.25rem" }}
-                          >
-                            {expense.description}
-                          </div>
-                          <div className="list-item-subtitle">
-                            <div style={{ marginBottom: "0.25rem" }}>
-                              <strong>{formatCurrency(expense.amount, currency)}</strong>{" "}
-                              • {t("paidBy").replace(" *", "")}{" "}
-                              {paidByUser?.name || "-"}
-                              {userPaid && (
-                                <span
-                                  style={{
-                                    color: "var(--ease-color-success)",
-                                    fontWeight: "600",
-                                  }}
-                                >
-                                  {" "}
-                                  ({t("you")})
-                                </span>
-                              )}
-                            </div>
-                            <div
-                              style={{ fontSize: "0.75rem", color: "var(--ease-color-text-soft)" }}
-                            >
-                              {t("split")} {expense.participants.length}{" "}
-                              {t("splitWays")} (
-                              {formatCurrency(splitAmount, currency)} {t("each")}) •{" "}
-                              {formatDate(expense.date)}
-                              {userOwes && (
-                                <span
-                                  style={{
-                                    color: "var(--ease-color-warning)",
-                                    fontWeight: "600",
-                                  }}
-                                >
-                                  {" "}
-                                  • {t("youOwe")} {formatCurrency(splitAmount, currency)}
-                                </span>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-                        <div
-                          className="list-item-actions"
-                          style={{ marginLeft: "1rem" }}
-                        >
-                          <Link
-                            to={`/group/${groupId}/edit-expense/${expense.id}`}
-                            className="list-item-icon-action"
-                            aria-label={t("editExpense")}
-                            title={t("editExpense")}
-                          >
-                            <EditIcon />
-                          </Link>
-                          <IconButton
-                            onClick={() => handleDeleteExpense(expense.id)}
-                            className="list-item-icon-action list-item-delete-action"
-                            label={t("remove")}
-                          >
-                            <TrashIcon />
-                          </IconButton>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
+                  <ExpenseListItem
+                    key={expense.id}
+                    currency={currency}
+                    dateLabel={timeAgo(expense.date)}
+                    editTo={`/group/${groupId}/edit-expense/${expense.id}`}
+                    expense={expense}
+                    onDelete={() => handleDeleteExpense(expense.id)}
+                    paidByName={paidByUser?.name}
+                  />
                 );
               })}
             </div>
           )}
         </div>
 
-        {/* Summary Card */}
-        {filteredAndSortedExpenses.length > 0 && (
-          <div className="card">
-            <h3>{t("summary")}</h3>
-            <div
-              style={{
-                fontSize: "0.875rem",
-                color: "var(--ease-color-text-muted)",
-                lineHeight: "1.6",
-              }}
-            >
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  marginBottom: "0.5rem",
-                }}
-              >
-                <span>{t("totalExpenses")}</span>
-                <strong>{formatCurrency(filteredTotal, currency)}</strong>
-              </div>
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  marginBottom: "0.5rem",
-                }}
-              >
-                <span>{t("averagePerExpense")}</span>
-                <strong>
-                  {formatCurrency(
-                    filteredTotal / filteredAndSortedExpenses.length,
-                    currency
-                  )}
-                </strong>
-              </div>
-              {filterBy === "all" && (
-                <div
-                  style={{ display: "flex", justifyContent: "space-between" }}
-                >
-                  <span>{t("averagePerPerson")}</span>
-                  <strong>
-                    {formatCurrency(
-                      filteredTotal / trip.participants.length,
-                      currency
-                    )}
-                  </strong>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
       </div>
     </>
   );

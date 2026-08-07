@@ -5,20 +5,44 @@
     "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
     "headers": [
       {
+        "source": "/",
+        "headers": [{ "key": "Cache-Control", "value": "no-cache, no-store, must-revalidate" }]
+      },
+      {
+        "source": "/index.html",
+        "headers": [{ "key": "Cache-Control", "value": "no-cache, no-store, must-revalidate" }]
+      },
+      {
+        "source": "/sw.js",
+        "headers": [{ "key": "Cache-Control", "value": "no-cache, no-store, must-revalidate" }]
+      },
+      {
         "source": "/create-group",
-        "headers": [{ "key": "X-Robots-Tag", "value": "noindex, nofollow, noarchive" }]
+        "headers": [
+          { "key": "X-Robots-Tag", "value": "noindex, nofollow, noarchive" },
+          { "key": "Cache-Control", "value": "no-cache, no-store, must-revalidate" }
+        ]
       },
       {
         "source": "/join-group",
-        "headers": [{ "key": "X-Robots-Tag", "value": "noindex, nofollow, noarchive" }]
+        "headers": [
+          { "key": "X-Robots-Tag", "value": "noindex, nofollow, noarchive" },
+          { "key": "Cache-Control", "value": "no-cache, no-store, must-revalidate" }
+        ]
       },
       {
         "source": "/group/**",
-        "headers": [{ "key": "X-Robots-Tag", "value": "noindex, nofollow, noarchive" }]
+        "headers": [
+          { "key": "X-Robots-Tag", "value": "noindex, nofollow, noarchive" },
+          { "key": "Cache-Control", "value": "no-cache, no-store, must-revalidate" }
+        ]
       },
       {
         "source": "/join/**",
-        "headers": [{ "key": "X-Robots-Tag", "value": "noindex, nofollow, noarchive" }]
+        "headers": [
+          { "key": "X-Robots-Tag", "value": "noindex, nofollow, noarchive" },
+          { "key": "Cache-Control", "value": "no-cache, no-store, must-revalidate" }
+        ]
       }
     ],
     "rewrites": [

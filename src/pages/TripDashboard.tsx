@@ -4,14 +4,13 @@ import { Cell, Pie, PieChart, ResponsiveContainer } from "recharts";
 import { AppHeader } from "../components/ui/AppHeader";
 import {
   CloseIcon,
-  EditIcon,
   IconButton,
-  IconLink,
   InfoIcon,
   LinkIcon,
   TrashIcon,
   UsersIcon,
 } from "../components/ui/IconButton";
+import { ExpenseListItem } from "../components/ExpenseListItem";
 import { FirebaseService } from "../services/firebase";
 import { GroupHistoryService } from "../services/groupHistory";
 import { countLabel, t } from "../i18n";
@@ -370,61 +369,87 @@ const TripDashboard = () => {
                 },
               ];
           const participantCount = Math.max(trip.participants.length, 1);
-          const spentPerPerson = totalExpenses / participantCount;
+          const currentParticipant = trip.participants.find(
+            (participant) => participant.id === currentUserId
+          );
+          const currentUserSpending = currentParticipant
+            ? trip.expenses.reduce((sum, expense) => {
+                if (
+                  !expense.participants.includes(currentParticipant.id) ||
+                  expense.participants.length === 0
+                ) {
+                  return sum;
+                }
+
+                return sum + expense.amount / expense.participants.length;
+              }, 0)
+            : null;
           const perPersonBudget = trip.perPersonBudget;
           const groupBudget = perPersonBudget
             ? perPersonBudget * participantCount
             : null;
-          const budgetUsage = perPersonBudget
-            ? (spentPerPerson / perPersonBudget) * 100
+          const budgetSpending = currentUserSpending ?? totalExpenses;
+          const activeBudgetTarget = perPersonBudget
+            ? currentParticipant
+              ? perPersonBudget
+              : groupBudget
+            : null;
+          const budgetUsage = activeBudgetTarget
+            ? (budgetSpending / activeBudgetTarget) * 100
             : 0;
           const isOverBudget = Boolean(
-            perPersonBudget && spentPerPerson > perPersonBudget
+            activeBudgetTarget && budgetSpending > activeBudgetTarget
           );
-          const budgetDifference = perPersonBudget
-            ? Math.abs(perPersonBudget - spentPerPerson)
+          const budgetOverage = activeBudgetTarget
+            ? Math.max(budgetSpending - activeBudgetTarget, 0)
             : 0;
+          const spendingLabel = currentParticipant
+            ? t("mySpending")
+            : t("groupSpent");
 
           return (
             <div className="card spending-summary-card">
               <div className="summary-card-heading">
-                <div>
-                  <span className="summary-eyebrow">{t("budgetAtGlance")}</span>
-                  <h2>{formatCurrency(spentPerPerson, currency)}</h2>
-                  <span className="budget-headline-label">{t("perPersonSpent")}</span>
-                </div>
-                <span className="summary-count">
-                  {countLabel("expense", trip.expenses.length)}
-                </span>
+                <span className="summary-eyebrow">{t("budgetAtGlance")}</span>
               </div>
 
-              {perPersonBudget ? (
-                <div
-                  className={`budget-progress${isOverBudget ? " is-over" : ""}`}
-                  role="img"
-                  aria-label={`${t("perPersonSpent")} ${formatCurrency(
-                    spentPerPerson,
-                    currency
-                  )}. ${t("budgetTarget")} ${formatCurrency(
-                    perPersonBudget,
-                    currency
-                  )}. ${Math.round(budgetUsage)}% ${t("budgetUsed")}.`}
-                >
-                  <div className="budget-progress-labels">
-                    <span>{t("budgetTarget")}</span>
-                    <strong>{formatCurrency(perPersonBudget, currency)}</strong>
+              {currentParticipant && (
+                <div className="budget-user-context">
+                  <span>{t("currentUser")}</span>
+                  <span aria-hidden="true">·</span>
+                  <strong>{currentParticipant.name}</strong>
+                </div>
+              )}
+
+              {activeBudgetTarget ? (
+                <div className={`budget-progress${isOverBudget ? " is-over" : ""}`}>
+                  <div className="budget-amount-comparison">
+                    <strong>{formatCurrency(budgetSpending, currency)}</strong>
+                    <span>/ {formatCurrency(activeBudgetTarget, currency)}</span>
                   </div>
-                  <div className="budget-progress-track" aria-hidden="true">
-                    <span style={{ width: `${Math.min(budgetUsage, 100)}%` }} />
-                  </div>
-                  <div className="budget-progress-meta">
-                    <strong>
-                      {formatCurrency(budgetDifference, currency)} {t(
-                        isOverBudget ? "overPerPerson" : "remainingPerPerson"
-                      )}
-                    </strong>
+                  <div className="budget-progress-caption">
+                    <span>{spendingLabel}</span>
                     <span>{Math.round(budgetUsage)}% {t("budgetUsed")}</span>
                   </div>
+                  <div
+                    className="budget-progress-track"
+                    role="progressbar"
+                    aria-label={`${spendingLabel} ${formatCurrency(
+                      budgetSpending,
+                      currency
+                    )} / ${formatCurrency(activeBudgetTarget, currency)}`}
+                    aria-valuemin={0}
+                    aria-valuemax={100}
+                    aria-valuenow={Math.round(Math.min(budgetUsage, 100))}
+                    aria-valuetext={`${Math.round(budgetUsage)}% ${t("budgetUsed")}`}
+                  >
+                    <span style={{ width: `${Math.min(budgetUsage, 100)}%` }} />
+                  </div>
+                  {isOverBudget && (
+                    <strong className="budget-overage">
+                      {formatCurrency(budgetOverage, currency)} {t("overBudget")}
+                    </strong>
+                  )}
                   {trip.createdBy === currentUserId && (
                     <button
                       type="button"
@@ -521,8 +546,8 @@ const TripDashboard = () => {
 
               <div className="summary-metrics">
                 <div>
-                  <span>{t("participants")}</span>
-                  <strong>{trip.participants.length}</strong>
+                  <span>{t("groupSpent")}</span>
+                  <strong>{formatCurrency(totalExpenses, currency)}</strong>
                 </div>
                 <div>
                   <span>{groupBudget ? t("groupBudget") : t("totalSpent")}</span>
@@ -593,7 +618,7 @@ const TripDashboard = () => {
             </div>
           ) : (
             <div className="list">
-              {trip.expenses
+              {[...trip.expenses]
                 .sort((a, b) => b.date.getTime() - a.date.getTime())
                 .slice(0, 10) // Show last 10 expenses
                 .map((expense) => {
@@ -601,36 +626,15 @@ const TripDashboard = () => {
                     (p) => p.id === expense.paidBy
                   );
                   return (
-                    <div key={expense.id} className="list-item">
-                      <div className="list-item-content">
-                        <div className="list-item-title">
-                          {expense.description}
-                        </div>
-                        <div className="list-item-subtitle">
-                          {formatCurrency(expense.amount, currency)} •{" "}
-                          {t("paidBy").replace(" *", "")}{" "}
-                          {paidByUser?.name || "-"} •{" "}
-                          {countLabel("person", expense.participants.length)} •{" "}
-                          {timeAgo(expense.date)}
-                        </div>
-                      </div>
-                      <div className="list-item-actions">
-                        <IconLink
-                          to={`/group/${trip.id}/edit-expense/${expense.id}`}
-                          className="list-item-icon-action"
-                          label={t("editExpense")}
-                        >
-                          <EditIcon />
-                        </IconLink>
-                        <IconButton
-                          onClick={() => handleDeleteExpense(expense.id)}
-                          className="list-item-icon-action list-item-delete-action"
-                          label={t("remove")}
-                        >
-                          <TrashIcon />
-                        </IconButton>
-                      </div>
-                    </div>
+                    <ExpenseListItem
+                      key={expense.id}
+                      currency={currency}
+                      dateLabel={timeAgo(expense.date)}
+                      editTo={`/group/${trip.id}/edit-expense/${expense.id}`}
+                      expense={expense}
+                      onDelete={() => handleDeleteExpense(expense.id)}
+                      paidByName={paidByUser?.name}
+                    />
                   );
                 })}
             </div>

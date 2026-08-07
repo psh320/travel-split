@@ -6,11 +6,11 @@ npm run build
 
 if [ $? -eq 0 ]; then
     echo "🚀 Deploying to Firebase..."
-    firebase deploy --only hosting
+    firebase deploy --only hosting --project travel-split-78317
     
     if [ $? -eq 0 ]; then
         echo "✅ Deployment successful!"
-        echo "🌐 Your app is live at: https://travel-split-78317.web.app"
+        echo "🌐 Your app is live at: https://splitexpense.web.app"
     else
         echo "❌ Deployment failed!"
     fi

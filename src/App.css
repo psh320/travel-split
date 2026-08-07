@@ -409,15 +409,7 @@ select {
 }
 
 .summary-card-heading {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: var(--ease-space-md);
-  margin-bottom: var(--ease-space-lg);
-}
-
-.summary-card-heading > div {
-  min-width: 0;
+  margin-bottom: var(--ease-space-md);
 }
 
 .summary-eyebrow {
@@ -431,66 +423,67 @@ select {
   text-transform: uppercase;
 }
 
-.summary-card-heading h2 {
-  max-width: 100%;
-  color: var(--ease-color-text);
-  font-size: clamp(1.5rem, 7vw, 2rem);
-  font-weight: 780;
-  font-variant-numeric: tabular-nums;
-  letter-spacing: var(--ease-tracking-tight);
-  line-height: 1.1;
-  overflow-wrap: anywhere;
-}
-
-.budget-headline-label {
-  display: block;
-  margin-top: var(--ease-space-xs);
+.budget-user-context {
+  display: flex;
+  align-items: baseline;
+  gap: var(--ease-space-xs);
+  margin-bottom: var(--ease-space-md);
   color: var(--ease-color-text-soft);
   font-size: var(--ease-type-caption-size);
   line-height: var(--ease-type-caption-line);
 }
 
-.summary-count {
-  flex-shrink: 0;
-  padding: var(--ease-space-xs) var(--ease-space-sm);
-  border-radius: var(--ease-radius-pill);
-  background: var(--ease-color-surface-subtle);
-  color: var(--ease-color-text-muted);
-  font-size: var(--ease-type-caption-size);
-  line-height: var(--ease-type-caption-line);
-  white-space: nowrap;
+.budget-user-context > span:first-child {
+  color: var(--ease-color-text-soft);
+  font-weight: var(--ease-type-label-weight);
+  letter-spacing: var(--ease-tracking-caps);
+  text-transform: uppercase;
+}
+
+.budget-user-context strong {
+  color: var(--ease-color-text);
+  font-weight: 720;
 }
 
 .budget-progress {
   margin-bottom: var(--ease-space-xxl);
 }
 
-.budget-progress-labels,
-.budget-progress-meta {
+.budget-amount-comparison {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: var(--ease-space-xs);
+  margin-bottom: var(--ease-space-xs);
+}
+
+.budget-amount-comparison strong {
+  color: var(--ease-color-text);
+  font-size: clamp(1.75rem, 8vw, 2.25rem);
+  font-variant-numeric: tabular-nums;
+  font-weight: 780;
+  letter-spacing: var(--ease-tracking-tight);
+  line-height: 1.08;
+}
+
+.budget-amount-comparison span {
+  color: var(--ease-color-text-soft);
+  font-size: clamp(1rem, 4.4vw, 1.25rem);
+  font-variant-numeric: tabular-nums;
+  font-weight: 650;
+  letter-spacing: var(--ease-tracking-tight);
+  line-height: 1.2;
+}
+
+.budget-progress-caption {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
   gap: var(--ease-space-md);
-}
-
-.budget-progress-labels {
   margin-bottom: var(--ease-space-sm);
-}
-
-.budget-progress-labels span,
-.budget-progress-meta span {
   color: var(--ease-color-text-soft);
   font-size: var(--ease-type-caption-size);
   line-height: var(--ease-type-caption-line);
-}
-
-.budget-progress-labels strong,
-.budget-progress-meta strong {
-  color: var(--ease-color-text);
-  font-size: 0.8125rem;
-  font-weight: 740;
-  font-variant-numeric: tabular-nums;
-  text-align: right;
 }
 
 .budget-progress-track {
@@ -509,16 +502,17 @@ select {
   transition: width 360ms ease-out;
 }
 
-.budget-progress-meta {
+.budget-overage {
+  display: block;
   margin-top: var(--ease-space-sm);
+  color: var(--ease-color-danger);
+  font-size: 0.8125rem;
+  font-variant-numeric: tabular-nums;
+  font-weight: 740;
 }
 
 .budget-progress.is-over .budget-progress-track span {
   background: var(--ease-color-danger);
-}
-
-.budget-progress.is-over .budget-progress-meta strong {
-  color: var(--ease-color-danger);
 }
 
 .budget-edit-trigger {
@@ -603,6 +597,8 @@ select {
 .spending-chart-canvas {
   position: absolute;
   inset: 0;
+  pointer-events: none;
+  user-select: none;
 }
 
 .spending-chart-hole {
@@ -1407,6 +1403,70 @@ select {
   color: var(--ease-color-text-muted);
   font-size: 0.8125rem;
   line-height: 1.45;
+}
+
+.expense-list-item {
+  align-items: flex-start;
+}
+
+.expense-list-item-content .list-item-title {
+  margin-bottom: var(--ease-space-xs);
+  overflow-wrap: anywhere;
+}
+
+.expense-list-item-summary {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--ease-space-md);
+  margin-bottom: var(--ease-space-sm);
+}
+
+.expense-list-item-amount {
+  color: var(--ease-color-text);
+  font-size: 1rem;
+  font-variant-numeric: tabular-nums;
+  font-weight: 760;
+  letter-spacing: var(--ease-tracking-tight);
+  line-height: 1.35;
+}
+
+.expense-list-item-date {
+  flex-shrink: 0;
+  color: var(--ease-color-text-soft);
+  font-size: var(--ease-type-caption-size);
+  line-height: var(--ease-type-caption-line);
+  white-space: nowrap;
+}
+
+.expense-list-item-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  column-gap: var(--ease-space-md);
+  row-gap: var(--ease-space-xs);
+  color: var(--ease-color-text-muted);
+  font-size: 0.8125rem;
+  line-height: 1.4;
+}
+
+.expense-list-item-meta-entry {
+  display: inline-flex;
+  align-items: baseline;
+  gap: var(--ease-space-xs);
+}
+
+.expense-list-item-meta-label {
+  color: var(--ease-color-text-soft);
+}
+
+.expense-list-item-meta-entry strong {
+  color: var(--ease-color-text-muted);
+  font-weight: 680;
+}
+
+.expense-list-item .list-item-actions {
+  margin-top: calc(var(--ease-space-xs) * -1);
 }
 
 .list-item-actions {
