@@ -1,9 +1,41 @@
 // Data models for the travel expense splitting app
+import type { AvatarId } from "../utils/avatars";
+
+export type AvatarSkinTone =
+  | "porcelain"
+  | "peach"
+  | "golden"
+  | "tan"
+  | "brown"
+  | "deep";
+export type AvatarHairStyle = "bob" | "crop" | "curls" | "waves" | "long" | "bun";
+export type AvatarHairColor = "ink" | "chestnut" | "auburn" | "honey" | "rose";
+export type AvatarEyeStyle = "round" | "happy" | "sparkle" | "sleepy";
+export type AvatarNoseStyle = "dot" | "button" | "soft" | "triangle";
+export type AvatarMouthStyle = "smile" | "grin" | "open" | "pout";
+export type AvatarAccessory = "none" | "glasses" | "freckles" | "blush" | "earrings" | "star";
+export type AvatarBackground = "butter" | "sky" | "mint" | "peach" | "lilac" | "rose";
+export type AvatarOutfit = "coral" | "mint" | "blue" | "lilac" | "sunny" | "navy";
+
+export interface AvatarConfig {
+  version: 1;
+  skinTone: AvatarSkinTone;
+  hairStyle: AvatarHairStyle;
+  hairColor: AvatarHairColor;
+  eyeStyle: AvatarEyeStyle;
+  noseStyle: AvatarNoseStyle;
+  mouthStyle: AvatarMouthStyle;
+  accessory: AvatarAccessory;
+  background: AvatarBackground;
+  outfit: AvatarOutfit;
+}
 
 export interface User {
   id: string;
   name: string;
   email?: string;
+  avatarId?: AvatarId;
+  avatarConfig?: AvatarConfig;
   createdAt: Date;
 }
 
@@ -11,7 +43,6 @@ export interface Expense {
   id: string;
   description: string;
   amount: number;
-  currency: string;
   paidBy: string; // User ID who paid
   participants: string[]; // Array of User IDs who should split this expense
   date: Date;
@@ -24,7 +55,6 @@ export interface Trip {
   name: string;
   description?: string;
   roomCode: string; // 6-character unique code for joining
-  currency: string; // Currency used for every expense in this trip
   perPersonBudget?: number; // Optional spending target for each participant
   createdBy: string; // User ID of trip creator
   participants: User[];
@@ -70,7 +100,6 @@ export interface CreateTripForm {
   name: string;
   description?: string;
   creatorName: string;
-  currency: string;
   perPersonBudget: string;
 }
 
@@ -91,6 +120,8 @@ export interface FirestoreUser {
   id: string;
   name: string;
   email?: string;
+  avatarId?: AvatarId;
+  avatarConfig?: AvatarConfig;
   createdAt: {
     toDate(): Date;
   };
@@ -100,7 +131,6 @@ export interface FirestoreExpense {
   id: string;
   description: string;
   amount: number;
-  currency: string;
   paidBy: string;
   participants: string[];
   date: {
@@ -116,7 +146,6 @@ export interface FirestoreTripData {
   name: string;
   description?: string;
   roomCode: string;
-  currency?: string;
   perPersonBudget?: number;
   createdBy: string;
   participants: FirestoreUser[];

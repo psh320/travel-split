@@ -6,7 +6,7 @@ import { ExpenseListItem } from "../components/ExpenseListItem";
 import { Dropdown } from "../components/ui/Dropdown";
 import { FirebaseService } from "../services/firebase";
 import type { Trip } from "../types";
-import { formatCurrency, timeAgo } from "../utils";
+import { formatAmount, formatExpenseDate } from "../utils";
 import { t } from "../i18n";
 import { useToast } from "../components/ui/useToast";
 
@@ -157,14 +157,12 @@ const ExpensesPage = () => {
     (sum, expense) => sum + expense.amount,
     0
   );
-  const currency = trip.currency || "USD";
-
   return (
     <>
       <AppHeader
         backTo={`/group/${groupId}`}
         title={t("expenses")}
-        subtitle={formatCurrency(totalExpenses, currency)}
+        subtitle={formatAmount(totalExpenses)}
       />
 
       <div className="content">
@@ -187,7 +185,7 @@ const ExpensesPage = () => {
                 }}
               >
                 <span>{t("totalExpenses")}</span>
-                <strong>{formatCurrency(filteredTotal, currency)}</strong>
+                <strong>{formatAmount(filteredTotal)}</strong>
               </div>
               <div
                 style={{
@@ -198,10 +196,7 @@ const ExpensesPage = () => {
               >
                 <span>{t("averagePerExpense")}</span>
                 <strong>
-                  {formatCurrency(
-                    filteredTotal / filteredAndSortedExpenses.length,
-                    currency
-                  )}
+                  {formatAmount(filteredTotal / filteredAndSortedExpenses.length)}
                 </strong>
               </div>
               {filterBy === "all" && (
@@ -210,10 +205,7 @@ const ExpensesPage = () => {
                 >
                   <span>{t("averagePerPerson")}</span>
                   <strong>
-                    {formatCurrency(
-                      filteredTotal / trip.participants.length,
-                      currency
-                    )}
+                    {formatAmount(filteredTotal / trip.participants.length)}
                   </strong>
                 </div>
               )}
@@ -297,7 +289,7 @@ const ExpensesPage = () => {
                     color: "var(--ease-color-success)",
                   }}
                 >
-                  {formatCurrency(filteredTotal, currency)}
+                  {formatAmount(filteredTotal)}
                 </div>
                 <div style={{ fontSize: "0.75rem", color: "var(--ease-color-text-muted)" }}>
                   {t("total")}
@@ -375,12 +367,11 @@ const ExpensesPage = () => {
                 return (
                   <ExpenseListItem
                     key={expense.id}
-                    currency={currency}
-                    dateLabel={timeAgo(expense.date)}
+                    dateLabel={formatExpenseDate(expense.date)}
                     editTo={`/group/${groupId}/edit-expense/${expense.id}`}
                     expense={expense}
                     onDelete={() => handleDeleteExpense(expense.id)}
-                    paidByName={paidByUser?.name}
+                    paidByUser={paidByUser}
                   />
                 );
               })}

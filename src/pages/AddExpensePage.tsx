@@ -3,7 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { AppHeader } from "../components/ui/AppHeader";
 import { FirebaseService } from "../services/firebase";
 import { t } from "../i18n";
-import { formatCurrency } from "../utils";
+import { formatAmount } from "../utils";
 import { useToast } from "../components/ui/useToast";
 import type { Trip, AddExpenseForm } from "../types";
 
@@ -229,9 +229,6 @@ const AddExpensePage = () => {
               min="0.01"
               required
             />
-            <span className="form-help">
-              {t("currency")}: <strong>{trip.currency}</strong>
-            </span>
           </div>
 
           <div className="form-group">
@@ -302,7 +299,7 @@ const AddExpensePage = () => {
                 }}
               >
                 {t("splitWith").replace(" *", "")}:{" "}
-                <strong>{formatCurrency(splitAmount, trip.currency)}</strong>
+                <strong>{formatAmount(splitAmount)}</strong>
               </div>
             )}
           </div>

@@ -1,5 +1,7 @@
 // Service for managing user's group history with Safari compatibility
 import { storage } from "./storage";
+import type { AvatarId } from "../utils/avatars";
+import type { AvatarConfig } from "../types";
 
 export interface GroupHistoryItem {
   id: string;
@@ -9,6 +11,8 @@ export interface GroupHistoryItem {
   lastAccessed: Date;
   userIdInGroup: string;
   userNameInGroup: string;
+  avatarId?: AvatarId;
+  avatarConfig?: AvatarConfig;
 }
 
 interface StoredGroupHistoryItem {
@@ -19,6 +23,8 @@ interface StoredGroupHistoryItem {
   lastAccessed: string; // Stored as ISO string
   userIdInGroup: string;
   userNameInGroup: string;
+  avatarId?: AvatarId;
+  avatarConfig?: AvatarConfig;
 }
 
 const STORAGE_KEY = "travel_split_group_history";
@@ -48,7 +54,9 @@ export class GroupHistoryService {
     roomCode: string,
     role: "creator" | "participant",
     userIdInGroup: string,
-    userNameInGroup: string
+    userNameInGroup: string,
+    avatarId?: AvatarId,
+    avatarConfig?: AvatarConfig
   ): void {
     try {
       const history = this.getGroupHistory();
@@ -65,6 +73,8 @@ export class GroupHistoryService {
         lastAccessed: new Date(),
         userIdInGroup,
         userNameInGroup,
+        ...(avatarId ? { avatarId } : {}),
+        ...(avatarConfig ? { avatarConfig } : {}),
       };
 
       // Keep only the most recent 20 groups to avoid storage bloat
@@ -100,6 +110,18 @@ export class GroupHistoryService {
       storage.setItem(STORAGE_KEY, JSON.stringify(updated));
     } catch (error) {
       console.error("Error updating group access time:", error);
+    }
+  }
+
+  static updateAvatarConfig(groupId: string, avatarConfig: AvatarConfig): void {
+    try {
+      const history = this.getGroupHistory();
+      const updated = history.map((item) =>
+        item.id === groupId ? { ...item, avatarConfig } : item
+      );
+      storage.setItem(STORAGE_KEY, JSON.stringify(updated));
+    } catch (error) {
+      console.error("Error updating avatar config in group history:", error);
     }
   }
 

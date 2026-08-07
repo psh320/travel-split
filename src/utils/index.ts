@@ -16,27 +16,22 @@ export const generateId = (): string => {
   return uuidv4();
 };
 
-// Format currency
-export const formatCurrency = (
-  amount: number,
-  currency: string = "USD"
-): string => {
-  return new Intl.NumberFormat(isKorean ? "ko-KR" : "en-US", {
-    style: "currency",
-    currency: currency,
-  }).format(amount);
+export const formatAmount = (amount: number): string => {
+  const formattedAmount = new Intl.NumberFormat(isKorean ? "ko-KR" : "en-US", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(Math.abs(amount));
+
+  return `${amount < 0 ? "-" : ""}$${formattedAmount}`;
 };
 
-export const formatCompactCurrency = (
-  amount: number,
-  currency: string = "USD"
-): string => {
-  return new Intl.NumberFormat(isKorean ? "ko-KR" : "en-US", {
-    style: "currency",
-    currency,
+export const formatCompactAmount = (amount: number): string => {
+  const formattedAmount = new Intl.NumberFormat(isKorean ? "ko-KR" : "en-US", {
     notation: "compact",
     maximumFractionDigits: 1,
-  }).format(amount);
+  }).format(Math.abs(amount));
+
+  return `${amount < 0 ? "-" : ""}$${formattedAmount}`;
 };
 
 // Format date
@@ -46,6 +41,13 @@ export const formatDate = (date: Date): string => {
     month: "short",
     day: "numeric",
   }).format(date);
+};
+
+export const formatExpenseDate = (date: Date): string => {
+  const year = String(date.getFullYear()).slice(-2);
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}/${month}/${day}`;
 };
 
 // Calculate time ago

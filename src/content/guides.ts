@@ -41,7 +41,7 @@ const englishGuides: Guide[] = [
       {
         heading: "2. Record payer and participants as separate facts",
         paragraphs: [
-          "Suppose Mina pays $120 for dinner for Mina, Alex, and Sam. Mina is the payer, but all three are participants. Each person’s share is $40. Mina has already contributed $120, so her net position for that expense is +$80, while Alex and Sam are each at -$40.",
+          "Suppose Mina pays 120 for dinner for Mina, Alex, and Sam. Mina is the payer, but all three are participants. Each person’s share is 40. Mina has already contributed 120, so her net position for that expense is +80, while Alex and Sam are each at -40.",
           "If Alex skipped dinner, remove Alex from that expense instead of compensating later with a guess. Accurate participation at the expense level produces a cleaner final settlement.",
         ],
       },
@@ -49,11 +49,11 @@ const englishGuides: Guide[] = [
         heading: "3. Enter costs while the details are fresh",
         paragraphs: [
           "Small forgotten costs create more disagreement than large, well-documented bookings. Enter the amount, payer, participants, and a recognizable note soon after the purchase. A name such as “Tuesday airport taxi” is easier to verify than “transport.”",
-          "For card purchases in another currency, agree whether the group will use the amount shown on the receipt or the amount posted by the card issuer. Use one method consistently for the whole trip.",
+          "If a purchase changes after a refund or adjustment, update it to the final amount the group agreed to use.",
         ],
         bullets: [
           "Keep receipts until the group confirms the final balance.",
-          "Use the group’s selected currency consistently.",
+          "Use the same recording rule consistently.",
           "Correct mistakes before anyone begins sending money.",
         ],
       },
@@ -83,7 +83,7 @@ const englishGuides: Guide[] = [
         heading: "Before the trip: define the shared budget",
         paragraphs: [
           "List the categories that everyone expects to share, such as accommodation, transport, groceries, and group activities. Add a rough target for each category and a small contingency amount. The target is a planning tool, not a promise that everyone must spend exactly that amount.",
-          "Choose one settlement currency. If the trip uses several currencies, decide how conversions will be recorded. A consistent daily reference rate is simple; the final card-statement amount is more exact but arrives later. Either can work when the group agrees in advance.",
+          "Agree on how deposits, refunds, and later adjustments will be recorded so the shared total stays understandable.",
         ],
         bullets: [
           "Confirm who is included in each prepaid booking.",
@@ -136,13 +136,13 @@ const englishGuides: Guide[] = [
         heading: "Start with each person’s net balance",
         paragraphs: [
           "For every participant, add the amount they paid and subtract the amount they should ultimately bear. A positive result means the group owes that person money. A negative result means that person still needs to contribute. Across a complete ledger, all positive and negative balances should sum to zero apart from minor rounding.",
-          "Example: Alex paid $90 and owes a $50 share, so Alex’s net balance is +$40. Mina paid $20 and owes $50, so Mina is -$30. Sam paid $40 and owes $50, so Sam is -$10.",
+          "Example: Alex paid 90 and owes a 50 share, so Alex’s net balance is +40. Mina paid 20 and owes 50, so Mina is -30. Sam paid 40 and owes 50, so Sam is -10.",
         ],
       },
       {
         heading: "Match people who owe with people who are owed",
         paragraphs: [
-          "In the example, Mina can pay Alex $30 and Sam can pay Alex $10. Two transfers clear all three balances. Reimbursing the original receipts might have required several smaller payments between the same people.",
+          "In the example, Mina can pay Alex 30 and Sam can pay Alex 10. Two transfers clear all three balances. Reimbursing the original receipts might have required several smaller payments between the same people.",
           "With a larger group, the same principle repeats: take one person with a negative balance and match that amount against a person with a positive balance until one side reaches zero, then continue.",
         ],
       },
@@ -156,8 +156,8 @@ const englishGuides: Guide[] = [
       {
         heading: "Rounding and verification",
         paragraphs: [
-          "Currency is normally settled to the smallest spendable unit. Splitting an amount such as $10 among three people creates a remainder, so one or more shares may differ by one cent. The important check is that the rounded shares add back to the original expense.",
-          "Before sending money, confirm the group currency, inspect any unusually large balance, and make sure deleted participants or duplicate expenses are not still affecting the total.",
+          "Splitting an amount such as 10 among three people creates a remainder, so one or more shares may differ by the smallest recorded unit. The important check is that the rounded shares add back to the original expense.",
+          "Before sending money, confirm the entered amounts, inspect any unusually large balance, and make sure deleted participants or duplicate expenses are not still affecting the total.",
         ],
         bullets: [
           "Total paid should equal total owed.",

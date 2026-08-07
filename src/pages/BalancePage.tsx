@@ -5,9 +5,11 @@ import { CloseIcon, IconButton } from "../components/ui/IconButton";
 import { FirebaseService } from "../services/firebase";
 import type { Trip, BalanceSummary } from "../types";
 import { calculateBalances } from "../utils/balanceCalculator";
-import { formatCurrency } from "../utils";
+import { formatAmount } from "../utils";
 import { countLabel, t } from "../i18n";
 import { useToast } from "../components/ui/useToast";
+import { Avatar } from "../components/Avatar";
+import { SettlementRouteCard } from "../components/SettlementRouteCard";
 
 const BalancePage = () => {
   const { groupId } = useParams<{ groupId: string }>();
@@ -94,10 +96,10 @@ const BalancePage = () => {
   const currentUserBalance = balanceSummary.balances.find(
     (b) => b.userId === currentUserId
   );
+  const currentUser = trip.participants.find((user) => user.id === currentUserId);
   const currentUserSettlements = balanceSummary.settlements.filter(
     (s) => s.fromUserId === currentUserId || s.toUserId === currentUserId
   );
-  const currency = trip.currency || "USD";
   const combinationBalances = balanceSummary.combinationBalances ?? [];
   const selectedCombination =
     detailsCombinationIndex === null
@@ -116,7 +118,13 @@ const BalancePage = () => {
         {/* Your Balance */}
         {currentUserBalance && (
           <section className="card balance-result-card">
-            <h3>{t("yourBalance")}</h3>
+            <div className="balance-result-profile">
+              {currentUser && <Avatar user={currentUser} size="lg" decorative eager />}
+              <div>
+                <span>{t("yourBalance")}</span>
+                <strong>{currentUser?.name ?? currentUserBalance.userName}</strong>
+              </div>
+            </div>
             <div
               className={`balance-result-message ${
                 currentUserBalance.netBalance > 0
@@ -129,23 +137,23 @@ const BalancePage = () => {
               {currentUserBalance.netBalance > 0
                 ? t("receiveMessage").replace(
                     "{amount}",
-                    formatCurrency(currentUserBalance.netBalance, currency)
+                    formatAmount(currentUserBalance.netBalance)
                   )
                 : currentUserBalance.netBalance < 0
                 ? t("payMessage").replace(
                     "{amount}",
-                    formatCurrency(Math.abs(currentUserBalance.netBalance), currency)
+                    formatAmount(Math.abs(currentUserBalance.netBalance))
                   )
                 : t("settled")}
             </div>
             <div className="balance-result-metrics">
               <div>
                 <span>{t("totalPaidLabel")}</span>
-                <strong>{formatCurrency(currentUserBalance.totalPaid, currency)}</strong>
+                <strong>{formatAmount(currentUserBalance.totalPaid)}</strong>
               </div>
               <div>
                 <span>{t("yourShare")}</span>
-                <strong>{formatCurrency(currentUserBalance.totalOwed, currency)}</strong>
+                <strong>{formatAmount(currentUserBalance.totalOwed)}</strong>
               </div>
               <div>
                 <span>{t("finalBalance")}</span>
@@ -159,7 +167,7 @@ const BalancePage = () => {
                   }
                 >
                   {currentUserBalance.netBalance > 0 && "+"}
-                  {formatCurrency(Math.abs(currentUserBalance.netBalance), currency)}
+                  {formatAmount(Math.abs(currentUserBalance.netBalance))}
                 </strong>
               </div>
             </div>
@@ -173,24 +181,13 @@ const BalancePage = () => {
             <h3>{t("yourSettlements")}</h3>
             <div className="list">
               {currentUserSettlements.map((settlement, index) => (
-                <div key={index} className="settlement-item">
-                  {settlement.fromUserId === currentUserId ? (
-                    <div>
-                      {t("youOwe")} <strong>{settlement.toUserName}</strong>{" "}
-                      <strong style={{ color: "var(--ease-color-danger)" }}>
-                        {formatCurrency(settlement.amount, currency)}
-                      </strong>
-                    </div>
-                  ) : (
-                    <div>
-                      <strong>{settlement.fromUserName}</strong>{" "}
-                      {t("youAreOwed")}{" "}
-                      <strong style={{ color: "var(--ease-color-success)" }}>
-                        {formatCurrency(settlement.amount, currency)}
-                      </strong>
-                    </div>
-                  )}
-                </div>
+                <SettlementRouteCard
+                  key={`${settlement.fromUserId}-${settlement.toUserId}-${index}`}
+                  settlement={settlement}
+                  participants={trip.participants}
+                  senderLabel={t("sender")}
+                  receiverLabel={t("receiver")}
+                />
               ))}
             </div>
           </div>
@@ -210,13 +207,13 @@ const BalancePage = () => {
             </p>
             <div className="list">
               {balanceSummary.settlements.map((settlement, index) => (
-                <div key={index} className="settlement-item">
-                  <strong>{settlement.fromUserName}</strong> {t("pays")} {" "}
-                  <strong>{settlement.toUserName}</strong> {" "}
-                  <strong style={{ color: "var(--ease-color-brand)" }}>
-                    {formatCurrency(settlement.amount, currency)}
-                  </strong>
-                </div>
+                <SettlementRouteCard
+                  key={`${settlement.fromUserId}-${settlement.toUserId}-${index}`}
+                  settlement={settlement}
+                  participants={trip.participants}
+                  senderLabel={t("sender")}
+                  receiverLabel={t("receiver")}
+                />
               ))}
             </div>
           </div>
@@ -266,7 +263,7 @@ const BalancePage = () => {
                             {combo.participantNames.join(" + ")}
                           </span>
                           <span className="combination-meta">
-                            {countLabel("expense", combo.expenses.length)} · {t("total")} {formatCurrency(combo.totalAmount, currency)}
+                            {countLabel("expense", combo.expenses.length)} · {t("total")} {formatAmount(combo.totalAmount)}
                           </span>
                           {combo.settlements.length === 1 && (
                             <span className="combination-inline-route">
@@ -276,7 +273,7 @@ const BalancePage = () => {
                                 <strong>{combo.settlements[0].toUserName}</strong>
                               </span>
                               <strong className="combination-route-amount">
-                                {formatCurrency(combo.settlements[0].amount, currency)}
+                                {formatAmount(combo.settlements[0].amount)}
                               </strong>
                             </span>
                           )}
@@ -315,7 +312,7 @@ const BalancePage = () => {
                               <strong>{settlement.toUserName}</strong>
                             </span>
                             <strong className="combination-route-amount">
-                              {formatCurrency(settlement.amount, currency)}
+                              {formatAmount(settlement.amount)}
                             </strong>
                           </div>
                         ))}
@@ -406,7 +403,7 @@ const BalancePage = () => {
                 {selectedCombination.expenses.map((expense) => (
                   <div className="balance-expense-row" key={expense.id}>
                     <span>{expense.description}</span>
-                    <strong>{formatCurrency(expense.amount, currency)}</strong>
+                    <strong>{formatAmount(expense.amount)}</strong>
                   </div>
                 ))}
               </div>
@@ -429,7 +426,7 @@ const BalancePage = () => {
                           )}
                         </strong>
                         <span>
-                          {t("paid")} {formatCurrency(balance.totalPaid, currency)} · {t("owes")} {formatCurrency(balance.totalOwed, currency)}
+                          {t("paid")} {formatAmount(balance.totalPaid)} · {t("owes")} {formatAmount(balance.totalOwed)}
                         </span>
                       </div>
                       <strong
@@ -442,7 +439,7 @@ const BalancePage = () => {
                         }
                       >
                         {balance.netBalance > 0 && "+"}
-                        {formatCurrency(Math.abs(balance.netBalance), currency)}
+                        {formatAmount(Math.abs(balance.netBalance))}
                       </strong>
                     </div>
                   ))}

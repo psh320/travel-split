@@ -1,58 +1,58 @@
-import type { Expense } from "../types";
+import type { Expense, User } from "../types";
 import { countLabel, t } from "../i18n";
-import { formatCurrency } from "../utils";
+import { formatAmount } from "../utils";
 import {
   EditIcon,
   IconButton,
   IconLink,
   TrashIcon,
 } from "./ui/IconButton";
+import { Avatar } from "./Avatar";
 
 type ExpenseListItemProps = {
-  currency: string;
   dateLabel: string;
   editTo: string;
   expense: Expense;
   onDelete: () => void;
-  paidByName?: string;
+  paidByUser?: User;
 };
 
 export function ExpenseListItem({
-  currency,
   dateLabel,
   editTo,
   expense,
   onDelete,
-  paidByName,
+  paidByUser,
 }: ExpenseListItemProps) {
   return (
     <div className="list-item expense-list-item">
+      <div
+        className="expense-list-payer-profile"
+        aria-label={`${t("paidBy").replace(" *", "")} ${paidByUser?.name || "-"}`}
+      >
+        {paidByUser && <Avatar user={paidByUser} size="md" decorative />}
+        <strong title={paidByUser?.name}>{paidByUser?.name || "-"}</strong>
+      </div>
       <div className="list-item-content expense-list-item-content">
         <div className="list-item-title">{expense.description}</div>
         <div className="expense-list-item-summary">
           <strong className="expense-list-item-amount">
-            {formatCurrency(expense.amount, currency)}
+            {formatAmount(expense.amount)}
           </strong>
-          <time
-            className="expense-list-item-date"
-            dateTime={expense.date.toISOString()}
-          >
-            {dateLabel}
-          </time>
         </div>
         <div className="expense-list-item-meta">
-          <span className="expense-list-item-meta-entry">
-            <span className="expense-list-item-meta-label">
-              {t("paidBy").replace(" *", "")}
-            </span>
-            <strong>{paidByName || "-"}</strong>
-          </span>
           <span className="expense-list-item-meta-entry">
             <span className="expense-list-item-meta-label">{t("split")}</span>
             <strong>
               {countLabel("person", expense.participants.length)}
             </strong>
           </span>
+          <time
+            className="expense-list-item-date"
+            dateTime={expense.date.toISOString()}
+          >
+            {dateLabel}
+          </time>
         </div>
       </div>
       <div className="list-item-actions">

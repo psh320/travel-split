@@ -3,9 +3,12 @@ import { useNavigate } from "react-router-dom";
 import { AppHeader } from "../components/ui/AppHeader";
 import { FirebaseService } from "../services/firebase";
 import { GroupHistoryService } from "../services/groupHistory";
-import type { Trip, User } from "../types";
+import type { AvatarConfig, Trip, User } from "../types";
+import { Avatar } from "../components/Avatar";
 import { isValidRoomCode } from "../utils";
 import { countLabel, t } from "../i18n";
+import { AvatarCustomizer } from "../components/AvatarCustomizer";
+import { DEFAULT_AVATAR_CONFIG } from "../utils/avatars";
 
 const JoinTripPage = () => {
   const navigate = useNavigate();
@@ -16,6 +19,9 @@ const JoinTripPage = () => {
   const [userName, setUserName] = useState("");
   const [joining, setJoining] = useState(false);
   const [error, setError] = useState("");
+  const [avatarConfig, setAvatarConfig] = useState<AvatarConfig>({
+    ...DEFAULT_AVATAR_CONFIG,
+  });
 
   const handleRoomCodeSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -67,7 +73,9 @@ const JoinTripPage = () => {
       trip.roomCode,
       "participant",
       participant.id,
-      participant.name
+      participant.name,
+      participant.avatarId,
+      participant.avatarConfig
     );
 
     navigate(`/group/${trip.id}`);
@@ -97,7 +105,8 @@ const JoinTripPage = () => {
       // Add new user to trip
       const newUser = await FirebaseService.addUserToTrip(
         trip.id,
-        userName.trim()
+        userName.trim(),
+        avatarConfig
       );
 
       localStorage.setItem("currentTripId", trip.id);
@@ -112,7 +121,9 @@ const JoinTripPage = () => {
         trip.roomCode,
         "participant",
         newUser.id,
-        newUser.name
+        newUser.name,
+        newUser.avatarId,
+        newUser.avatarConfig
       );
 
       navigate(`/group/${trip.id}`);
@@ -272,8 +283,11 @@ const JoinTripPage = () => {
                     onClick={() => handleParticipantClick(participant)}
                     aria-label={participant.name}
                   >
-                    <span className="participant-option-name">
-                      {participant.name}
+                    <span className="participant-option-profile">
+                      <Avatar user={participant} size="sm" decorative />
+                      <span className="participant-option-name">
+                        {participant.name}
+                      </span>
                     </span>
                     <span className="participant-option-arrow" aria-hidden="true" />
                   </button>
@@ -343,6 +357,12 @@ const JoinTripPage = () => {
                   )}
                 </div>
               </div>
+
+              <AvatarCustomizer
+                value={avatarConfig}
+                onChange={setAvatarConfig}
+                label={t("chooseAvatar")}
+              />
 
               <button
                 type="submit"

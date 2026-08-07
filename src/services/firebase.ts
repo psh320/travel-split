@@ -19,7 +19,9 @@ import type {
   FirestoreUser,
   FirestoreExpense,
   FirestoreTripData,
+  AvatarConfig,
 } from "../types";
+import { DEFAULT_AVATAR_CONFIG } from "../utils/avatars";
 import { generateRoomCode, generateId } from "../utils";
 
 type TripCacheEntry = {
@@ -50,13 +52,39 @@ export class FirebaseService {
     return this.tripCache.get(tripId)?.trip ?? null;
   }
 
+  private static toExpense(expense: FirestoreExpense): Expense {
+    return {
+      ...expense,
+      date: expense.date.toDate(),
+      createdAt: expense.createdAt.toDate(),
+    };
+  }
+
+  private static toTrip(id: string, data: FirestoreTripData): Trip {
+    return {
+      ...data,
+      id,
+      perPersonBudget:
+        typeof data.perPersonBudget === "number" && data.perPersonBudget > 0
+          ? data.perPersonBudget
+          : undefined,
+      createdAt: data.createdAt.toDate(),
+      updatedAt: data.updatedAt.toDate(),
+      participants: data.participants.map((participant: FirestoreUser) => ({
+        ...participant,
+        createdAt: participant.createdAt.toDate(),
+      })),
+      expenses: data.expenses.map((expense) => this.toExpense(expense)),
+    };
+  }
+
   // Trip operations
   static async createTrip(
     name: string,
     description: string,
     creatorName: string,
-    currency: string = "USD",
-    perPersonBudget?: number
+    perPersonBudget?: number,
+    avatarConfig: AvatarConfig = DEFAULT_AVATAR_CONFIG
   ): Promise<{ trip: Trip; roomCode: string }> {
     const roomCode = generateRoomCode();
     const creatorId = generateId();
@@ -64,6 +92,7 @@ export class FirebaseService {
     const creator: User = {
       id: creatorId,
       name: creatorName,
+      avatarConfig,
       createdAt: new Date(),
     };
 
@@ -72,7 +101,6 @@ export class FirebaseService {
       name,
       description,
       roomCode,
-      currency,
       ...(perPersonBudget ? { perPersonBudget } : {}),
       createdBy: creatorId,
       participants: [creator],
@@ -114,27 +142,7 @@ export class FirebaseService {
 
       const doc = querySnapshot.docs[0];
       const data = doc.data() as FirestoreTripData;
-
-      return this.cacheTrip({
-        ...data,
-        id: doc.id,
-        currency: data.currency ?? "USD",
-        perPersonBudget:
-          typeof data.perPersonBudget === "number" && data.perPersonBudget > 0
-            ? data.perPersonBudget
-            : undefined,
-        createdAt: data.createdAt.toDate(),
-        updatedAt: data.updatedAt.toDate(),
-        participants: data.participants.map((p: FirestoreUser) => ({
-          ...p,
-          createdAt: p.createdAt.toDate(),
-        })),
-        expenses: data.expenses.map((e: FirestoreExpense) => ({
-          ...e,
-          date: e.date.toDate(),
-          createdAt: e.createdAt.toDate(),
-        })),
-      } as Trip);
+      return this.cacheTrip(this.toTrip(doc.id, data));
     } catch (error) {
       console.error("Error getting trip by room code:", error);
       throw new Error("Failed to find trip");
@@ -167,26 +175,7 @@ export class FirebaseService {
         }
 
         const data = docSnap.data() as FirestoreTripData;
-        return this.cacheTrip({
-          ...data,
-          id: docSnap.id,
-          currency: data.currency ?? "USD",
-          perPersonBudget:
-            typeof data.perPersonBudget === "number" && data.perPersonBudget > 0
-              ? data.perPersonBudget
-              : undefined,
-          createdAt: data.createdAt.toDate(),
-          updatedAt: data.updatedAt.toDate(),
-          participants: data.participants.map((p: FirestoreUser) => ({
-            ...p,
-            createdAt: p.createdAt.toDate(),
-          })),
-          expenses: data.expenses.map((e: FirestoreExpense) => ({
-            ...e,
-            date: e.date.toDate(),
-            createdAt: e.createdAt.toDate(),
-          })),
-        } as Trip);
+        return this.cacheTrip(this.toTrip(docSnap.id, data));
       } catch (error) {
         console.error("Error getting trip:", error);
         throw new Error("Failed to get trip");
@@ -224,7 +213,11 @@ export class FirebaseService {
   }
 
   // User operations
-  static async addUserToTrip(tripId: string, userName: string): Promise<User> {
+  static async addUserToTrip(
+    tripId: string,
+    userName: string,
+    avatarConfig: AvatarConfig = DEFAULT_AVATAR_CONFIG
+  ): Promise<User> {
     try {
       const tripRef = doc(db, "trips", tripId);
       const tripSnap = await getDoc(tripRef);
@@ -237,6 +230,7 @@ export class FirebaseService {
       const newUser: User = {
         id: generateId(),
         name: userName,
+        avatarConfig,
         createdAt: new Date(),
       };
 
@@ -263,6 +257,40 @@ export class FirebaseService {
     } catch (error) {
       console.error("Error adding user to trip:", error);
       throw new Error("Failed to add user to trip");
+    }
+  }
+
+  static async updateUserAvatarConfig(
+    tripId: string,
+    userId: string,
+    avatarConfig: AvatarConfig
+  ): Promise<void> {
+    try {
+      const tripRef = doc(db, "trips", tripId);
+      const tripSnap = await getDoc(tripRef);
+
+      if (!tripSnap.exists()) throw new Error("Trip not found");
+
+      const tripData = tripSnap.data() as FirestoreTripData;
+      const updatedParticipants = tripData.participants.map((participant) =>
+        participant.id === userId ? { ...participant, avatarConfig } : participant
+      );
+
+      await updateDoc(tripRef, {
+        participants: updatedParticipants,
+        updatedAt: Timestamp.fromDate(new Date()),
+      });
+
+      this.updateCachedTrip(tripId, (trip) => ({
+        ...trip,
+        participants: trip.participants.map((participant) =>
+          participant.id === userId ? { ...participant, avatarConfig } : participant
+        ),
+        updatedAt: new Date(),
+      }));
+    } catch (error) {
+      console.error("Error updating user avatar config:", error);
+      throw new Error("Failed to update user avatar config");
     }
   }
 
@@ -342,7 +370,6 @@ export class FirebaseService {
         id: generateId(),
         description,
         amount,
-        currency: tripData.currency ?? "USD",
         paidBy,
         participants,
         date: new Date(),
@@ -406,7 +433,6 @@ export class FirebaseService {
         ...existingExpense,
         description,
         amount,
-        currency: tripData.currency ?? "USD",
         paidBy,
         participants,
       };
@@ -451,7 +477,7 @@ export class FirebaseService {
 
       const tripData = tripSnap.data() as FirestoreTripData;
       const updatedExpenses = tripData.expenses.filter(
-        (e: FirestoreExpense) => e.id !== expenseId
+        (expense) => expense.id !== expenseId
       );
 
       await updateDoc(tripRef, {

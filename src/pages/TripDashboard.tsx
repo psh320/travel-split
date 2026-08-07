@@ -11,17 +11,20 @@ import {
   UsersIcon,
 } from "../components/ui/IconButton";
 import { ExpenseListItem } from "../components/ExpenseListItem";
+import { Avatar } from "../components/Avatar";
+import { AvatarCustomizer } from "../components/AvatarCustomizer";
 import { FirebaseService } from "../services/firebase";
 import { GroupHistoryService } from "../services/groupHistory";
 import { countLabel, t } from "../i18n";
-import type { Trip } from "../types";
+import type { AvatarConfig, Trip } from "../types";
 import {
-  formatCompactCurrency,
-  formatCurrency,
+  formatAmount,
+  formatCompactAmount,
   formatDate,
-  timeAgo,
+  formatExpenseDate,
 } from "../utils";
 import { useToast } from "../components/ui/useToast";
+import { DEFAULT_AVATAR_CONFIG, getAvatarConfig } from "../utils/avatars";
 
 const spendColors = [
   "#2F3437",
@@ -46,16 +49,17 @@ const TripDashboard = () => {
   const [trip, setTrip] = useState<Trip | null>(cachedTrip);
   const [loading, setLoading] = useState(!cachedTrip);
   const [currentUserId, setCurrentUserId] = useState<string>("");
-  const [showAddUser, setShowAddUser] = useState(false);
-  const [newUserName, setNewUserName] = useState("");
-  const [addingUser, setAddingUser] = useState(false);
-  const [addUserError, setAddUserError] = useState("");
   const [activeModal, setActiveModal] = useState<DashboardModal>(null);
   const [budgetValue, setBudgetValue] = useState("");
   const [budgetError, setBudgetError] = useState("");
   const [savingBudget, setSavingBudget] = useState(false);
   const [pendingRemoval, setPendingRemoval] = useState<PendingRemoval>(null);
   const [removingUser, setRemovingUser] = useState(false);
+  const [editingAvatar, setEditingAvatar] = useState(false);
+  const [avatarDraft, setAvatarDraft] = useState<AvatarConfig>({
+    ...DEFAULT_AVATAR_CONFIG,
+  });
+  const [savingAvatar, setSavingAvatar] = useState(false);
 
   const loadTrip = useCallback(async (showLoading = false) => {
     if (!groupId) return;
@@ -100,7 +104,6 @@ const TripDashboard = () => {
           return;
         }
         setActiveModal(null);
-        setShowAddUser(false);
       }
     };
 
@@ -131,53 +134,32 @@ const TripDashboard = () => {
     }
   };
 
-  const handleAddUser = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!trip || !newUserName.trim()) {
-      setAddUserError(t("yourName"));
-      return;
-    }
-
-    // Check if user name already exists (case-insensitive)
-    const existingUser = trip.participants.find(
-      (p) => p.name.toLowerCase() === newUserName.trim().toLowerCase()
-    );
-
-    if (existingUser) {
-      setAddUserError(`${newUserName}: ${t("noMatches")}`);
-      return;
-    }
-
-    setAddingUser(true);
-    setAddUserError("");
-
-    try {
-      // Add new user to trip
-      await FirebaseService.addUserToTrip(trip.id, newUserName.trim());
-
-      // Refresh trip data to show new user
-      await loadTrip();
-
-      // Reset form
-      setNewUserName("");
-      setShowAddUser(false);
-    } catch (error) {
-      console.error("Error adding user:", error);
-      setAddUserError(t("addUser"));
-    } finally {
-      setAddingUser(false);
-    }
+  const beginAvatarEdit = (participant: Trip["participants"][number]) => {
+    setAvatarDraft({ ...getAvatarConfig(participant) });
+    setEditingAvatar(true);
   };
 
-  const handleCancelAddUser = () => {
-    setShowAddUser(false);
-    setNewUserName("");
-    setAddUserError("");
+  const saveAvatar = async () => {
+    if (!trip || !currentUserId) return;
+
+    setSavingAvatar(true);
+    try {
+      await FirebaseService.updateUserAvatarConfig(trip.id, currentUserId, avatarDraft);
+      GroupHistoryService.updateAvatarConfig(trip.id, avatarDraft);
+      await loadTrip();
+      setEditingAvatar(false);
+      showToast(t("avatarUpdated"), "success");
+    } catch (error) {
+      console.error("Error updating avatar:", error);
+      showToast(t("error"), "error");
+    } finally {
+      setSavingAvatar(false);
+    }
   };
 
   const closeModal = () => {
     setActiveModal(null);
-    setShowAddUser(false);
+    setEditingAvatar(false);
     setBudgetError("");
   };
 
@@ -307,8 +289,6 @@ const TripDashboard = () => {
     (sum, expense) => sum + expense.amount,
     0
   );
-  const currency = trip.currency || "USD";
-
   return (
     <>
       <AppHeader
@@ -351,6 +331,8 @@ const TripDashboard = () => {
             .map((participant, index) => ({
               id: participant.id,
               name: participant.name,
+              avatarId: participant.avatarId,
+              avatarConfig: participant.avatarConfig,
               amount: trip.expenses
                 .filter((expense) => expense.paidBy === participant.id)
                 .reduce((sum, expense) => sum + expense.amount, 0),
@@ -415,8 +397,8 @@ const TripDashboard = () => {
 
               {currentParticipant && (
                 <div className="budget-user-context">
+                  <Avatar user={currentParticipant} size="sm" decorative />
                   <span>{t("currentUser")}</span>
-                  <span aria-hidden="true">·</span>
                   <strong>{currentParticipant.name}</strong>
                 </div>
               )}
@@ -424,8 +406,8 @@ const TripDashboard = () => {
               {activeBudgetTarget ? (
                 <div className={`budget-progress${isOverBudget ? " is-over" : ""}`}>
                   <div className="budget-amount-comparison">
-                    <strong>{formatCurrency(budgetSpending, currency)}</strong>
-                    <span>/ {formatCurrency(activeBudgetTarget, currency)}</span>
+                    <strong>{formatAmount(budgetSpending)}</strong>
+                    <span>/ {formatAmount(activeBudgetTarget)}</span>
                   </div>
                   <div className="budget-progress-caption">
                     <span>{spendingLabel}</span>
@@ -434,10 +416,9 @@ const TripDashboard = () => {
                   <div
                     className="budget-progress-track"
                     role="progressbar"
-                    aria-label={`${spendingLabel} ${formatCurrency(
-                      budgetSpending,
-                      currency
-                    )} / ${formatCurrency(activeBudgetTarget, currency)}`}
+                    aria-label={`${spendingLabel} ${formatAmount(
+                      budgetSpending
+                    )} / ${formatAmount(activeBudgetTarget)}`}
                     aria-valuemin={0}
                     aria-valuemax={100}
                     aria-valuenow={Math.round(Math.min(budgetUsage, 100))}
@@ -447,7 +428,7 @@ const TripDashboard = () => {
                   </div>
                   {isOverBudget && (
                     <strong className="budget-overage">
-                      {formatCurrency(budgetOverage, currency)} {t("overBudget")}
+                      {formatAmount(budgetOverage)} {t("overBudget")}
                     </strong>
                   )}
                   {trip.createdBy === currentUserId && (
@@ -486,7 +467,7 @@ const TripDashboard = () => {
                 <div
                   className="spending-chart"
                   role="img"
-                  aria-label={`${t("totalSpent")} ${formatCurrency(totalExpenses, currency)}`}
+                  aria-label={`${t("totalSpent")} ${formatAmount(totalExpenses)}`}
                 >
                   <div className="spending-chart-canvas" aria-hidden="true">
                     <ResponsiveContainer width="100%" height="100%" minWidth={0}>
@@ -518,7 +499,7 @@ const TripDashboard = () => {
                   </div>
                   <div className="spending-chart-hole">
                     <span>{t("totalSpent")}</span>
-                    <strong>{formatCompactCurrency(totalExpenses, currency)}</strong>
+                    <strong>{formatCompactAmount(totalExpenses)}</strong>
                   </div>
                 </div>
 
@@ -526,15 +507,17 @@ const TripDashboard = () => {
                   {paidSummary.length ? (
                     paidSummary.slice(0, 5).map((participant) => (
                       <div key={participant.id} className="spending-legend-item">
-                        <span
-                          className="spending-legend-dot"
-                          style={{ background: participant.color }}
+                        <Avatar
+                          user={participant}
+                          size="xs"
+                          decorative
+                          className="spending-legend-avatar"
                         />
                         <div className="spending-legend-copy">
                           <span className="spending-legend-name" title={participant.name}>
                             {participant.name}
                           </span>
-                          <strong>{formatCurrency(participant.amount, currency)}</strong>
+                          <strong>{formatAmount(participant.amount)}</strong>
                         </div>
                       </div>
                     ))
@@ -547,12 +530,12 @@ const TripDashboard = () => {
               <div className="summary-metrics">
                 <div>
                   <span>{t("groupSpent")}</span>
-                  <strong>{formatCurrency(totalExpenses, currency)}</strong>
+                  <strong>{formatAmount(totalExpenses)}</strong>
                 </div>
                 <div>
                   <span>{groupBudget ? t("groupBudget") : t("totalSpent")}</span>
                   <strong>
-                    {formatCurrency(groupBudget ?? totalExpenses, currency)}
+                    {formatAmount(groupBudget ?? totalExpenses)}
                   </strong>
                 </div>
               </div>
@@ -628,12 +611,11 @@ const TripDashboard = () => {
                   return (
                     <ExpenseListItem
                       key={expense.id}
-                      currency={currency}
-                      dateLabel={timeAgo(expense.date)}
+                      dateLabel={formatExpenseDate(expense.date)}
                       editTo={`/group/${trip.id}/edit-expense/${expense.id}`}
                       expense={expense}
                       onDelete={() => handleDeleteExpense(expense.id)}
-                      paidByName={paidByUser?.name}
+                      paidByUser={paidByUser}
                     />
                   );
                 })}
@@ -655,7 +637,7 @@ const TripDashboard = () => {
         )}
       </div>
 
-      {activeModal && (
+      {activeModal && !(activeModal === "participants" && editingAvatar) && (
         <div
           className="dashboard-modal-backdrop"
           onMouseDown={(event) => {
@@ -698,7 +680,7 @@ const TripDashboard = () => {
                     <span>{t("budgetTarget")}</span>
                     <strong>
                       {trip.perPersonBudget
-                        ? formatCurrency(trip.perPersonBudget, currency)
+                        ? formatAmount(trip.perPersonBudget)
                         : t("budgetNotSet")}
                     </strong>
                   </div>
@@ -736,9 +718,7 @@ const TripDashboard = () => {
                     min="0.01"
                     autoFocus
                   />
-                  <span className="form-help">
-                    {t("budgetEditHelp")} · {currency}
-                  </span>
+                  <span className="form-help">{t("budgetEditHelp")}</span>
                 </div>
                 {budgetError && (
                   <div className="callout callout-danger">{budgetError}</div>
@@ -772,11 +752,11 @@ const TripDashboard = () => {
                     <strong>{countLabel("person", trip.participants.length)}</strong>
                     <span>{t("tapYourName")}</span>
                   </div>
-                  {trip.createdBy === currentUserId && !showAddUser && (
+                  {trip.createdBy === currentUserId && !editingAvatar && (
                     <button
                       type="button"
                       className="btn btn-secondary participants-add-button"
-                      onClick={() => setShowAddUser(true)}
+                      onClick={() => navigate(`/group/${trip.id}/add-member`)}
                     >
                       <span aria-hidden="true">+</span>
                       {t("addUser")}
@@ -784,55 +764,26 @@ const TripDashboard = () => {
                   )}
                 </div>
 
-                {showAddUser && (
-                  <div className="add-user-panel">
-                    <h3>{t("addUser")}</h3>
-                    {addUserError && (
-                      <div className="callout callout-danger">{addUserError}</div>
-                    )}
-                    <form onSubmit={handleAddUser} className="form">
-                      <div className="form-group">
-                        <label htmlFor="newUserName">{t("yourName")}</label>
-                        <input
-                          type="text"
-                          id="newUserName"
-                          value={newUserName}
-                          onChange={(event) => {
-                            setNewUserName(event.target.value);
-                            if (addUserError) setAddUserError("");
-                          }}
-                          placeholder={t("yourName").replace(" *", "")}
-                          autoFocus
-                          required
-                        />
-                      </div>
-                      <div className="dashboard-modal-actions">
-                        <button
-                          type="button"
-                          className="btn btn-secondary"
-                          onClick={handleCancelAddUser}
-                          disabled={addingUser}
-                        >
-                          {t("cancel")}
-                        </button>
-                        <button type="submit" className="btn btn-primary" disabled={addingUser}>
-                          {addingUser ? <div className="spinner spinner-small" /> : t("addUser")}
-                        </button>
-                      </div>
-                    </form>
-                  </div>
-                )}
-
                 <div className="participants-modal-list">
                   {trip.participants.map((participant) => (
                     <div key={participant.id} className="participant-modal-item">
-                      <div>
+                      <Avatar user={participant} size="sm" decorative />
+                      <div className="participant-modal-copy">
                         <strong>
                           {participant.name}
                           {participant.id === currentUserId && ` (${t("you")})`}
                           {participant.id === trip.createdBy && ` (${t("creator")})`}
                         </strong>
                       </div>
+                      {participant.id === currentUserId && (
+                        <button
+                          type="button"
+                          className="avatar-edit-trigger"
+                          onClick={() => beginAvatarEdit(participant)}
+                        >
+                          {t("changeAvatar")}
+                        </button>
+                      )}
                       {trip.createdBy === currentUserId &&
                         participant.id !== currentUserId &&
                         participant.id !== trip.createdBy && (
@@ -851,6 +802,40 @@ const TripDashboard = () => {
             )}
           </section>
         </div>
+      )}
+
+      {activeModal === "participants" && editingAvatar && (
+        <section
+          className="avatar-editor-shell"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="avatar-editor-title"
+        >
+          <header className="avatar-editor-header">
+            <IconButton
+              onClick={() => setEditingAvatar(false)}
+              label={t("close")}
+              disabled={savingAvatar}
+            >
+              <CloseIcon />
+            </IconButton>
+            <h2 id="avatar-editor-title">{t("changeAvatar")}</h2>
+            <button
+              type="button"
+              className="avatar-editor-save"
+              onClick={saveAvatar}
+              disabled={savingAvatar}
+            >
+              {savingAvatar ? <div className="spinner spinner-small" /> : t("done")}
+            </button>
+          </header>
+          <AvatarCustomizer
+            value={avatarDraft}
+            onChange={setAvatarDraft}
+            label={t("changeAvatar")}
+            editor
+          />
+        </section>
       )}
 
       {pendingRemoval && (

@@ -7,6 +7,14 @@ import { countLabel, isKorean, t } from "../i18n";
 import { GroupHistoryService } from "../services/groupHistory";
 import type { GroupHistoryItem } from "../services/groupHistory";
 import { timeAgo } from "../utils";
+import { Avatar } from "../components/Avatar";
+import { AVATARS } from "../utils/avatars";
+
+const showcaseUsers = AVATARS.map((avatar, index) => ({
+  id: `showcase-${avatar.id}`,
+  name: ["Momo", "Bori", "Duri", "Navi", "Toto"][index],
+  avatarId: avatar.id,
+}));
 
 const HomePage = () => {
   const [groupHistory, setGroupHistory] = useState<GroupHistoryItem[]>([]);
@@ -77,11 +85,23 @@ const HomePage = () => {
       />
 
       <div className="content">
-        <div className="card">
+        <div className="card home-intro-card">
+          <div className="home-avatar-showcase" aria-hidden="true">
+            {showcaseUsers.map((user, index) => (
+              <Avatar
+                key={user.id}
+                user={user}
+                size={index === 2 ? "xl" : "lg"}
+                decorative
+                eager
+                presetArt
+              />
+            ))}
+          </div>
+          <span className="home-intro-eyebrow">{t("meetCrew")}</span>
           <h3>{t("startSplit")}</h3>
-          <p className="muted" style={{ marginBottom: "1.5rem" }}>
-            {t("noAccount")}
-          </p>
+          <p className="home-intro-copy">{t("avatarIntro")}</p>
+          <p className="muted home-intro-account">{t("noAccount")}</p>
 
           <div className="button-stack">
             <Link to="/create-group" className="btn btn-primary btn-full">
@@ -234,7 +254,7 @@ const HomePage = () => {
               {groupHistory.map((group) => (
                 <div
                   key={group.id}
-                  className="list-item"
+                  className="list-item home-group-item"
                   onClick={() => handleGroupClick(group)}
                   style={{
                     cursor: "pointer",
@@ -253,7 +273,17 @@ const HomePage = () => {
                       "var(--ease-color-border)";
                   }}
                 >
-                  <div>
+                  <Avatar
+                    user={{
+                      id: group.userIdInGroup,
+                      name: group.userNameInGroup,
+                      avatarId: group.avatarId,
+                      avatarConfig: group.avatarConfig,
+                    }}
+                    size="md"
+                    decorative
+                  />
+                  <div className="home-group-copy">
                     <div
                       style={{
                         fontWeight: "600",

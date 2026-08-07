@@ -12,6 +12,7 @@ const JoinTripPage = lazy(() => import("./pages/JoinTripPage"));
 const AutoJoinPage = lazy(() => import("./pages/AutoJoinPage"));
 const TripDashboard = lazy(() => import("./pages/TripDashboard"));
 const AddExpensePage = lazy(() => import("./pages/AddExpensePage"));
+const AddMemberPage = lazy(() => import("./pages/AddMemberPage"));
 const ExpensesPage = lazy(() => import("./pages/ExpensesPage"));
 const BalancePage = lazy(() => import("./pages/BalancePage"));
 const PrivacyPage = lazy(() => import("./pages/PrivacyPage"));
@@ -53,6 +54,10 @@ function App() {
                 <Route path="/join-group" element={<JoinTripPage />} />
                 <Route path="/join/:roomCode" element={<AutoJoinPage />} />
                 <Route path="/group/:groupId" element={<TripDashboard />} />
+                <Route
+                  path="/group/:groupId/add-member"
+                  element={<AddMemberPage />}
+                />
                 <Route
                   path="/group/:groupId/add-expense"
                   element={<AddExpensePage />}

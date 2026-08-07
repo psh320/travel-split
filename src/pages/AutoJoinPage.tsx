@@ -4,8 +4,11 @@ import { AppHeader } from "../components/ui/AppHeader";
 import { FirebaseService } from "../services/firebase";
 import { GroupHistoryService } from "../services/groupHistory";
 import { isValidRoomCode } from "../utils";
-import type { Trip, User } from "../types";
+import type { AvatarConfig, Trip, User } from "../types";
+import { Avatar } from "../components/Avatar";
 import { countLabel, t } from "../i18n";
+import { AvatarCustomizer } from "../components/AvatarCustomizer";
+import { DEFAULT_AVATAR_CONFIG } from "../utils/avatars";
 
 const AutoJoinPage = () => {
   const { roomCode } = useParams<{ roomCode: string }>();
@@ -15,6 +18,9 @@ const AutoJoinPage = () => {
   const [userName, setUserName] = useState("");
   const [joining, setJoining] = useState(false);
   const [error, setError] = useState("");
+  const [avatarConfig, setAvatarConfig] = useState<AvatarConfig>({
+    ...DEFAULT_AVATAR_CONFIG,
+  });
 
   useEffect(() => {
     if (roomCode && isValidRoomCode(roomCode)) {
@@ -67,7 +73,8 @@ const AutoJoinPage = () => {
       // Add new user to trip
       const newUser = await FirebaseService.addUserToTrip(
         trip.id,
-        userName.trim()
+        userName.trim(),
+        avatarConfig
       );
 
       localStorage.setItem("currentTripId", trip.id);
@@ -82,7 +89,9 @@ const AutoJoinPage = () => {
         trip.roomCode,
         "participant",
         newUser.id,
-        newUser.name
+        newUser.name,
+        newUser.avatarId,
+        newUser.avatarConfig
       );
 
       navigate(`/group/${trip.id}`);
@@ -107,7 +116,9 @@ const AutoJoinPage = () => {
       trip!.roomCode,
       "participant",
       user.id,
-      user.name
+      user.name,
+      user.avatarId,
+      user.avatarConfig
     );
 
     navigate(`/group/${trip!.id}`);
@@ -241,8 +252,11 @@ const AutoJoinPage = () => {
                 onClick={() => handleParticipantClick(participant)}
                 aria-label={participant.name}
               >
-                <span className="participant-option-name">
-                  {participant.name}
+                <span className="participant-option-profile">
+                  <Avatar user={participant} size="sm" decorative />
+                  <span className="participant-option-name">
+                    {participant.name}
+                  </span>
                 </span>
                 <span className="participant-option-arrow" aria-hidden="true" />
               </button>
@@ -313,6 +327,12 @@ const AutoJoinPage = () => {
                 )}
               </div>
             </div>
+
+            <AvatarCustomizer
+              value={avatarConfig}
+              onChange={setAvatarConfig}
+              label={t("chooseAvatar")}
+            />
 
             <button
               type="submit"

@@ -4,19 +4,22 @@ import { AppHeader } from "../components/ui/AppHeader";
 import { FirebaseService } from "../services/firebase";
 import { GroupHistoryService } from "../services/groupHistory";
 import { t } from "../i18n";
-import type { CreateTripForm } from "../types";
-import { CURRENCY_OPTIONS } from "../utils/currencies";
+import type { AvatarConfig, CreateTripForm } from "../types";
 import { useToast } from "../components/ui/useToast";
+import { AvatarCustomizer } from "../components/AvatarCustomizer";
+import { DEFAULT_AVATAR_CONFIG } from "../utils/avatars";
 
 const CreateTripPage = () => {
   const navigate = useNavigate();
   const { showToast } = useToast();
   const [loading, setLoading] = useState(false);
+  const [avatarConfig, setAvatarConfig] = useState<AvatarConfig>({
+    ...DEFAULT_AVATAR_CONFIG,
+  });
   const [formData, setFormData] = useState<CreateTripForm>({
     name: "",
     description: "",
     creatorName: "",
-    currency: "USD",
     perPersonBudget: "",
   });
 
@@ -53,8 +56,8 @@ const CreateTripPage = () => {
         formData.name.trim(),
         formData.description?.trim() || "",
         formData.creatorName.trim(),
-        formData.currency,
-        perPersonBudget
+        perPersonBudget,
+        avatarConfig
       );
 
       // Store room code and user info in localStorage for easy access
@@ -70,7 +73,9 @@ const CreateTripPage = () => {
         roomCode,
         "creator",
         trip.participants[0].id,
-        trip.participants[0].name
+        trip.participants[0].name,
+        trip.participants[0].avatarId,
+        trip.participants[0].avatarConfig
       );
 
       // Show success message with shareable link
@@ -130,24 +135,6 @@ const CreateTripPage = () => {
           </div>
 
           <div className="form-group">
-            <label htmlFor="currency">{t("currency")}</label>
-            <select
-              id="currency"
-              name="currency"
-              value={formData.currency}
-              onChange={handleInputChange}
-              required
-            >
-              {CURRENCY_OPTIONS.map((option) => (
-                <option key={option.code} value={option.code}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
-            <span className="form-help">{t("currencyNote")}</span>
-          </div>
-
-          <div className="form-group">
             <label htmlFor="perPersonBudget">{t("perPersonBudget")}</label>
             <input
               type="number"
@@ -160,9 +147,7 @@ const CreateTripPage = () => {
               step="0.01"
               min="0.01"
             />
-            <span className="form-help">
-              {t("perPersonBudgetHelp")} · {formData.currency}
-            </span>
+            <span className="form-help">{t("perPersonBudgetHelp")}</span>
           </div>
 
           <div className="form-group">
@@ -188,6 +173,12 @@ const CreateTripPage = () => {
               required
             />
           </div>
+
+          <AvatarCustomizer
+            value={avatarConfig}
+            onChange={setAvatarConfig}
+            label={t("chooseAvatar")}
+          />
 
           <button
             type="submit"
