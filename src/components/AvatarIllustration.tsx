@@ -227,45 +227,114 @@ export function AvatarIllustration({
   const renderEyes = () => {
     if (config.eyeStyle === "happy") {
       return (
-        <g fill="none" stroke={eye} strokeWidth="3.8" strokeLinecap="round">
-          <path d="M42 64q7-8 14 0" /><path d="M72 64q7-8 14 0" />
+        <g fill="none" strokeLinecap="round">
+          <path d="M41 65q8-10 16 0M71 65q8-10 16 0" stroke={eye} strokeWidth="3.6" />
+          <path d="M43 68q6 3 12 0M73 68q6 3 12 0" stroke={skinShadow} strokeWidth="1.5" opacity=".24" />
+          <path d="m42 61-2-2M86 61l2-2" stroke={eye} strokeWidth="1.7" opacity=".8" />
         </g>
       );
     }
     if (config.eyeStyle === "sleepy") {
       return (
-        <g fill="none" stroke={eye} strokeWidth="3.4" strokeLinecap="round">
-          <path d="M42 63q7 5 14 0" /><path d="M72 63q7 5 14 0" />
+        <g fill="none" strokeLinecap="round">
+          <path d="M40 62q9 7 18 0M70 62q9 7 18 0" stroke={eye} strokeWidth="3.2" />
+          <path d="M43 67q6 3 12 0M73 67q6 3 12 0" stroke={skinShadow} strokeWidth="1.5" opacity=".22" />
+        </g>
+      );
+    }
+    if (config.eyeStyle === "almond") {
+      return (
+        <g>
+          <path d="M38 64q10-11 21 0-10 9-21 0ZM69 64q10-11 21 0-10 9-21 0Z" fill="#fffdf9" />
+          <ellipse cx="49" cy="64" rx="4.8" ry="6.3" fill="#654331" />
+          <ellipse cx="79" cy="64" rx="4.8" ry="6.3" fill="#654331" />
+          <ellipse cx="49" cy="65" rx="2.8" ry="4.3" fill={eye} />
+          <ellipse cx="79" cy="65" rx="2.8" ry="4.3" fill={eye} />
+          <circle cx="47.5" cy="61.8" r="1.4" fill="#fff" /><circle cx="77.5" cy="61.8" r="1.4" fill="#fff" />
+          <path d="M38 64q10-11 21 0M69 64q10-11 21 0" fill="none" stroke={eye} strokeWidth="2.2" strokeLinecap="round" />
+          <path d="m40 61-2-2M88 61l2-2" fill="none" stroke={eye} strokeWidth="1.5" strokeLinecap="round" />
+        </g>
+      );
+    }
+    if (config.eyeStyle === "wink") {
+      return (
+        <g>
+          <ellipse cx="49" cy="64" rx="9.5" ry="12" fill={skinShadow} opacity=".12" />
+          <ellipse cx="49" cy="63" rx="9.5" ry="12" fill="#fffdf9" />
+          <ellipse cx="50" cy="65" rx="5" ry="6.8" fill="#654331" />
+          <ellipse cx="50" cy="66" rx="3" ry="4.7" fill={eye} />
+          <circle cx="48.3" cy="61.7" r="1.6" fill="#fff" />
+          <path d="M40 56q9-6 18 1" fill="none" stroke={eye} strokeWidth="2" strokeLinecap="round" opacity=".82" />
+          <path d="M71 64q8-9 16 0" fill="none" stroke={eye} strokeWidth="3.5" strokeLinecap="round" />
+          <path d="m86 60 2-2M87 63l3-1" fill="none" stroke={eye} strokeWidth="1.5" strokeLinecap="round" />
         </g>
       );
     }
     return (
       <g>
+        <ellipse cx="49" cy="65" rx="9.5" ry="12" fill={skinShadow} opacity=".12" />
+        <ellipse cx="79" cy="65" rx="9.5" ry="12" fill={skinShadow} opacity=".12" />
         <ellipse cx="49" cy="64" rx="9.5" ry="12" fill="#fffdf9" />
         <ellipse cx="79" cy="64" rx="9.5" ry="12" fill="#fffdf9" />
-        <ellipse cx="50" cy="66" rx="4.8" ry="6.7" fill={eye} />
-        <ellipse cx="78" cy="66" rx="4.8" ry="6.7" fill={eye} />
+        <ellipse cx="50" cy="66" rx="5.2" ry="7.2" fill="#654331" />
+        <ellipse cx="78" cy="66" rx="5.2" ry="7.2" fill="#654331" />
+        <ellipse cx="50" cy="67" rx="3.1" ry="5" fill={eye} />
+        <ellipse cx="78" cy="67" rx="3.1" ry="5" fill={eye} />
         <g fill="#fff">
-          <circle cx="48.5" cy="62.5" r="1.7" /><circle cx="76.5" cy="62.5" r="1.7" />
-          {config.eyeStyle === "sparkle" && <><circle cx="52" cy="67" r="1.1" /><circle cx="80" cy="67" r="1.1" /></>}
+          <circle cx="48.2" cy="62" r="1.8" /><circle cx="76.2" cy="62" r="1.8" />
+          <circle cx="51.5" cy="68.2" r=".8" /><circle cx="79.5" cy="68.2" r=".8" />
         </g>
+        <path d="M40 56q9-6 18 1M70 57q9-7 18-1" fill="none" stroke={eye} strokeWidth="1.8" strokeLinecap="round" opacity=".78" />
+        {config.eyeStyle === "sparkle" && (
+          <g fill="#fff7c8">
+            <path d="m51 60 .8 1.8 1.9.7-1.9.8-.8 1.8-.8-1.8-1.9-.8 1.9-.7Z" />
+            <path d="m79 60 .8 1.8 1.9.7-1.9.8-.8 1.8-.8-1.8-1.9-.8 1.9-.7Z" />
+          </g>
+        )}
       </g>
     );
   };
 
   const renderNose = () => {
-    if (config.noseStyle === "dot") return <circle cx="64" cy="77" r="3" fill={skinShadow} />;
-    if (config.noseStyle === "triangle") return <path d="m64 71-5 10h10Z" fill={skinShadow} opacity=".72" />;
-    if (config.noseStyle === "soft") return <path d="M63 71c-4 7-2 11 4 11" fill="none" stroke={skinShadow} strokeWidth="2.8" strokeLinecap="round" />;
-    return <ellipse cx="64" cy="77" rx="5" ry="4" fill={skinShadow} opacity=".68" />;
+    if (config.noseStyle === "dot") {
+      return <g><circle cx="64" cy="78" r="3.2" fill={skinShadow} opacity=".78" /><circle cx="63" cy="77" r=".9" fill={skinHighlight} opacity=".8" /></g>;
+    }
+    if (config.noseStyle === "triangle") {
+      return <g><path d="M64 70c-1 4-3 8-5 11 3 2 7 2 10 0" fill={skinShadow} opacity=".5" /><path d="M62 79q2 2 4 0" fill="none" stroke={skinHighlight} strokeWidth="1.2" strokeLinecap="round" opacity=".7" /></g>;
+    }
+    if (config.noseStyle === "soft") {
+      return <g fill="none" stroke={skinShadow} strokeLinecap="round"><path d="M63 70c-3 7-2 11 4 12" strokeWidth="2.5" /><path d="M59 82q2 2 4 0M66 82q2 2 4 0" strokeWidth="1.3" opacity=".55" /></g>;
+    }
+    if (config.noseStyle === "bridge") {
+      return <g fill="none" strokeLinecap="round"><path d="M63 68c-1 5-2 9-2 12 2 3 6 3 8 0" stroke={skinShadow} strokeWidth="2" opacity=".78" /><path d="M61 81q3 3 6 0" stroke={skinShadow} strokeWidth="1.5" opacity=".55" /><path d="M62 70c0 3-1 6-1 8" stroke={skinHighlight} strokeWidth="1.2" opacity=".7" /></g>;
+    }
+    if (config.noseStyle === "snub") {
+      return <g><path d="M57 79q7 6 14 0-2 7-7 7t-7-7Z" fill={skinShadow} opacity=".32" /><ellipse cx="60.5" cy="81" rx="1.5" ry="1" fill={skinShadow} opacity=".72" /><ellipse cx="67.5" cy="81" rx="1.5" ry="1" fill={skinShadow} opacity=".72" /><path d="M61 78q3-2 6 0" fill="none" stroke={skinHighlight} strokeWidth="1.2" strokeLinecap="round" opacity=".72" /></g>;
+    }
+    return <g><ellipse cx="64" cy="78" rx="5.4" ry="4.2" fill={skinShadow} opacity=".55" /><circle cx="62" cy="76.5" r="1.2" fill={skinHighlight} opacity=".75" /><circle cx="61" cy="79" r=".8" fill={skinShadow} /><circle cx="67" cy="79" r=".8" fill={skinShadow} /></g>;
   };
 
   const renderMouth = () => {
     const lip = mix(skin, 66, "#9f3f4f");
-    if (config.mouthStyle === "grin") return <path d="M51 87q13 14 26 0c-3 12-23 13-26 0Z" fill="#fffdf9" stroke={lip} strokeWidth="2.4" strokeLinejoin="round" />;
-    if (config.mouthStyle === "open") return <><ellipse cx="64" cy="91" rx="8" ry="7" fill="#783b43" /><path d="M59 94q5-3 10 0" fill="none" stroke="#e78683" strokeWidth="2" strokeLinecap="round" /></>;
-    if (config.mouthStyle === "pout") return <path d="M58 92q6-5 12 0" fill="none" stroke={lip} strokeWidth="3" strokeLinecap="round" />;
-    return <path d="M52 88q12 11 24 0" fill="none" stroke={lip} strokeWidth="3" strokeLinecap="round" />;
+    if (config.mouthStyle === "grin") {
+      return <g><path d="M50 87q14 16 28 0c-2 15-26 16-28 0Z" fill="#fffdf9" stroke={lip} strokeWidth="2.2" strokeLinejoin="round" /><path d="M53 94q11 4 22 0" fill="none" stroke={skinShadow} strokeWidth="1" opacity=".3" /></g>;
+    }
+    if (config.mouthStyle === "open") {
+      return <g><ellipse cx="64" cy="92" rx="8.5" ry="7.5" fill="#71363f" /><path d="M57 88q7 3 14 0" fill="#fffdf9" stroke="#fffdf9" strokeWidth="1.5" strokeLinecap="round" /><path d="M58 96q6-4 12 0" fill="#e78683" /><circle cx="61" cy="94" r="1" fill="#f3aaa5" /></g>;
+    }
+    if (config.mouthStyle === "pout") {
+      return <g><path d="M57 91q4-5 7 0 3-5 7 0-3 6-7 6t-7-6Z" fill={lip} opacity=".78" /><path d="M60 92q4 2 8 0" fill="none" stroke={skinHighlight} strokeWidth="1" strokeLinecap="round" opacity=".55" /></g>;
+    }
+    if (config.mouthStyle === "laugh") {
+      return <g><path d="M49 87q15 9 30 0c-2 17-28 19-30 0Z" fill="#6f343d" /><path d="M52 89q12 5 24 0l-2 4H54Z" fill="#fffdf9" /><path d="M56 99q8-5 16 0" fill="#e98482" /><path d="M48 88q-2 3-4 3M80 88q2 3 4 3" fill="none" stroke={lip} strokeWidth="1.8" strokeLinecap="round" /></g>;
+    }
+    if (config.mouthStyle === "smirk") {
+      return <g fill="none" stroke={lip} strokeLinecap="round"><path d="M54 92q12 5 22-4" strokeWidth="3" /><path d="M75 88q3 0 4-2" strokeWidth="1.5" opacity=".65" /></g>;
+    }
+    if (config.mouthStyle === "tiny") {
+      return <g><path d="M60 91q4-4 8 0-4 5-8 0Z" fill={lip} opacity=".78" /><circle cx="64" cy="90" r=".8" fill={skinHighlight} opacity=".6" /></g>;
+    }
+    return <g fill="none" stroke={lip} strokeLinecap="round"><path d="M51 88q13 12 26 0" strokeWidth="3" /><path d="M50 89q-2 2-3 1M78 89q2 2 3 1" strokeWidth="1.5" opacity=".62" /><path d="M59 98q5 2 10 0" stroke={skinShadow} strokeWidth="1.2" opacity=".2" /></g>;
   };
 
   const renderAccessory = () => {

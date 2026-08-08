@@ -22,9 +22,9 @@ export type AvatarHairStyle =
   | "shag"
   | "locs";
 export type AvatarHairColor = "ink" | "chestnut" | "auburn" | "honey" | "rose";
-export type AvatarEyeStyle = "round" | "happy" | "sparkle" | "sleepy";
-export type AvatarNoseStyle = "dot" | "button" | "soft" | "triangle";
-export type AvatarMouthStyle = "smile" | "grin" | "open" | "pout";
+export type AvatarEyeStyle = "round" | "happy" | "sparkle" | "sleepy" | "almond" | "wink";
+export type AvatarNoseStyle = "dot" | "button" | "soft" | "triangle" | "bridge" | "snub";
+export type AvatarMouthStyle = "smile" | "grin" | "open" | "pout" | "laugh" | "smirk" | "tiny";
 export type AvatarAccessory = "none" | "glasses" | "freckles" | "blush" | "earrings" | "star";
 export type AvatarBackground = "butter" | "sky" | "mint" | "peach" | "lilac" | "rose";
 export type AvatarOutfit = "coral" | "mint" | "blue" | "lilac" | "sunny" | "navy";
@@ -46,6 +46,7 @@ export interface User {
   id: string;
   name: string;
   email?: string;
+  colorIndex?: number;
   avatarId?: AvatarId;
   avatarConfig?: AvatarConfig;
   createdAt: Date;
@@ -149,6 +150,7 @@ export interface FirestoreUser {
   id: string;
   name: string;
   email?: string;
+  colorIndex?: number;
   avatarId?: AvatarId;
   avatarConfig?: AvatarConfig;
   createdAt: {

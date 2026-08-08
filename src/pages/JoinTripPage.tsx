@@ -10,6 +10,11 @@ import { countLabel, t } from "../i18n";
 import { AvatarCustomizer } from "../components/AvatarCustomizer";
 import { DEFAULT_AVATAR_CONFIG } from "../utils/avatars";
 import { useToast } from "../components/ui/useToast";
+import { FieldError } from "../components/ui/FieldError";
+import {
+  MAX_TRIP_PARTICIPANTS,
+  TripParticipantLimitError,
+} from "../config/trip";
 
 const JoinTripPage = () => {
   const navigate = useNavigate();
@@ -28,7 +33,7 @@ const JoinTripPage = () => {
   const handleRoomCodeSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!roomCode.trim()) {
-      setError(t("roomCodeField"));
+      setError(t("requiredField"));
       return;
     }
 
@@ -87,7 +92,7 @@ const JoinTripPage = () => {
   const handleNewUserJoin = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!userName.trim() || !trip) {
-      setError(t("yourName"));
+      setError(t("requiredField"));
       return;
     }
 
@@ -98,6 +103,11 @@ const JoinTripPage = () => {
 
     if (existingUser) {
       setError(t("nameTaken"));
+      return;
+    }
+
+    if (trip.participants.length >= MAX_TRIP_PARTICIPANTS) {
+      setError(t("memberLimitReached"));
       return;
     }
 
@@ -133,7 +143,11 @@ const JoinTripPage = () => {
       navigate(`/group/${trip.id}`);
     } catch (error) {
       console.error("Error joining trip:", error);
-      setError(t("unableToJoin"));
+      setError(
+        error instanceof TripParticipantLimitError
+          ? t("memberLimitReached")
+          : t("unableToJoin")
+      );
     } finally {
       setJoining(false);
     }
@@ -157,15 +171,7 @@ const JoinTripPage = () => {
         />
 
         <div className="content">
-          {error && (
-            <div className="callout callout-danger" style={{ marginBottom: "1rem" }}>
-              <div style={{ color: "var(--ease-color-danger)", fontSize: "0.875rem" }}>
-                {error}
-              </div>
-            </div>
-          )}
-
-          <form onSubmit={handleRoomCodeSubmit} className="form">
+          <form onSubmit={handleRoomCodeSubmit} className="form" noValidate>
             <div className="form-group">
               <label htmlFor="roomCode">{t("roomCodeField")}</label>
               <input
@@ -185,17 +191,16 @@ const JoinTripPage = () => {
                   letterSpacing: "0.1em",
                 }}
                 autoFocus
+                aria-invalid={Boolean(error)}
+                aria-describedby={
+                  error ? "room-code-help room-code-error" : "room-code-help"
+                }
                 required
               />
-              <div
-                style={{
-                  fontSize: "0.75rem",
-                  color: "var(--ease-color-text-muted)",
-                  marginTop: "0.5rem",
-                }}
-              >
+              <span id="room-code-help" className="form-help">
                 {t("sixCharacters")}
-              </div>
+              </span>
+              <FieldError id="room-code-error" message={error} />
             </div>
 
             <button
@@ -234,6 +239,9 @@ const JoinTripPage = () => {
 
   // Step 2: Trip Details and User Selection
   if (step === "details" && trip) {
+    const isAtParticipantLimit =
+      trip.participants.length >= MAX_TRIP_PARTICIPANTS;
+
     return (
       <>
         <AppHeader
@@ -310,79 +318,65 @@ const JoinTripPage = () => {
                 marginBottom: "1rem",
               }}
             >
-              {t("addYourName")}
+              {isAtParticipantLimit ? t("memberLimitReached") : t("addYourName")}
             </p>
 
-            {error && (
-              <div
-                style={{
-                  color: "var(--ease-color-danger)",
-                  backgroundColor: "var(--ease-color-danger-soft)",
-                  padding: "0.75rem",
-                  borderRadius: "0.5rem",
-                  marginBottom: "1rem",
-                  fontSize: "0.875rem",
-                }}
-              >
-                {error}
-              </div>
-            )}
-
-            <form onSubmit={handleNewUserJoin} className="form">
+            {!isAtParticipantLimit && (
+            <form onSubmit={handleNewUserJoin} className="form" noValidate>
               <div className="form-group">
-                <label htmlFor="userName">{t("yourName")}</label>
-                <input
-                  type="text"
-                  id="userName"
-                  value={userName}
-                  onChange={(e) => {
-                    setUserName(e.target.value);
-                    if (error) setError("");
+                  <label htmlFor="userName">{t("yourName")}</label>
+                  <input
+                    type="text"
+                    id="userName"
+                    value={userName}
+                    onChange={(e) => {
+                      setUserName(e.target.value);
+                      if (error) setError("");
                   }}
                   placeholder={t("yourName").replace(" *", "")}
+                  aria-invalid={Boolean(error)}
+                  aria-describedby={
+                    error ? "join-name-help join-name-error" : "join-name-help"
+                  }
                   required
                 />
-                <div
-                  style={{
-                    fontSize: "0.75rem",
-                    color: "var(--ease-color-text-muted)",
-                    marginTop: "0.5rem",
-                  }}
-                >
+                <span id="join-name-help" className="form-help">
                   {userName &&
                   trip.participants.some(
-                    (p) => p.name.toLowerCase() === userName.toLowerCase()
-                  ) ? (
-                    <span style={{ color: "var(--ease-color-danger)" }}>
-                      {t("duplicateName")}
-                    </span>
+                      (p) => p.name.toLowerCase() === userName.toLowerCase()
+                    ) ? (
+                      <span style={{ color: "var(--ease-color-danger)" }}>
+                        {t("duplicateName")}
+                      </span>
                   ) : (
                     t("chooseRecognizableName")
                   )}
+                </span>
+                <FieldError id="join-name-error" message={error} />
                 </div>
-              </div>
 
-              <AvatarCustomizer
-                value={avatarConfig}
-                onChange={setAvatarConfig}
-                label={t("chooseAvatar")}
-              />
+                <AvatarCustomizer
+                  value={avatarConfig}
+                  onChange={setAvatarConfig}
+                  label={t("chooseAvatar")}
+                />
 
-              <button
-                type="submit"
-                className="btn btn-primary btn-full"
-                disabled={joining}
-              >
-                {joining ? (
-                  <div
-                    className="spinner"
-                    style={{ width: "1rem", height: "1rem", margin: "0 auto" }}
-                  />
-                ) : (
-                  `${t("joinGroup")} ${trip.name}`
-                )}
-              </button>
-            </form>
+                <button
+                  type="submit"
+                  className="btn btn-primary btn-full"
+                  disabled={joining}
+                >
+                  {joining ? (
+                    <div
+                      className="spinner"
+                      style={{ width: "1rem", height: "1rem", margin: "0 auto" }}
+                    />
+                  ) : (
+                    `${t("joinGroup")} ${trip.name}`
+                  )}
+                </button>
+              </form>
+            )}
           </div>
 
           <div className="card">

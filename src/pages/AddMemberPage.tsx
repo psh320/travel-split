@@ -3,10 +3,15 @@ import { useNavigate, useParams } from "react-router-dom";
 import { AppHeader } from "../components/ui/AppHeader";
 import { AvatarCustomizer } from "../components/AvatarCustomizer";
 import { useToast } from "../components/ui/useToast";
+import { FieldError } from "../components/ui/FieldError";
 import { t } from "../i18n";
 import { FirebaseService } from "../services/firebase";
 import type { AvatarConfig, Trip } from "../types";
 import { DEFAULT_AVATAR_CONFIG } from "../utils/avatars";
+import {
+  MAX_TRIP_PARTICIPANTS,
+  TripParticipantLimitError,
+} from "../config/trip";
 
 const AddMemberPage = () => {
   const { groupId } = useParams<{ groupId: string }>();
@@ -44,6 +49,12 @@ const AddMemberPage = () => {
           return;
         }
 
+        if (tripData.participants.length >= MAX_TRIP_PARTICIPANTS) {
+          showToast(t("memberLimitReached"), "error");
+          navigate(`/group/${groupId}`, { replace: true });
+          return;
+        }
+
         setTrip(tripData);
       } catch (loadError) {
         console.error("Error loading trip for member creation:", loadError);
@@ -64,7 +75,7 @@ const AddMemberPage = () => {
     event.preventDefault();
     const trimmedName = name.trim();
     if (!trip || !trimmedName) {
-      setError(t("memberName"));
+      setError(t("requiredField"));
       return;
     }
 
@@ -84,7 +95,11 @@ const AddMemberPage = () => {
       navigate(`/group/${trip.id}`, { replace: true });
     } catch (saveError) {
       console.error("Error adding member:", saveError);
-      setError(t("error"));
+      setError(
+        saveError instanceof TripParticipantLimitError
+          ? t("memberLimitReached")
+          : t("error")
+      );
     } finally {
       setSaving(false);
     }
@@ -106,7 +121,7 @@ const AddMemberPage = () => {
         className="add-member-header"
       />
       <main className="add-member-page">
-        <form className="add-member-form" onSubmit={handleSubmit}>
+        <form className="add-member-form" onSubmit={handleSubmit} noValidate>
           <div className="add-member-name-field">
             <label htmlFor="memberName">{t("memberName")}</label>
             <input
@@ -120,9 +135,11 @@ const AddMemberPage = () => {
               placeholder={t("memberName")}
               autoComplete="off"
               autoFocus
+              aria-invalid={Boolean(error)}
+              aria-describedby={error ? "member-name-error" : undefined}
               required
             />
-            {error && <span role="alert">{error}</span>}
+            <FieldError id="member-name-error" message={error} />
           </div>
 
           <AvatarCustomizer

@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, type CSSProperties } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { Cell, Pie, PieChart, ResponsiveContainer } from "recharts";
 import { AppHeader } from "../components/ui/AppHeader";
+import { FieldError } from "../components/ui/FieldError";
 import {
   CloseIcon,
   IconButton,
@@ -27,14 +28,10 @@ import { DEFAULT_AVATAR_CONFIG, getAvatarConfig } from "../utils/avatars";
 import { EXPENSE_CATEGORIES, getExpenseShares } from "../utils/expenses";
 import { AnimatedAmount } from "../components/AnimatedAmount";
 import { useReducedMotion } from "../hooks/useReducedMotion";
-
-const spendColors = [
-  "#2F3437",
-  "#7C8794",
-  "#B58F72",
-  "#9FA8A3",
-  "#D1B8A0",
-];
+import {
+  getMemberAccentColor,
+  MAX_TRIP_PARTICIPANTS,
+} from "../config/trip";
 
 type DashboardModal = "details" | "participants" | "budget" | null;
 type PendingRemoval = {
@@ -336,12 +333,13 @@ const TripDashboard = () => {
             .map((participant, index) => ({
               id: participant.id,
               name: participant.name,
+              colorIndex: participant.colorIndex,
               avatarId: participant.avatarId,
               avatarConfig: participant.avatarConfig,
               amount: trip.expenses
                 .filter((expense) => expense.paidBy === participant.id)
                 .reduce((sum, expense) => sum + expense.amount, 0),
-              color: spendColors[index % spendColors.length],
+              color: getMemberAccentColor(participant.colorIndex, index),
             }))
             .filter((participant) => participant.amount > 0)
             .sort((a, b) => b.amount - a.amount);
@@ -524,7 +522,7 @@ const TripDashboard = () => {
 
                 <div className="spending-legend">
                   {paidSummary.length ? (
-                    paidSummary.slice(0, 5).map((participant) => (
+                    paidSummary.map((participant) => (
                       <div key={participant.id} className="spending-legend-item">
                         <Avatar
                           user={participant}
@@ -756,7 +754,7 @@ const TripDashboard = () => {
                 </div>
               </>
             ) : activeModal === "budget" ? (
-              <form className="form budget-form" onSubmit={handleBudgetSubmit}>
+              <form className="form budget-form" onSubmit={handleBudgetSubmit} noValidate>
                 <div className="form-group">
                   <label htmlFor="dashboardBudget">{t("perPersonBudget")}</label>
                   <input
@@ -772,12 +770,21 @@ const TripDashboard = () => {
                     step="0.01"
                     min="0.01"
                     autoFocus
+                    aria-invalid={Boolean(budgetError)}
+                    aria-describedby={
+                      budgetError
+                        ? "dashboard-budget-help dashboard-budget-error"
+                        : "dashboard-budget-help"
+                    }
                   />
-                  <span className="form-help">{t("budgetEditHelp")}</span>
+                  <span id="dashboard-budget-help" className="form-help">
+                    {t("budgetEditHelp")}
+                  </span>
+                  <FieldError
+                    id="dashboard-budget-error"
+                    message={budgetError}
+                  />
                 </div>
-                {budgetError && (
-                  <div className="callout callout-danger">{budgetError}</div>
-                )}
                 <div className="dashboard-modal-actions">
                   <button
                     type="button"
@@ -812,9 +819,14 @@ const TripDashboard = () => {
                       type="button"
                       className="btn btn-secondary participants-add-button"
                       onClick={() => navigate(`/group/${trip.id}/add-member`)}
+                      disabled={trip.participants.length >= MAX_TRIP_PARTICIPANTS}
                     >
-                      <span aria-hidden="true">+</span>
-                      {t("addUser")}
+                      {trip.participants.length < MAX_TRIP_PARTICIPANTS && (
+                        <span aria-hidden="true">+</span>
+                      )}
+                      {trip.participants.length >= MAX_TRIP_PARTICIPANTS
+                        ? t("groupFull")
+                        : t("addUser")}
                     </button>
                   )}
                 </div>

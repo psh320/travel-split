@@ -6,13 +6,19 @@ import { GroupHistoryService } from "../services/groupHistory";
 import { t } from "../i18n";
 import type { AvatarConfig, CreateTripForm } from "../types";
 import { useToast } from "../components/ui/useToast";
+import { FieldError } from "../components/ui/FieldError";
 import { AvatarCustomizer } from "../components/AvatarCustomizer";
 import { DEFAULT_AVATAR_CONFIG } from "../utils/avatars";
+
+type CreateTripErrors = Partial<
+  Record<"name" | "creatorName" | "perPersonBudget", string>
+>;
 
 const CreateTripPage = () => {
   const navigate = useNavigate();
   const { showToast } = useToast();
   const [loading, setLoading] = useState(false);
+  const [formErrors, setFormErrors] = useState<CreateTripErrors>({});
   const [avatarConfig, setAvatarConfig] = useState<AvatarConfig>({
     ...DEFAULT_AVATAR_CONFIG,
   });
@@ -33,20 +39,31 @@ const CreateTripPage = () => {
       ...prev,
       [name]: value,
     }));
+    if (name in formErrors) {
+      setFormErrors((current) => ({ ...current, [name]: undefined }));
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.name.trim() || !formData.creatorName.trim()) {
-      showToast(`${t("groupName")} / ${t("yourName")}`, "error");
-      return;
-    }
-
     const perPersonBudget = formData.perPersonBudget.trim()
       ? Number(formData.perPersonBudget)
       : undefined;
-    if (perPersonBudget !== undefined && (!Number.isFinite(perPersonBudget) || perPersonBudget <= 0)) {
-      showToast(t("budgetInvalid"), "error");
+    const nextErrors: CreateTripErrors = {};
+
+    if (!formData.name.trim()) nextErrors.name = t("requiredField");
+    if (!formData.creatorName.trim()) {
+      nextErrors.creatorName = t("requiredField");
+    }
+    if (
+      perPersonBudget !== undefined &&
+      (!Number.isFinite(perPersonBudget) || perPersonBudget <= 0)
+    ) {
+      nextErrors.perPersonBudget = t("budgetInvalid");
+    }
+
+    setFormErrors(nextErrors);
+    if (Object.keys(nextErrors).length > 0) {
       return;
     }
 
@@ -120,7 +137,7 @@ const CreateTripPage = () => {
       />
 
       <div className="content">
-        <form onSubmit={handleSubmit} className="form">
+        <form onSubmit={handleSubmit} className="form" noValidate>
           <div className="form-group">
             <label htmlFor="name">{t("groupName")}</label>
             <input
@@ -130,8 +147,11 @@ const CreateTripPage = () => {
               value={formData.name}
               onChange={handleInputChange}
               placeholder={t("newGroup")}
+              aria-invalid={Boolean(formErrors.name)}
+              aria-describedby={formErrors.name ? "group-name-error" : undefined}
               required
             />
+            <FieldError id="group-name-error" message={formErrors.name} />
           </div>
 
           <div className="form-group">
@@ -146,8 +166,20 @@ const CreateTripPage = () => {
               placeholder="0.00"
               step="0.01"
               min="0.01"
+              aria-invalid={Boolean(formErrors.perPersonBudget)}
+              aria-describedby={
+                formErrors.perPersonBudget
+                  ? "per-person-budget-help per-person-budget-error"
+                  : "per-person-budget-help"
+              }
             />
-            <span className="form-help">{t("perPersonBudgetHelp")}</span>
+            <span id="per-person-budget-help" className="form-help">
+              {t("perPersonBudgetHelp")}
+            </span>
+            <FieldError
+              id="per-person-budget-error"
+              message={formErrors.perPersonBudget}
+            />
           </div>
 
           <div className="form-group">
@@ -170,7 +202,15 @@ const CreateTripPage = () => {
               value={formData.creatorName}
               onChange={handleInputChange}
               placeholder={t("yourName").replace(" *", "")}
+              aria-invalid={Boolean(formErrors.creatorName)}
+              aria-describedby={
+                formErrors.creatorName ? "creator-name-error" : undefined
+              }
               required
+            />
+            <FieldError
+              id="creator-name-error"
+              message={formErrors.creatorName}
             />
           </div>
 

@@ -1,15 +1,24 @@
-import { useState, useEffect, useMemo } from "react";
-import { useParams, Link, useNavigate } from "react-router-dom";
-import { AppHeader } from "../components/ui/AppHeader";
-import { IconLink } from "../components/ui/IconButton";
+import { useEffect, useMemo, useState } from "react";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { ExpenseListItem } from "../components/ExpenseListItem";
-import { Dropdown } from "../components/ui/Dropdown";
+import { AppHeader } from "../components/ui/AppHeader";
+import {
+  CloseIcon,
+  FilterIcon,
+  IconButton,
+  IconLink,
+  PlusIcon,
+  SearchIcon,
+} from "../components/ui/IconButton";
+import { useToast } from "../components/ui/useToast";
+import { t, countLabel } from "../i18n";
 import { FirebaseService } from "../services/firebase";
 import type { ExpenseCategory, Trip } from "../types";
 import { formatAmount, formatExpenseDate } from "../utils";
 import { EXPENSE_CATEGORIES } from "../utils/expenses";
-import { t } from "../i18n";
-import { useToast } from "../components/ui/useToast";
+
+type ExpenseFilter = "all" | "paid-by-me" | "split-with-me";
+type ExpenseSort = "date-desc" | "date-asc" | "amount-desc" | "amount-asc";
 
 const ExpensesPage = () => {
   const { groupId } = useParams<{ groupId: string }>();
@@ -18,29 +27,26 @@ const ExpensesPage = () => {
   const cachedTrip = groupId ? FirebaseService.getCachedTripById(groupId) : null;
   const [trip, setTrip] = useState<Trip | null>(cachedTrip);
   const [loading, setLoading] = useState(!cachedTrip);
-  const [currentUserId, setCurrentUserId] = useState<string>("");
+  const [currentUserId, setCurrentUserId] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
-  const [filterBy, setFilterBy] = useState<
-    "all" | "paid-by-me" | "split-with-me"
-  >("all");
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const [filterBy, setFilterBy] = useState<ExpenseFilter>("all");
   const [categoryFilter, setCategoryFilter] = useState<"all" | ExpenseCategory>(
     "all"
   );
-  const [sortBy, setSortBy] = useState<
-    "date-desc" | "date-asc" | "amount-desc" | "amount-asc"
-  >("date-desc");
+  const [sortBy, setSortBy] = useState<ExpenseSort>("date-desc");
 
   useEffect(() => {
     const userId = localStorage.getItem("currentUserId");
-    if (userId) {
-      setCurrentUserId(userId);
-    }
+    if (userId) setCurrentUserId(userId);
 
     const loadTrip = async () => {
       if (!groupId) return;
 
       const hasCachedTrip = Boolean(FirebaseService.getCachedTripById(groupId));
       if (!hasCachedTrip) setLoading(true);
+
       try {
         const tripData = await FirebaseService.getTripById(groupId, {
           force: hasCachedTrip,
@@ -59,23 +65,32 @@ const ExpensesPage = () => {
       }
     };
 
-    loadTrip();
+    void loadTrip();
   }, [groupId, navigate, showToast]);
 
+  useEffect(() => {
+    if (!isFilterOpen) return;
+
+    const previousOverflow = document.body.style.overflow;
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setIsFilterOpen(false);
+    };
+
+    document.body.style.overflow = "hidden";
+    window.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [isFilterOpen]);
+
   const handleDeleteExpense = async (expenseId: string) => {
-    if (
-      !trip ||
-      !window.confirm(t("remove"))
-    )
-      return;
+    if (!trip || !window.confirm(t("remove"))) return;
 
     try {
       await FirebaseService.deleteExpense(trip.id, expenseId);
-      // Refresh trip data by reloading
       const tripData = await FirebaseService.getTripById(trip.id);
-      if (tripData) {
-        setTrip(tripData);
-      }
+      if (tripData) setTrip(tripData);
       showToast(t("expenseRemoved"), "success");
     } catch (error) {
       console.error("Error deleting expense:", error);
@@ -87,14 +102,13 @@ const ExpensesPage = () => {
     if (!trip) return [];
 
     const filtered = trip.expenses.filter((expense) => {
-      // Search filter
       if (searchTerm) {
         const searchLower = searchTerm.toLowerCase();
         const description = expense.description.toLowerCase();
-        const paidByUser = trip.participants.find(
-          (p) => p.id === expense.paidBy
-        );
-        const paidByName = paidByUser?.name.toLowerCase() || "";
+        const paidByName =
+          trip.participants
+            .find((participant) => participant.id === expense.paidBy)
+            ?.name.toLowerCase() ?? "";
         const categoryName = t(expense.category ?? "other").toLowerCase();
 
         if (
@@ -106,13 +120,15 @@ const ExpensesPage = () => {
         }
       }
 
-      // User filter
-      if (filterBy === "paid-by-me") {
-        return expense.paidBy === currentUserId;
-      } else if (filterBy === "split-with-me") {
-        return expense.participants.includes(currentUserId);
+      if (filterBy === "paid-by-me" && expense.paidBy !== currentUserId) {
+        return false;
       }
-
+      if (
+        filterBy === "split-with-me" &&
+        !expense.participants.includes(currentUserId)
+      ) {
+        return false;
+      }
       if (
         categoryFilter !== "all" &&
         (expense.category ?? "other") !== categoryFilter
@@ -123,7 +139,6 @@ const ExpensesPage = () => {
       return true;
     });
 
-    // Sort
     filtered.sort((a, b) => {
       switch (sortBy) {
         case "date-desc":
@@ -134,13 +149,11 @@ const ExpensesPage = () => {
           return b.amount - a.amount;
         case "amount-asc":
           return a.amount - b.amount;
-        default:
-          return 0;
       }
     });
 
     return filtered;
-  }, [trip, searchTerm, filterBy, categoryFilter, sortBy, currentUserId]);
+  }, [categoryFilter, currentUserId, filterBy, searchTerm, sortBy, trip]);
 
   if (loading) {
     return (
@@ -163,249 +176,246 @@ const ExpensesPage = () => {
     );
   }
 
-  const filteredTotal = filteredAndSortedExpenses.reduce(
-    (sum, expense) => sum + expense.amount,
-    0
-  );
   const totalExpenses = trip.expenses.reduce(
     (sum, expense) => sum + expense.amount,
     0
   );
+  const activeFilterCount =
+    Number(filterBy !== "all") +
+    Number(categoryFilter !== "all") +
+    Number(sortBy !== "date-desc");
+  const hasActiveQuery = Boolean(searchTerm || activeFilterCount);
+  const filterOptions: Array<{ value: ExpenseFilter; label: string }> = [
+    { value: "all", label: t("allExpenses") },
+    { value: "paid-by-me", label: t("paidByMe") },
+    { value: "split-with-me", label: t("splitWithMe") },
+  ];
+  const sortOptions: Array<{ value: ExpenseSort; label: string }> = [
+    { value: "date-desc", label: t("newestFirst") },
+    { value: "date-asc", label: t("oldestFirst") },
+    { value: "amount-desc", label: t("highestAmount") },
+    { value: "amount-asc", label: t("lowestAmount") },
+  ];
+
+  const resetFilters = () => {
+    setFilterBy("all");
+    setCategoryFilter("all");
+    setSortBy("date-desc");
+  };
+
   return (
     <>
       <AppHeader
-        backTo={`/group/${groupId}`}
+        backTo={"/group/" + groupId}
         title={t("expenses")}
         subtitle={formatAmount(totalExpenses)}
-      />
-
-      <div className="content">
-        {/* Summary Card */}
-        {filteredAndSortedExpenses.length > 0 && (
-          <div className="card">
-            <h3>{t("summary")}</h3>
-            <div
-              style={{
-                fontSize: "0.875rem",
-                color: "var(--ease-color-text-muted)",
-                lineHeight: "1.6",
-              }}
-            >
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  marginBottom: "0.5rem",
+        className="expenses-header"
+        actions={
+          isSearchOpen ? (
+            <div className="expenses-header-search">
+              <SearchIcon />
+              <input
+                type="search"
+                value={searchTerm}
+                onChange={(event) => setSearchTerm(event.target.value)}
+                placeholder={t("searchExpenses")}
+                aria-label={t("searchExpenses")}
+                autoFocus
+              />
+              <IconButton
+                className="expense-search-close"
+                onClick={() => {
+                  setSearchTerm("");
+                  setIsSearchOpen(false);
                 }}
+                label={t("close")}
               >
-                <span>{t("totalExpenses")}</span>
-                <strong>{formatAmount(filteredTotal)}</strong>
-              </div>
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  marginBottom: "0.5rem",
-                }}
-              >
-                <span>{t("averagePerExpense")}</span>
-                <strong>
-                  {formatAmount(filteredTotal / filteredAndSortedExpenses.length)}
-                </strong>
-              </div>
-              {filterBy === "all" && (
-                <div
-                  style={{ display: "flex", justifyContent: "space-between" }}
-                >
-                  <span>{t("averagePerPerson")}</span>
-                  <strong>
-                    {formatAmount(filteredTotal / trip.participants.length)}
-                  </strong>
-                </div>
-              )}
+                <CloseIcon />
+              </IconButton>
             </div>
-          </div>
-        )}
-
-        {/* Search and Filter Controls */}
-        <div className="card">
-          {/* Search */}
-          <div className="form-group" style={{ marginBottom: "1rem" }}>
-            <input
-              type="text"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder={t("search")}
-              style={{ width: "100%" }}
-            />
-          </div>
-
-          {/* Filters and Sort */}
-          <div className="filter-controls">
-            <Dropdown
-              label={t("filter")}
-              value={filterBy}
-              onChange={setFilterBy}
-              options={[
-                { value: "all", label: t("allExpenses") },
-                { value: "paid-by-me", label: t("paidByMe") },
-                { value: "split-with-me", label: t("splitWithMe") },
-              ]}
-            />
-            <Dropdown
-              label={t("sortBy")}
-              value={sortBy}
-              onChange={setSortBy}
-              options={[
-                { value: "date-desc", label: t("newestFirst") },
-                { value: "date-asc", label: t("oldestFirst") },
-                { value: "amount-desc", label: t("highestAmount") },
-                { value: "amount-asc", label: t("lowestAmount") },
-              ]}
-            />
-            <Dropdown
-              label={t("category")}
-              value={categoryFilter}
-              onChange={setCategoryFilter}
-              options={[
-                { value: "all", label: t("allCategories") },
-                ...EXPENSE_CATEGORIES.map((category) => ({
-                  value: category,
-                  label: t(category),
-                })),
-              ]}
-            />
-          </div>
-        </div>
-
-        {/* Quick Stats */}
-        {(searchTerm || filterBy !== "all" || categoryFilter !== "all") && (
-          <div className="card">
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(auto-fit, minmax(120px, 1fr))",
-                gap: "1rem",
-                textAlign: "center",
-              }}
+          ) : (
+            <>
+            <IconButton
+              className="expenses-header-action"
+              onClick={() => setIsSearchOpen(true)}
+              label={t("searchExpenses")}
             >
-              <div>
-                <div
-                  style={{
-                    fontSize: "1.5rem",
-                    fontWeight: "600",
-                    color: "var(--ease-color-brand)",
-                  }}
-                >
-                  {filteredAndSortedExpenses.length}
-                </div>
-                <div style={{ fontSize: "0.75rem", color: "var(--ease-color-text-muted)" }}>
-                  {filterBy === "all"
-                    ? t("found")
-                    : filterBy === "paid-by-me"
-                    ? t("paid")
-                    : t("split")}
-                </div>
-              </div>
-              <div>
-                <div
-                  style={{
-                    fontSize: "1.5rem",
-                    fontWeight: "600",
-                    color: "var(--ease-color-success)",
-                  }}
-                >
-                  {formatAmount(filteredTotal)}
-                </div>
-                <div style={{ fontSize: "0.75rem", color: "var(--ease-color-text-muted)" }}>
-                  {t("total")}
-                </div>
-              </div>
-              {filterBy !== "all" && (
-                <div>
-                  <div
-                    style={{
-                      fontSize: "1.5rem",
-                      fontWeight: "600",
-                      color: "var(--ease-color-warning)",
-                    }}
-                  >
-                    {Math.round(
-                      (filteredAndSortedExpenses.length /
-                        Math.max(trip.expenses.length, 1)) *
-                        100
-                    )}
-                    %
-                  </div>
-                  <div style={{ fontSize: "0.75rem", color: "var(--ease-color-text-muted)" }}>
-                    {t("allExpenses")}
-                  </div>
-                </div>
+              <SearchIcon />
+            </IconButton>
+            <IconButton
+              className={
+                "expenses-header-action filter-trigger" +
+                (activeFilterCount ? " has-active-filters" : "")
+              }
+              onClick={() => setIsFilterOpen(true)}
+              label={
+                activeFilterCount
+                  ? t("filter") + " " + activeFilterCount
+                  : t("filter")
+              }
+            >
+              <FilterIcon />
+              {activeFilterCount > 0 && (
+                <span className="filter-count-badge" aria-hidden="true">
+                  {activeFilterCount}
+                </span>
               )}
-            </div>
-          </div>
-        )}
-
-        {/* Expenses List */}
-        <div className="card">
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              marginBottom: "1rem",
-            }}
-          >
-            <h3>{t("list")}</h3>
+            </IconButton>
             <IconLink
-              to={`/group/${groupId}/add-expense`}
+              to={"/group/" + groupId + "/add-expense"}
+              className="expenses-header-action"
               label={t("addExpense")}
             >
-              +
+              <PlusIcon />
             </IconLink>
-          </div>
+            </>
+          )
+        }
+      />
+
+      <main className="content expenses-content">
+        <section className="card expenses-list-card">
+          {hasActiveQuery && (
+            <div className="expenses-result-count">
+              {countLabel("expense", filteredAndSortedExpenses.length)}
+            </div>
+          )}
 
           {filteredAndSortedExpenses.length === 0 ? (
-            <div
-              style={{
-                textAlign: "center",
-                padding: "2rem",
-                color: "var(--ease-color-text-muted)",
-                fontSize: "0.875rem",
-              }}
-            >
-              {trip.expenses.length === 0 ? (
-                <>
-                  <p>{t("noExpenses")}</p>
-                </>
-              ) : (
-                <>
-                  <p>{t("noMatches")}</p>
-                </>
-              )}
+            <div className="expenses-empty-state">
+              <p>{trip.expenses.length === 0 ? t("noExpenses") : t("noMatches")}</p>
             </div>
           ) : (
             <div className="list">
-              {filteredAndSortedExpenses.map((expense) => {
-                const paidByUser = trip.participants.find(
-                  (p) => p.id === expense.paidBy
-                );
-                return (
-                  <ExpenseListItem
-                    key={expense.id}
-                    dateLabel={formatExpenseDate(expense.date)}
-                    editTo={`/group/${groupId}/edit-expense/${expense.id}`}
-                    expense={expense}
-                    onDelete={() => handleDeleteExpense(expense.id)}
-                    paidByUser={paidByUser}
-                  />
-                );
-              })}
+              {filteredAndSortedExpenses.map((expense) => (
+                <ExpenseListItem
+                  key={expense.id}
+                  dateLabel={formatExpenseDate(expense.date)}
+                  editTo={
+                    "/group/" + groupId + "/edit-expense/" + expense.id
+                  }
+                  expense={expense}
+                  onDelete={() => handleDeleteExpense(expense.id)}
+                  paidByUser={trip.participants.find(
+                    (participant) => participant.id === expense.paidBy
+                  )}
+                />
+              ))}
             </div>
           )}
-        </div>
+        </section>
+      </main>
 
-      </div>
+      {isFilterOpen && (
+        <div
+          className="expense-filter-backdrop"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget) setIsFilterOpen(false);
+          }}
+        >
+          <section
+            className="expense-filter-sheet"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="expense-filter-title"
+          >
+            <div className="expense-filter-sheet-header">
+              <div>
+                <span>{t("expenses")}</span>
+                <h2 id="expense-filter-title">{t("filter")}</h2>
+              </div>
+              <IconButton
+                onClick={() => setIsFilterOpen(false)}
+                label={t("close")}
+                autoFocus
+              >
+                <CloseIcon />
+              </IconButton>
+            </div>
+
+            <div className="expense-filter-sheet-body">
+              <fieldset className="expense-filter-group">
+                <legend>{t("filter")}</legend>
+                <div className="expense-filter-chip-grid">
+                  {filterOptions.map((option) => (
+                    <button
+                      key={option.value}
+                      type="button"
+                      className={filterBy === option.value ? "is-selected" : ""}
+                      aria-pressed={filterBy === option.value}
+                      onClick={() => setFilterBy(option.value)}
+                    >
+                      {option.label}
+                    </button>
+                  ))}
+                </div>
+              </fieldset>
+
+              <fieldset className="expense-filter-group">
+                <legend>{t("category")}</legend>
+                <div className="expense-filter-chip-grid category-filter-grid">
+                  <button
+                    type="button"
+                    className={categoryFilter === "all" ? "is-selected" : ""}
+                    aria-pressed={categoryFilter === "all"}
+                    onClick={() => setCategoryFilter("all")}
+                  >
+                    {t("allCategories")}
+                  </button>
+                  {EXPENSE_CATEGORIES.map((category) => (
+                    <button
+                      key={category}
+                      type="button"
+                      className={categoryFilter === category ? "is-selected" : ""}
+                      aria-pressed={categoryFilter === category}
+                      onClick={() => setCategoryFilter(category)}
+                    >
+                      <span className={"expense-category-dot category-" + category} />
+                      {t(category)}
+                    </button>
+                  ))}
+                </div>
+              </fieldset>
+
+              <fieldset className="expense-filter-group">
+                <legend>{t("sortBy")}</legend>
+                <div className="expense-sort-list">
+                  {sortOptions.map((option) => (
+                    <button
+                      key={option.value}
+                      type="button"
+                      className={sortBy === option.value ? "is-selected" : ""}
+                      aria-pressed={sortBy === option.value}
+                      onClick={() => setSortBy(option.value)}
+                    >
+                      <span>{option.label}</span>
+                      <span className="expense-sort-check" aria-hidden="true" />
+                    </button>
+                  ))}
+                </div>
+              </fieldset>
+            </div>
+
+            <div className="expense-filter-sheet-actions">
+              <button
+                type="button"
+                className="btn btn-secondary"
+                onClick={resetFilters}
+                disabled={activeFilterCount === 0}
+              >
+                {t("clearAll")}
+              </button>
+              <button
+                type="button"
+                className="btn btn-primary"
+                onClick={() => setIsFilterOpen(false)}
+              >
+                {t("showResults")} · {filteredAndSortedExpenses.length}
+              </button>
+            </div>
+          </section>
+        </div>
+      )}
     </>
   );
 };

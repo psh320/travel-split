@@ -10,6 +10,7 @@ import {
   where,
   Timestamp,
   deleteField,
+  runTransaction,
 } from "firebase/firestore";
 import { db } from "../config/firebase";
 import type {
@@ -25,6 +26,12 @@ import type {
 } from "../types";
 import { DEFAULT_AVATAR_CONFIG } from "../utils/avatars";
 import { generateRoomCode, generateId } from "../utils";
+import {
+  getAvailableMemberColorIndex,
+  MAX_TRIP_PARTICIPANTS,
+  normalizeMemberColorIndex,
+  TripParticipantLimitError,
+} from "../config/trip";
 
 type TripCacheEntry = {
   trip: Trip;
@@ -72,8 +79,9 @@ export class FirebaseService {
           : undefined,
       createdAt: data.createdAt.toDate(),
       updatedAt: data.updatedAt.toDate(),
-      participants: data.participants.map((participant: FirestoreUser) => ({
+      participants: data.participants.map((participant: FirestoreUser, index) => ({
         ...participant,
+        colorIndex: normalizeMemberColorIndex(participant.colorIndex, index),
         createdAt: participant.createdAt.toDate(),
       })),
       expenses: data.expenses.map((expense) => this.toExpense(expense)),
@@ -94,6 +102,7 @@ export class FirebaseService {
     const creator: User = {
       id: creatorId,
       name: creatorName,
+      colorIndex: 0,
       avatarConfig,
       createdAt: new Date(),
     };
@@ -222,42 +231,58 @@ export class FirebaseService {
   ): Promise<User> {
     try {
       const tripRef = doc(db, "trips", tripId);
-      const tripSnap = await getDoc(tripRef);
+      let newUser!: User;
+      let updatedAt!: Date;
 
-      if (!tripSnap.exists()) {
-        throw new Error("Trip not found");
-      }
+      await runTransaction(db, async (transaction) => {
+        const tripSnap = await transaction.get(tripRef);
 
-      const tripData = tripSnap.data() as FirestoreTripData;
-      const newUser: User = {
-        id: generateId(),
-        name: userName,
-        avatarConfig,
-        createdAt: new Date(),
-      };
+        if (!tripSnap.exists()) {
+          throw new Error("Trip not found");
+        }
 
-      const updatedParticipants = [
-        ...tripData.participants,
-        {
-          ...newUser,
-          createdAt: Timestamp.fromDate(newUser.createdAt),
-        },
-      ];
+        const tripData = tripSnap.data() as FirestoreTripData;
+        if (tripData.participants.length >= MAX_TRIP_PARTICIPANTS) {
+          throw new TripParticipantLimitError();
+        }
 
-      await updateDoc(tripRef, {
-        participants: updatedParticipants,
-        updatedAt: Timestamp.fromDate(new Date()),
+        const existingParticipants = tripData.participants.map(
+          (participant, index) => ({
+            ...participant,
+            colorIndex: normalizeMemberColorIndex(participant.colorIndex, index),
+          })
+        );
+        newUser = {
+          id: generateId(),
+          name: userName,
+          colorIndex: getAvailableMemberColorIndex(existingParticipants),
+          avatarConfig,
+          createdAt: new Date(),
+        };
+        updatedAt = new Date();
+
+        transaction.update(tripRef, {
+          participants: [
+            ...existingParticipants,
+            {
+              ...newUser,
+              createdAt: Timestamp.fromDate(newUser.createdAt),
+            },
+          ],
+          updatedAt: Timestamp.fromDate(updatedAt),
+        });
       });
 
       this.updateCachedTrip(tripId, (trip) => ({
         ...trip,
         participants: [...trip.participants, newUser],
-        updatedAt: new Date(),
+        updatedAt,
       }));
 
       return newUser;
     } catch (error) {
       console.error("Error adding user to trip:", error);
+      if (error instanceof TripParticipantLimitError) throw error;
       throw new Error("Failed to add user to trip");
     }
   }

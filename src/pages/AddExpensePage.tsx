@@ -5,6 +5,7 @@ import { FirebaseService } from "../services/firebase";
 import { t } from "../i18n";
 import { formatAmount } from "../utils";
 import { useToast } from "../components/ui/useToast";
+import { FieldError } from "../components/ui/FieldError";
 import { Avatar } from "../components/Avatar";
 import type { Trip, AddExpenseForm, ExpenseSplitMode } from "../types";
 import {
@@ -13,6 +14,13 @@ import {
   parseExpenseDateInput,
   toExpenseDateInput,
 } from "../utils/expenses";
+
+type ExpenseFormErrors = Partial<
+  Record<
+    "description" | "amount" | "date" | "paidBy" | "participants" | "shares",
+    string
+  >
+>;
 
 const AddExpensePage = () => {
   const { groupId, expenseId } = useParams<{
@@ -36,6 +44,7 @@ const AddExpensePage = () => {
     splitMode: "equal",
     shares: {},
   });
+  const [formErrors, setFormErrors] = useState<ExpenseFormErrors>({});
 
   const loadTrip = useCallback(async () => {
     if (!groupId) return;
@@ -117,6 +126,9 @@ const AddExpensePage = () => {
       ...prev,
       [name]: value,
     }));
+    if (name in formErrors) {
+      setFormErrors((current) => ({ ...current, [name]: undefined }));
+    }
   };
 
   const handleParticipantChange = (participantId: string, checked: boolean) => {
@@ -131,6 +143,13 @@ const AddExpensePage = () => {
             Object.entries(prev.shares).filter(([id]) => id !== participantId)
           ),
     }));
+    if (checked) {
+      setFormErrors((current) => ({
+        ...current,
+        participants: undefined,
+        shares: undefined,
+      }));
+    }
   };
 
   const selectAllParticipants = () => {
@@ -138,6 +157,11 @@ const AddExpensePage = () => {
     setFormData((prev) => ({
       ...prev,
       participants: trip.participants.map((p) => p.id),
+    }));
+    setFormErrors((current) => ({
+      ...current,
+      participants: undefined,
+      shares: undefined,
     }));
   };
 
@@ -150,6 +174,7 @@ const AddExpensePage = () => {
   };
 
   const setSplitMode = (splitMode: ExpenseSplitMode) => {
+    setFormErrors((current) => ({ ...current, shares: undefined }));
     setFormData((prev) => {
       if (splitMode === "equal") return { ...prev, splitMode };
 
@@ -171,6 +196,7 @@ const AddExpensePage = () => {
   };
 
   const handleShareChange = (participantId: string, value: string) => {
+    setFormErrors((current) => ({ ...current, shares: undefined }));
     setFormData((prev) => ({
       ...prev,
       shares: { ...prev.shares, [participantId]: value },
@@ -191,30 +217,28 @@ const AddExpensePage = () => {
         ])
       ),
     }));
+    setFormErrors((current) => ({ ...current, shares: undefined }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (
-      !trip ||
-      !formData.description.trim() ||
-      !formData.amount ||
-      !formData.paidBy
-    ) {
-      showToast(t("expense"), "error");
-      return;
-    }
+    if (!trip) return;
 
-    const amount = parseFloat(formData.amount);
-    if (isNaN(amount) || amount <= 0) {
-      showToast(t("amount"), "error");
-      return;
+    const amount = Number(formData.amount);
+    const nextErrors: ExpenseFormErrors = {};
+    if (!formData.description.trim()) {
+      nextErrors.description = t("requiredField");
     }
-
+    if (!formData.amount) {
+      nextErrors.amount = t("requiredField");
+    } else if (!Number.isFinite(amount) || amount <= 0) {
+      nextErrors.amount = t("invalidAmount");
+    }
+    if (!formData.date) nextErrors.date = t("requiredField");
+    if (!formData.paidBy) nextErrors.paidBy = t("choosePayer");
     if (formData.participants.length === 0) {
-      showToast(t("splitWith"), "error");
-      return;
+      nextErrors.participants = t("chooseSplitParticipants");
     }
 
     const shares = Object.fromEntries(
@@ -228,12 +252,18 @@ const AddExpensePage = () => {
       0
     );
     if (
+      !nextErrors.amount &&
+      !nextErrors.participants &&
       formData.splitMode === "custom" &&
       (Object.values(shares).some(
         (share) => !Number.isFinite(share) || share < 0
       ) || Math.round(customTotal * 100) !== Math.round(amount * 100))
     ) {
-      showToast(t("customSplitMismatch"), "error");
+      nextErrors.shares = t("customSplitMismatch");
+    }
+
+    setFormErrors(nextErrors);
+    if (Object.keys(nextErrors).length > 0) {
       return;
     }
 
@@ -305,7 +335,7 @@ const AddExpensePage = () => {
       />
 
       <div className="content">
-        <form onSubmit={handleSubmit} className="form">
+        <form onSubmit={handleSubmit} className="form" noValidate>
           <div className="form-group">
             <label htmlFor="description">{t("expense")}</label>
             <input
@@ -315,7 +345,15 @@ const AddExpensePage = () => {
               value={formData.description}
               onChange={handleInputChange}
               placeholder={t("expense").replace(" *", "")}
+              aria-invalid={Boolean(formErrors.description)}
+              aria-describedby={
+                formErrors.description ? "expense-description-error" : undefined
+              }
               required
+            />
+            <FieldError
+              id="expense-description-error"
+              message={formErrors.description}
             />
           </div>
 
@@ -331,8 +369,11 @@ const AddExpensePage = () => {
               placeholder="0.00"
               step="0.01"
               min="0.01"
+              aria-invalid={Boolean(formErrors.amount)}
+              aria-describedby={formErrors.amount ? "expense-amount-error" : undefined}
               required
             />
+            <FieldError id="expense-amount-error" message={formErrors.amount} />
           </div>
 
           <div className="form-group">
@@ -343,8 +384,11 @@ const AddExpensePage = () => {
               name="date"
               value={formData.date}
               onChange={handleInputChange}
+              aria-invalid={Boolean(formErrors.date)}
+              aria-describedby={formErrors.date ? "expense-date-error" : undefined}
               required
             />
+            <FieldError id="expense-date-error" message={formErrors.date} />
           </div>
 
           <fieldset className="form-group expense-category-fieldset">
@@ -376,6 +420,8 @@ const AddExpensePage = () => {
               name="paidBy"
               value={formData.paidBy}
               onChange={handleInputChange}
+              aria-invalid={Boolean(formErrors.paidBy)}
+              aria-describedby={formErrors.paidBy ? "expense-payer-error" : undefined}
               required
             >
               <option value="">{t("paidBy").replace(" *", "")}</option>
@@ -386,10 +432,11 @@ const AddExpensePage = () => {
                 </option>
               ))}
             </select>
+            <FieldError id="expense-payer-error" message={formErrors.paidBy} />
           </div>
 
           <div className="form-group">
-            <label>{t("splitWith")}</label>
+            <label id="split-with-label">{t("splitWith")}</label>
             <div className="expense-selection-actions">
               <button
                 type="button"
@@ -406,7 +453,15 @@ const AddExpensePage = () => {
                 {t("selectNone")}
               </button>
             </div>
-            <div className="checkbox-group">
+            <div
+              className="checkbox-group"
+              role="group"
+              aria-labelledby="split-with-label"
+              aria-invalid={Boolean(formErrors.participants)}
+              aria-describedby={
+                formErrors.participants ? "expense-participants-error" : undefined
+              }
+            >
               {trip.participants.map((participant) => (
                 <label key={participant.id} className="checkbox-item">
                   <input
@@ -423,6 +478,10 @@ const AddExpensePage = () => {
                 </label>
               ))}
             </div>
+            <FieldError
+              id="expense-participants-error"
+              message={formErrors.participants}
+            />
             {formData.participants.length > 0 && (
               <div className="split-method-section">
                 <span className="split-method-label">{t("splitMethod")}</span>
@@ -488,6 +547,10 @@ const AddExpensePage = () => {
                                 handleShareChange(participantId, event.target.value)
                               }
                               aria-label={participant.name + " " + t("shareAmount")}
+                              aria-invalid={Boolean(formErrors.shares)}
+                              aria-describedby={
+                                formErrors.shares ? "expense-shares-error" : undefined
+                              }
                             />
                           </span>
                         </label>
@@ -513,6 +576,10 @@ const AddExpensePage = () => {
                               t("overAllocated")}
                       </strong>
                     </div>
+                    <FieldError
+                      id="expense-shares-error"
+                      message={formErrors.shares}
+                    />
                   </div>
                 )}
               </div>
