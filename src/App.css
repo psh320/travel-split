@@ -2826,7 +2826,7 @@ html[data-keyboard-open] .add-member-submit-bar {
 .expense-list-item-content .list-item-title {
   margin-bottom: var(--ease-space-xs);
   color: var(--ease-color-text-muted);
-  font-size: 0.75rem;
+  font-size: 1rem;
   font-weight: 600;
   line-height: 1.25;
   overflow-wrap: anywhere;
