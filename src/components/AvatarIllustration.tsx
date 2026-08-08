@@ -28,20 +28,20 @@ export function AvatarIllustration({
       case "afro":
         return (
           <g fill={INK}>
-            <circle cx="29" cy="53" r="17" /><circle cx="34" cy="35" r="17" />
-            <circle cx="47" cy="23" r="18" /><circle cx="64" cy="19" r="19" />
-            <circle cx="82" cy="24" r="18" /><circle cx="95" cy="37" r="17" />
-            <circle cx="100" cy="55" r="16" /><circle cx="31" cy="70" r="14" />
-            <circle cx="98" cy="71" r="14" />
+            <circle cx="29" cy="55" r="16" /><circle cx="34" cy="37" r="17" />
+            <circle cx="46" cy="22" r="18" /><circle cx="64" cy="17" r="20" />
+            <circle cx="83" cy="23" r="18" /><circle cx="96" cy="38" r="17" />
+            <circle cx="100" cy="57" r="16" /><circle cx="31" cy="72" r="13" />
+            <circle cx="98" cy="73" r="13" />
           </g>
         );
       case "locs":
         return (
           <g>
-            <path d="M29 58C27 29 42 14 64 14s39 16 36 45L89 75H39Z" fill={INK} />
-            <g {...line} strokeWidth="8">
-              <path d="M35 48c-5 18-4 38-1 59" /><path d="M44 40c-5 23-4 47-1 72" />
-              <path d="M93 48c5 18 4 38 1 59" /><path d="M84 40c5 23 4 47 1 72" />
+            <path d="M31 55C29 31 42 15 63 14c22-1 36 16 35 41L90 72H38Z" fill={INK} />
+            <g {...line} strokeWidth="7">
+              <path d="M31 43c-6 16-7 31-4 47" /><path d="M39 33c-6 18-7 35-4 53" />
+              <path d="M97 43c6 16 7 31 4 47" /><path d="M89 33c6 18 7 35 4 53" />
             </g>
           </g>
         );
@@ -85,38 +85,54 @@ export function AvatarIllustration({
   const renderHairFront = () => {
     switch (config.hairStyle) {
       case "buzz":
-        return <path d="M34 44C36 30 47 23 64 23s28 8 30 22c-9-5-19-8-30-8-12 0-22 2-30 7Z" fill={INK} />;
+        return <path d="M35 41c2-12 13-19 29-19s27 7 29 19c-8-4-18-6-29-6s-21 2-29 6Z" fill={INK} />;
       case "crop":
-        return <path d="M31 51C31 30 43 15 62 14c17-1 31 10 35 29l-9-4 1 9-10-7-3 9-10-11-7 9-8-8-6 8-7-6-2 8Z" fill={INK} />;
+        return <path d="M30 52C30 29 43 13 62 12c18-1 31 10 36 30l-1 10-10-7 1 8-10-10-4 9-10-13-8 11-8-9-7 10-7-7-4 8Z" fill={INK} />;
       case "sidepart":
         return (
           <g>
-            <path d="M30 52C31 29 44 15 63 14c18-1 31 11 35 32-13 0-25-5-32-16-7 12-19 20-36 22Z" fill={INK} />
-            <path {...line} d="M66 19c-2 4-2 8-1 12" stroke={PAPER} strokeWidth="1.8" />
+            <path d="M29 54C29 30 43 14 64 13c20-1 33 13 35 37-8-1-15-4-20-9-5-5-7-11-5-18-8 11-18 20-29 25-6 3-11 5-16 6Z" fill={INK} />
+            <path {...line} d="M78 17c-3 4-4 8-4 13" stroke={PAPER} strokeWidth="2" />
           </g>
         );
       case "quiff":
-        return <path d="M30 52c1-18 10-29 24-34 2-9 12-14 23-11-5 4-7 9-6 14 8-6 18-5 25 3-7 1-12 5-15 11 8-2 15 1 19 8-13 5-25 2-35-10-8 11-20 17-35 19Z" fill={INK} />;
+        return (
+          <g>
+            <path d="M29 54c1-19 10-32 24-38 4-9 13-14 24-12 8 1 14 5 18 11 7 1 13 7 16 14-9-1-17 2-23 8 7-1 14 2 18 7-12 5-24 3-34-4-5-4-8-8-10-14-6 13-17 23-33 28Z" fill={INK} />
+            <path {...line} d="M57 17c11 1 21 6 29 15" stroke={PAPER} strokeWidth="2.2" />
+          </g>
+        );
       case "bowl":
-        return <path d="M30 50c1-23 15-36 34-36s33 13 34 36c-10-6-21-9-34-9s-24 3-34 9Z" fill={INK} />;
+        return <path d="M30 50c1-24 15-38 34-38 20 0 33 14 34 38-8-4-15-6-22-7-3 7-7 11-12 11s-10-4-13-11c-7 1-14 3-21 7Z" fill={INK} />;
       case "curls":
         return (
           <g fill={INK}>
-            <circle cx="36" cy="43" r="11" /><circle cx="45" cy="32" r="12" />
-            <circle cx="58" cy="27" r="12" /><circle cx="71" cy="27" r="12" />
-            <circle cx="84" cy="33" r="12" /><circle cx="93" cy="44" r="11" />
+            <path d="M30 51c2-19 14-32 34-33 20 0 32 13 34 33Z" />
+            <circle cx="35" cy="44" r="10" /><circle cx="43" cy="32" r="11" />
+            <circle cx="54" cy="25" r="11" /><circle cx="66" cy="23" r="11" />
+            <circle cx="78" cy="27" r="11" /><circle cx="88" cy="34" r="11" />
+            <circle cx="94" cy="45" r="10" />
           </g>
         );
       case "afro":
         return (
           <g fill={INK}>
-            <circle cx="36" cy="44" r="13" /><circle cx="48" cy="34" r="14" />
-            <circle cx="64" cy="31" r="15" /><circle cx="80" cy="35" r="14" />
-            <circle cx="93" cy="45" r="13" />
+            <circle cx="35" cy="46" r="13" /><circle cx="46" cy="34" r="14" />
+            <circle cx="63" cy="28" r="16" /><circle cx="80" cy="34" r="15" />
+            <circle cx="94" cy="47" r="13" />
           </g>
         );
       case "locs":
-        return <path d="M29 52c5-25 18-38 35-38 19 0 32 14 36 38-14-2-26-9-36-21-9 12-21 19-35 21Z" fill={INK} />;
+        return (
+          <g>
+            <path d="M30 51c4-24 17-37 34-37 18 0 31 13 35 37-8-2-15-6-21-12-4 7-8 11-14 13-6-2-11-6-14-13-6 6-12 10-20 12Z" fill={INK} />
+            <g {...line} strokeWidth="6.5">
+              <path d="M39 34c-4 8-5 17-3 27" /><path d="M48 25c-3 10-3 20 0 30" />
+              <path d="M57 20c-2 10-1 21 3 31" /><path d="M89 34c4 8 5 17 3 27" />
+              <path d="M80 25c3 10 3 20 0 30" /><path d="M71 20c2 10 1 21-3 31" />
+            </g>
+          </g>
+        );
       case "bob":
         return <path d="M28 54c4-25 18-40 36-40-1 15-8 27-19 35-6 4-11 7-17 9Zm36-40c20 1 34 16 37 40-15-2-27-10-33-23-2-5-4-11-4-17Z" fill={INK} />;
       case "waves":
