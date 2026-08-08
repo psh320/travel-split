@@ -33,7 +33,7 @@ const TripDashboard = () => {
   const { showToast } = useToast();
   const prefersReducedMotion = useReducedMotion();
   const currentUserId = useCurrentTripUserId();
-  const { trip, setTrip, loading, reload: loadTrip } = useTripData(groupId, {
+  const { trip, setTrip, loading } = useTripData(groupId, {
     onLoaded: () => {
       if (groupId) GroupHistoryService.updateLastAccessed(groupId);
     },
@@ -72,9 +72,11 @@ const TripDashboard = () => {
       return;
 
     try {
-      await FirebaseService.deleteExpense(trip.id, expenseId);
-      // Refresh trip data
-      await loadTrip();
+      const updatedTrip = await FirebaseService.deleteExpense(
+        trip.id,
+        expenseId
+      );
+      setTrip(updatedTrip);
       showToast(t("expenseRemoved"), "success");
     } catch (error) {
       console.error("Error deleting expense:", error);
@@ -92,9 +94,13 @@ const TripDashboard = () => {
 
     setSavingAvatar(true);
     try {
-      await FirebaseService.updateUserAvatarConfig(trip.id, currentUserId, avatarDraft);
+      const updatedTrip = await FirebaseService.updateUserAvatarConfig(
+        trip.id,
+        currentUserId,
+        avatarDraft
+      );
       GroupHistoryService.updateAvatarConfig(trip.id, avatarDraft);
-      await loadTrip();
+      setTrip(updatedTrip);
       setEditingAvatar(false);
       showToast(t("avatarUpdated"), "success");
     } catch (error) {
@@ -176,8 +182,11 @@ const TripDashboard = () => {
 
     setRemovingUser(true);
     try {
-      await FirebaseService.removeUserFromTrip(trip.id, pendingRemoval.id);
-      await loadTrip();
+      const updatedTrip = await FirebaseService.removeUserFromTrip(
+        trip.id,
+        pendingRemoval.id
+      );
+      setTrip(updatedTrip);
       setPendingRemoval(null);
       showToast(t("participantRemoved"), "success");
     } catch (error) {

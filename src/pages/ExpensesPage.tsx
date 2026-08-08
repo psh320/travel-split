@@ -29,7 +29,7 @@ const ExpensesPage = () => {
   const navigate = useNavigate();
   const { showToast } = useToast();
   const currentUserId = useCurrentTripUserId();
-  const { trip, loading, reload } = useTripData(groupId, {
+  const { trip, loading, setTrip } = useTripData(groupId, {
     onMissing: () => {
       showToast(t("groupNotFound"), "error");
       void navigate("/");
@@ -54,8 +54,11 @@ const ExpensesPage = () => {
     if (!trip || !window.confirm(t("remove"))) return;
 
     try {
-      await FirebaseService.deleteExpense(trip.id, expenseId);
-      await reload();
+      const updatedTrip = await FirebaseService.deleteExpense(
+        trip.id,
+        expenseId
+      );
+      setTrip(updatedTrip);
       showToast(t("expenseRemoved"), "success");
     } catch (error) {
       console.error("Error deleting expense:", error);

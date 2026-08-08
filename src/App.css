@@ -633,9 +633,9 @@ select {
 
 .detail-header h1 {
   overflow: hidden;
-  font-size: clamp(1.375rem, 6vw, 1.75rem);
-  font-weight: 760;
-  line-height: 1.1;
+  font-size: 1rem;
+  font-weight: 500;
+  line-height: 1.4;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -654,8 +654,8 @@ select {
 
 .dashboard-header h1 {
   overflow: hidden;
-  font-size: clamp(1.5rem, 6vw, 1.75rem);
-  font-weight: 760;
+  font-size: 1rem;
+  font-weight: 500;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -790,10 +790,9 @@ select {
   margin-bottom: var(--ease-space-xs);
   color: var(--ease-color-text-soft);
   font-size: var(--ease-type-caption-size);
-  font-weight: var(--ease-type-label-weight);
-  letter-spacing: var(--ease-tracking-caps);
+  font-weight: 600;
+  letter-spacing: var(--ease-tracking-normal);
   line-height: var(--ease-type-caption-line);
-  text-transform: uppercase;
 }
 
 .budget-user-context {
@@ -806,16 +805,9 @@ select {
   line-height: var(--ease-type-caption-line);
 }
 
-.budget-user-context > span {
-  color: var(--ease-color-text-soft);
-  font-weight: var(--ease-type-label-weight);
-  letter-spacing: var(--ease-tracking-caps);
-  text-transform: uppercase;
-}
-
 .budget-user-context strong {
   color: var(--ease-color-text);
-  font-weight: 720;
+  font-weight: 500;
 }
 
 .budget-progress {
@@ -823,7 +815,7 @@ select {
 }
 
 .personal-spending-summary {
-  margin-bottom: var(--ease-space-xxl);
+  margin-bottom: var(--ease-space-lg);
 }
 
 .personal-spending-summary > .budget-progress,
@@ -965,8 +957,6 @@ select {
 
 .spending-breakdown-heading {
   margin-bottom: var(--ease-space-lg);
-  padding-top: var(--ease-space-xl);
-  border-top: var(--ease-border-hairline) solid var(--ease-color-border);
 }
 
 .spending-breakdown-heading .summary-eyebrow {
@@ -1087,8 +1077,6 @@ select {
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: var(--ease-space-sm);
   margin-top: var(--ease-space-xl);
-  padding-top: var(--ease-space-md);
-  border-top: var(--ease-border-hairline) solid var(--ease-color-border);
 }
 
 .summary-metrics > div {
@@ -1118,8 +1106,6 @@ select {
 
 .category-spending-section {
   margin-top: var(--ease-space-xl);
-  padding-top: var(--ease-space-xl);
-  border-top: var(--ease-border-hairline) solid var(--ease-color-border);
 }
 
 .category-spending-section.is-personal {
@@ -1134,6 +1120,65 @@ select {
   display: flex;
   flex-direction: column;
   gap: var(--ease-space-md);
+}
+
+.budget-details-toggle {
+  display: flex;
+  width: 100%;
+  min-height: var(--ease-size-touch-min);
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--ease-space-md);
+  padding: var(--ease-space-sm) 0;
+  border: 0;
+  background: transparent;
+  color: var(--ease-color-text-muted);
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  text-align: left;
+}
+
+.budget-details-toggle:hover,
+.budget-details-toggle:focus-visible {
+  color: var(--ease-color-text);
+  outline: none;
+}
+
+.budget-details-toggle:focus-visible {
+  box-shadow: 0 0 0 var(--ease-border-focus) var(--ease-color-focus);
+}
+
+.budget-details-toggle:active {
+  opacity: var(--ease-state-pressed-opacity);
+}
+
+.budget-details-chevron {
+  width: 8px;
+  height: 8px;
+  flex-shrink: 0;
+  margin-right: 3px;
+  border-right: 1.5px solid currentColor;
+  border-bottom: 1.5px solid currentColor;
+  transform: rotate(45deg);
+  transition: transform var(--ease-motion-base) var(--ease-ease-out);
+}
+
+.budget-details-toggle[aria-expanded="true"] .budget-details-chevron {
+  transform: rotate(225deg);
+}
+
+.budget-details {
+  padding-top: var(--ease-space-lg);
+  animation: details-reveal 220ms var(--ease-ease-out) both;
+}
+
+@keyframes details-reveal {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
 }
 
 .category-bar-row {
@@ -1321,7 +1366,7 @@ select {
 
 .add-member-header .header-title-group h1 {
   font-size: 1rem;
-  font-weight: 780;
+  font-weight: 500;
 }
 
 .add-member-page {

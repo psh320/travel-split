@@ -52,8 +52,12 @@ export class FirebaseService {
     return trip;
   }
 
-  private static invalidateTripCache(tripId: string): void {
-    this.tripCache.delete(tripId);
+  private static updateCachedTrip(
+    tripId: string,
+    updater: (trip: Trip) => Trip
+  ): void {
+    const cached = this.tripCache.get(tripId);
+    if (cached) this.cacheTrip(updater(cached.trip));
   }
 
   static getCachedTripById(tripId: string): Trip | null {
@@ -211,7 +215,12 @@ export class FirebaseService {
         updatedAt: Timestamp.fromDate(updatedAt),
       });
 
-      this.invalidateTripCache(tripId);
+      this.updateCachedTrip(tripId, (trip) => {
+        const updatedTrip = { ...trip, updatedAt };
+        if (perPersonBudget === null) delete updatedTrip.perPersonBudget;
+        else updatedTrip.perPersonBudget = perPersonBudget;
+        return updatedTrip;
+      });
     } catch (error) {
       console.error("Error updating trip budget:", error);
       throw new Error("Failed to update trip budget");
@@ -227,6 +236,7 @@ export class FirebaseService {
     try {
       const tripRef = doc(db, "trips", tripId);
       let newUser!: User;
+      let updatedTrip!: Trip;
       let updatedAt!: Date;
 
       await runTransaction(db, async (transaction) => {
@@ -256,19 +266,27 @@ export class FirebaseService {
         };
         updatedAt = new Date();
 
+        const updatedParticipants = [
+          ...existingParticipants,
+          {
+            ...newUser,
+            createdAt: Timestamp.fromDate(newUser.createdAt),
+          },
+        ];
+        const updatedAtTimestamp = Timestamp.fromDate(updatedAt);
+
         transaction.update(tripRef, {
-          participants: [
-            ...existingParticipants,
-            {
-              ...newUser,
-              createdAt: Timestamp.fromDate(newUser.createdAt),
-            },
-          ],
-          updatedAt: Timestamp.fromDate(updatedAt),
+          participants: updatedParticipants,
+          updatedAt: updatedAtTimestamp,
+        });
+        updatedTrip = this.toTrip(tripId, {
+          ...tripData,
+          participants: updatedParticipants,
+          updatedAt: updatedAtTimestamp,
         });
       });
 
-      this.invalidateTripCache(tripId);
+      this.cacheTrip(updatedTrip);
 
       return newUser;
     } catch (error) {
@@ -282,9 +300,10 @@ export class FirebaseService {
     tripId: string,
     userId: string,
     avatarConfig: AvatarConfig
-  ): Promise<void> {
+  ): Promise<Trip> {
     try {
       const tripRef = doc(db, "trips", tripId);
+      let updatedTrip!: Trip;
       const updatedAt = new Date();
 
       await runTransaction(db, async (transaction) => {
@@ -300,17 +319,26 @@ export class FirebaseService {
           throw new Error("Participant not found");
         }
 
+        const updatedParticipants = tripData.participants.map((participant) =>
+          participant.id === userId
+            ? { ...participant, avatarConfig }
+            : participant
+        );
+        const updatedAtTimestamp = Timestamp.fromDate(updatedAt);
+
         transaction.update(tripRef, {
-          participants: tripData.participants.map((participant) =>
-            participant.id === userId
-              ? { ...participant, avatarConfig }
-              : participant
-          ),
-          updatedAt: Timestamp.fromDate(updatedAt),
+          participants: updatedParticipants,
+          updatedAt: updatedAtTimestamp,
+        });
+        updatedTrip = this.toTrip(tripId, {
+          ...tripData,
+          participants: updatedParticipants,
+          updatedAt: updatedAtTimestamp,
         });
       });
 
-      this.invalidateTripCache(tripId);
+      this.cacheTrip(updatedTrip);
+      return updatedTrip;
     } catch (error) {
       console.error("Error updating user avatar config:", error);
       throw new Error("Failed to update user avatar config");
@@ -320,9 +348,10 @@ export class FirebaseService {
   static async removeUserFromTrip(
     tripId: string,
     userId: string
-  ): Promise<void> {
+  ): Promise<Trip> {
     try {
       const tripRef = doc(db, "trips", tripId);
+      let updatedTrip!: Trip;
       const updatedAt = new Date();
 
       await runTransaction(db, async (transaction) => {
@@ -341,16 +370,30 @@ export class FirebaseService {
           throw new Error("Participant not found");
         }
 
+        const updatedParticipants = tripData.participants.filter(
+          (participant) => participant.id !== userId
+        );
+        const updatedExpenses = removeParticipantFromExpenses(
+          tripData.expenses,
+          userId
+        );
+        const updatedAtTimestamp = Timestamp.fromDate(updatedAt);
+
         transaction.update(tripRef, {
-          participants: tripData.participants.filter(
-            (participant) => participant.id !== userId
-          ),
-          expenses: removeParticipantFromExpenses(tripData.expenses, userId),
-          updatedAt: Timestamp.fromDate(updatedAt),
+          participants: updatedParticipants,
+          expenses: updatedExpenses,
+          updatedAt: updatedAtTimestamp,
+        });
+        updatedTrip = this.toTrip(tripId, {
+          ...tripData,
+          participants: updatedParticipants,
+          expenses: updatedExpenses,
+          updatedAt: updatedAtTimestamp,
         });
       });
 
-      this.invalidateTripCache(tripId);
+      this.cacheTrip(updatedTrip);
+      return updatedTrip;
     } catch (error) {
       console.error("Error removing user from trip:", error);
       throw new Error("Failed to remove user from trip");
@@ -384,6 +427,7 @@ export class FirebaseService {
         createdAt: new Date(),
         tripId,
       };
+      let updatedTrip!: Trip;
       const updatedAt = new Date();
 
       await runTransaction(db, async (transaction) => {
@@ -404,20 +448,28 @@ export class FirebaseService {
           tripData.participants.map(({ id }) => id)
         );
 
+        const updatedExpenses = [
+          ...tripData.expenses,
+          {
+            ...newExpense,
+            date: Timestamp.fromDate(newExpense.date),
+            createdAt: Timestamp.fromDate(newExpense.createdAt),
+          },
+        ];
+        const updatedAtTimestamp = Timestamp.fromDate(updatedAt);
+
         transaction.update(tripRef, {
-          expenses: [
-            ...tripData.expenses,
-            {
-              ...newExpense,
-              date: Timestamp.fromDate(newExpense.date),
-              createdAt: Timestamp.fromDate(newExpense.createdAt),
-            },
-          ],
-          updatedAt: Timestamp.fromDate(updatedAt),
+          expenses: updatedExpenses,
+          updatedAt: updatedAtTimestamp,
+        });
+        updatedTrip = this.toTrip(tripId, {
+          ...tripData,
+          expenses: updatedExpenses,
+          updatedAt: updatedAtTimestamp,
         });
       });
 
-      this.invalidateTripCache(tripId);
+      this.cacheTrip(updatedTrip);
 
       return newExpense;
     } catch (error) {
@@ -441,6 +493,7 @@ export class FirebaseService {
     try {
       const tripRef = doc(db, "trips", tripId);
       let expense!: Expense;
+      let updatedTrip!: Trip;
       const updatedAt = new Date();
 
       await runTransaction(db, async (transaction) => {
@@ -480,16 +533,24 @@ export class FirebaseService {
           ...(splitMode === "custom" && shares ? { shares } : {}),
         });
 
+        const updatedExpenses = tripData.expenses.map((currentExpense) =>
+          currentExpense.id === expenseId ? updatedExpense : currentExpense
+        );
+        const updatedAtTimestamp = Timestamp.fromDate(updatedAt);
+
         transaction.update(tripRef, {
-          expenses: tripData.expenses.map((currentExpense) =>
-            currentExpense.id === expenseId ? updatedExpense : currentExpense
-          ),
-          updatedAt: Timestamp.fromDate(updatedAt),
+          expenses: updatedExpenses,
+          updatedAt: updatedAtTimestamp,
         });
         expense = this.toExpense(updatedExpense);
+        updatedTrip = this.toTrip(tripId, {
+          ...tripData,
+          expenses: updatedExpenses,
+          updatedAt: updatedAtTimestamp,
+        });
       });
 
-      this.invalidateTripCache(tripId);
+      this.cacheTrip(updatedTrip);
 
       return expense;
     } catch (error) {
@@ -498,9 +559,10 @@ export class FirebaseService {
     }
   }
 
-  static async deleteExpense(tripId: string, expenseId: string): Promise<void> {
+  static async deleteExpense(tripId: string, expenseId: string): Promise<Trip> {
     try {
       const tripRef = doc(db, "trips", tripId);
+      let updatedTrip!: Trip;
       const updatedAt = new Date();
 
       await runTransaction(db, async (transaction) => {
@@ -512,15 +574,24 @@ export class FirebaseService {
           throw new Error("Expense not found");
         }
 
+        const updatedExpenses = tripData.expenses.filter(
+          (expense) => expense.id !== expenseId
+        );
+        const updatedAtTimestamp = Timestamp.fromDate(updatedAt);
+
         transaction.update(tripRef, {
-          expenses: tripData.expenses.filter(
-            (expense) => expense.id !== expenseId
-          ),
-          updatedAt: Timestamp.fromDate(updatedAt),
+          expenses: updatedExpenses,
+          updatedAt: updatedAtTimestamp,
+        });
+        updatedTrip = this.toTrip(tripId, {
+          ...tripData,
+          expenses: updatedExpenses,
+          updatedAt: updatedAtTimestamp,
         });
       });
 
-      this.invalidateTripCache(tripId);
+      this.cacheTrip(updatedTrip);
+      return updatedTrip;
     } catch (error) {
       console.error("Error deleting expense:", error);
       throw new Error("Failed to delete expense");
