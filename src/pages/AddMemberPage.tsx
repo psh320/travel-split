@@ -132,7 +132,6 @@ const AddMemberPage = () => {
               }}
               placeholder={t("memberName")}
               autoComplete="off"
-              autoFocus
               aria-invalid={Boolean(error)}
               aria-describedby={error ? "member-name-error" : undefined}
               required

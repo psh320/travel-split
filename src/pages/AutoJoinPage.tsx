@@ -314,7 +314,6 @@ const AutoJoinPage = () => {
                   formError ? "auto-join-name-help auto-join-name-error" : "auto-join-name-help"
                 }
                 required
-                autoFocus
               />
               <span id="auto-join-name-help" className="form-help">
                 {trip &&

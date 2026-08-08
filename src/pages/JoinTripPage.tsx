@@ -195,7 +195,6 @@ const JoinTripPage = () => {
                   textAlign: "center",
                   letterSpacing: "0.1em",
                 }}
-                autoFocus
                 aria-invalid={Boolean(error)}
                 aria-describedby={
                   error ? "room-code-help room-code-error" : "room-code-help"
