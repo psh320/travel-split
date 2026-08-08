@@ -38,6 +38,12 @@ export const AVATAR_OPTIONS = {
     { id: "waves", ko: "웨이브", en: "Waves" },
     { id: "long", ko: "긴 머리", en: "Long" },
     { id: "bun", ko: "묶은 머리", en: "Bun" },
+    { id: "pixie", ko: "픽시컷", en: "Pixie" },
+    { id: "ponytail", ko: "포니테일", en: "Ponytail" },
+    { id: "braids", ko: "양갈래 땋기", en: "Braids" },
+    { id: "afro", ko: "아프로", en: "Afro" },
+    { id: "shag", ko: "레이어드컷", en: "Shag" },
+    { id: "locs", ko: "록스", en: "Locs" },
   ] satisfies Array<{ id: AvatarHairStyle; ko: string; en: string }>,
   hairColor: [
     { id: "ink", color: "#2f292b", ko: "잉크", en: "Ink" },

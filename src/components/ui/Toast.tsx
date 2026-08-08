@@ -2,6 +2,7 @@ import {
   useCallback,
   useEffect,
   useState,
+  type CSSProperties,
   type ReactNode,
 } from "react";
 import { ToastContext, type ToastType } from "./toastContext";
@@ -17,7 +18,7 @@ type ToastItem = {
 export function ToastProvider({ children }: { children: ReactNode }) {
   const [toasts, setToasts] = useState<ToastItem[]>([]);
 
-  const dismissToast = useCallback((id: number) => {
+  const removeToast = useCallback((id: number) => {
     setToasts((current) => current.filter((toast) => toast.id !== id));
   }, []);
 
@@ -40,7 +41,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
           <Toast
             key={toast.id}
             toast={toast}
-            onDismiss={() => dismissToast(toast.id)}
+            onDismiss={removeToast}
           />
         ))}
       </div>
@@ -53,15 +54,31 @@ function Toast({
   onDismiss,
 }: {
   toast: ToastItem;
-  onDismiss: () => void;
+  onDismiss: (id: number) => void;
 }) {
+  const [isLeaving, setIsLeaving] = useState(false);
+
+  const beginDismiss = useCallback(() => {
+    if (isLeaving) return;
+    setIsLeaving(true);
+    window.setTimeout(() => onDismiss(toast.id), 180);
+  }, [isLeaving, onDismiss, toast.id]);
+
   useEffect(() => {
-    const timeoutId = window.setTimeout(onDismiss, toast.duration);
+    const timeoutId = window.setTimeout(beginDismiss, toast.duration);
     return () => window.clearTimeout(timeoutId);
-  }, [onDismiss, toast.duration]);
+  }, [beginDismiss, toast.duration]);
+
+  const toastStyle = {
+    "--toast-duration": `${toast.duration}ms`,
+  } as CSSProperties;
 
   return (
-    <div className={`toast toast-${toast.type}`} role={toast.type === "error" ? "alert" : "status"}>
+    <div
+      className={`toast toast-${toast.type}${isLeaving ? " is-leaving" : ""}`}
+      role={toast.type === "error" ? "alert" : "status"}
+      style={toastStyle}
+    >
       <span className="toast-mark" aria-hidden="true">
         {toast.type === "success" ? "✓" : toast.type === "error" ? "!" : "i"}
       </span>
@@ -69,11 +86,12 @@ function Toast({
       <button
         type="button"
         className="toast-dismiss"
-        onClick={onDismiss}
+        onClick={beginDismiss}
         aria-label={t("dismissNotification")}
       >
         ×
       </button>
+      <span className="toast-timer" aria-hidden="true" />
     </div>
   );
 }

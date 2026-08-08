@@ -10,6 +10,7 @@ import { countLabel, t } from "../i18n";
 import { useToast } from "../components/ui/useToast";
 import { Avatar } from "../components/Avatar";
 import { SettlementRouteCard } from "../components/SettlementRouteCard";
+import { AnimatedAmount } from "../components/AnimatedAmount";
 
 const BalancePage = () => {
   const { groupId } = useParams<{ groupId: string }>();
@@ -149,11 +150,11 @@ const BalancePage = () => {
             <div className="balance-result-metrics">
               <div>
                 <span>{t("totalPaidLabel")}</span>
-                <strong>{formatAmount(currentUserBalance.totalPaid)}</strong>
+                <strong><AnimatedAmount amount={currentUserBalance.totalPaid} /></strong>
               </div>
               <div>
                 <span>{t("yourShare")}</span>
-                <strong>{formatAmount(currentUserBalance.totalOwed)}</strong>
+                <strong><AnimatedAmount amount={currentUserBalance.totalOwed} /></strong>
               </div>
               <div>
                 <span>{t("finalBalance")}</span>
@@ -167,7 +168,7 @@ const BalancePage = () => {
                   }
                 >
                   {currentUserBalance.netBalance > 0 && "+"}
-                  {formatAmount(Math.abs(currentUserBalance.netBalance))}
+                  <AnimatedAmount amount={Math.abs(currentUserBalance.netBalance)} />
                 </strong>
               </div>
             </div>

@@ -76,6 +76,7 @@ const ExpensesPage = () => {
       if (tripData) {
         setTrip(tripData);
       }
+      showToast(t("expenseRemoved"), "success");
     } catch (error) {
       console.error("Error deleting expense:", error);
       showToast(t("remove"), "error");

@@ -80,7 +80,7 @@ const AddMemberPage = () => {
     setError("");
     try {
       await FirebaseService.addUserToTrip(trip.id, trimmedName, avatarConfig);
-      showToast(t("addUser"), "success");
+      showToast(t("memberAdded").replace("{name}", trimmedName), "success");
       navigate(`/group/${trip.id}`, { replace: true });
     } catch (saveError) {
       console.error("Error adding member:", saveError);

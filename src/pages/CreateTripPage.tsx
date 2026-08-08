@@ -85,17 +85,17 @@ const CreateTripPage = () => {
       if (navigator.clipboard) {
         try {
           await navigator.clipboard.writeText(shareableLink);
-          showToast(`${t("createGroup")} · ${shareableLink}`, "success", 5000);
+          showToast(t("groupCreatedAndLinkCopied"), "success", 4200);
         } catch {
           showToast(
-            `${t("createGroup")} · ${t("roomCode")} ${roomCode}`,
+            `${t("groupCreated")} · ${t("roomCode")} ${roomCode}`,
             "success",
             5000
           );
         }
       } else {
         showToast(
-          `${t("createGroup")} · ${t("roomCode")} ${roomCode}`,
+          `${t("groupCreated")} · ${t("roomCode")} ${roomCode}`,
           "success",
           5000
         );

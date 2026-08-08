@@ -266,7 +266,7 @@ const AddExpensePage = () => {
         );
       }
 
-      showToast(isEditing ? t("saveChanges") : t("addExpense"), "success");
+      showToast(isEditing ? t("expenseUpdated") : t("expenseAdded"), "success");
       navigate(
         isEditing ? `/group/${trip.id}/expenses` : `/group/${trip.id}`
       );

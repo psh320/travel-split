@@ -9,9 +9,11 @@ import { isValidRoomCode } from "../utils";
 import { countLabel, t } from "../i18n";
 import { AvatarCustomizer } from "../components/AvatarCustomizer";
 import { DEFAULT_AVATAR_CONFIG } from "../utils/avatars";
+import { useToast } from "../components/ui/useToast";
 
 const JoinTripPage = () => {
   const navigate = useNavigate();
+  const { showToast } = useToast();
   const [step, setStep] = useState<"code" | "details">("code");
   const [loading, setLoading] = useState(false);
   const [roomCode, setRoomCode] = useState("");
@@ -78,6 +80,7 @@ const JoinTripPage = () => {
       participant.avatarConfig
     );
 
+    showToast(t("joinedGroup"), "success");
     navigate(`/group/${trip.id}`);
   };
 
@@ -126,6 +129,7 @@ const JoinTripPage = () => {
         newUser.avatarConfig
       );
 
+      showToast(t("joinedGroup"), "success");
       navigate(`/group/${trip.id}`);
     } catch (error) {
       console.error("Error joining trip:", error);

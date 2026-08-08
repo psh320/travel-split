@@ -1,6 +1,7 @@
 import type { Settlement, User } from "../types";
 import { formatAmount } from "../utils";
 import { Avatar } from "./Avatar";
+import { AnimatedAmount } from "./AnimatedAmount";
 
 type SettlementRouteCardProps = {
   settlement: Settlement;
@@ -37,7 +38,7 @@ export function SettlementRouteCard({
       <div className="settlement-route-transfer" aria-hidden="true">
         <span className="settlement-route-line" />
         <span className="settlement-route-arrow">→</span>
-        <strong>{formatAmount(settlement.amount)}</strong>
+        <strong><AnimatedAmount amount={settlement.amount} duration={720} /></strong>
       </div>
 
       <div className="settlement-route-person">

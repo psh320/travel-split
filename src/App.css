@@ -84,6 +84,9 @@
   --ease-size-touch-min: 44px;
   --ease-motion-fast: 120ms;
   --ease-motion-base: 180ms;
+  --ease-motion-slow: 560ms;
+  --ease-ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-ease-spring: cubic-bezier(0.34, 1.4, 0.64, 1);
   --ease-state-pressed-opacity: 0.78;
 
   --ease-component-button-sm-font-size: 12px;
@@ -703,6 +706,23 @@ select {
     calc(var(--ease-space-xxl) + var(--safe-area-inset-bottom));
 }
 
+.content > .card,
+.content > .form,
+.content > .dashboard-actions {
+  animation: content-enter 320ms var(--ease-ease-out) both;
+}
+
+.content > :nth-child(2) { animation-delay: 45ms; }
+.content > :nth-child(3) { animation-delay: 90ms; }
+.content > :nth-child(4) { animation-delay: 135ms; }
+
+@keyframes content-enter {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+
 .dashboard-content {
   gap: 0;
 }
@@ -806,7 +826,17 @@ select {
   height: 100%;
   border-radius: inherit;
   background: var(--ease-color-sub-brand);
-  transition: width 360ms ease-out;
+  transition: width 480ms var(--ease-ease-out);
+}
+
+.budget-progress-track .motion-progress-fill {
+  transform-origin: left center;
+  animation: progress-grow 720ms var(--ease-ease-out) 120ms both;
+}
+
+@keyframes progress-grow {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
 }
 
 .budget-overage {
@@ -899,6 +929,14 @@ select {
   position: relative;
   width: 148px;
   height: 148px;
+  animation: chart-arrive 620ms var(--ease-ease-spring) 80ms both;
+}
+
+@keyframes chart-arrive {
+  from {
+    opacity: 0;
+    transform: scale(0.88) rotate(-5deg);
+  }
 }
 
 .spending-chart-canvas {
@@ -1016,6 +1054,84 @@ select {
   font-weight: 720;
 }
 
+.animated-amount {
+  display: inline-block;
+  font: inherit;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: inherit;
+}
+
+.category-spending-section {
+  margin-top: var(--ease-space-xl);
+  padding-top: var(--ease-space-xl);
+  border-top: var(--ease-border-hairline) solid var(--ease-color-border);
+}
+
+.category-spending-section .summary-eyebrow {
+  margin-bottom: var(--ease-space-md);
+}
+
+.category-bar-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ease-space-md);
+}
+
+.category-bar-row {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.category-bar-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--ease-space-md);
+  color: var(--ease-color-text-muted);
+  font-size: 0.8125rem;
+  line-height: 1.35;
+}
+
+.category-bar-heading > span {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ease-space-sm);
+}
+
+.category-bar-heading strong {
+  color: var(--ease-color-text);
+  font-variant-numeric: tabular-nums;
+  font-weight: 740;
+}
+
+.category-bar-track {
+  height: 7px;
+  overflow: hidden;
+  border-radius: var(--ease-radius-pill);
+  background: var(--ease-color-surface-subtle);
+}
+
+.category-bar-fill {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--category-color);
+  transform-origin: left center;
+  animation: category-bar-grow 680ms var(--ease-ease-out) var(--bar-delay, 0ms) both;
+}
+
+@keyframes category-bar-grow {
+  from {
+    opacity: 0.45;
+    transform: scaleX(0);
+  }
+  to {
+    opacity: 1;
+    transform: scaleX(1);
+  }
+}
+
 .dashboard-modal-backdrop {
   position: fixed;
   inset: 0;
@@ -1025,6 +1141,11 @@ select {
   justify-content: center;
   padding: var(--ease-space-md);
   background: rgb(26 26 26 / 38%);
+  animation: backdrop-in var(--ease-motion-base) ease-out both;
+}
+
+@keyframes backdrop-in {
+  from { background: rgb(26 26 26 / 0%); }
 }
 
 .dashboard-modal {
@@ -1601,6 +1722,14 @@ select {
   color: var(--ease-color-text);
 }
 
+.expense-category-option.is-selected .expense-category-dot {
+  animation: selection-pop 240ms var(--ease-ease-spring) both;
+}
+
+@keyframes selection-pop {
+  50% { transform: scale(1.65); }
+}
+
 .expense-category-dot {
   display: inline-block;
   width: 8px;
@@ -1943,7 +2072,8 @@ select {
     background var(--ease-motion-fast) ease,
     border-color var(--ease-motion-fast) ease,
     color var(--ease-motion-fast) ease,
-    opacity var(--ease-motion-fast) ease;
+    opacity var(--ease-motion-fast) ease,
+    transform var(--ease-motion-fast) ease;
 }
 
 .btn:hover {
@@ -1952,6 +2082,7 @@ select {
 
 .btn:active {
   opacity: var(--ease-state-pressed-opacity);
+  transform: scale(0.975);
 }
 
 .btn:focus-visible,
@@ -2253,6 +2384,19 @@ select {
   grid-template-columns: 64px minmax(0, 1fr) 88px;
   align-items: center;
   gap: var(--ease-space-md);
+  animation: list-item-arrive 340ms var(--ease-ease-out) both;
+}
+
+.list > .expense-list-item:nth-child(2) { animation-delay: 45ms; }
+.list > .expense-list-item:nth-child(3) { animation-delay: 90ms; }
+.list > .expense-list-item:nth-child(4) { animation-delay: 135ms; }
+.list > .expense-list-item:nth-child(n + 5) { animation-delay: 180ms; }
+
+@keyframes list-item-arrive {
+  from {
+    opacity: 0;
+    transform: translateY(7px) scale(0.99);
+  }
 }
 
 .expense-list-item-content .list-item-title {
@@ -2475,6 +2619,7 @@ select {
 }
 
 .toast {
+  position: relative;
   display: flex;
   width: 100%;
   align-items: center;
@@ -2486,8 +2631,13 @@ select {
   background: var(--ease-color-surface-inverse);
   color: var(--ease-color-text-inverse);
   box-shadow: 0 12px 28px rgb(0 0 0 / 18%);
+  overflow: hidden;
   pointer-events: auto;
-  animation: toast-in 180ms ease-out both;
+  animation: toast-in 260ms var(--ease-ease-spring) both;
+}
+
+.toast.is-leaving {
+  animation: toast-out 180ms ease-in both;
 }
 
 .toast-success {
@@ -2510,6 +2660,7 @@ select {
   color: var(--ease-color-surface-inverse);
   font-size: 0.75rem;
   font-weight: 800;
+  animation: toast-mark-pop 420ms var(--ease-ease-spring) 90ms both;
 }
 
 .toast-message {
@@ -2545,16 +2696,46 @@ select {
   outline: none;
 }
 
+.toast-timer {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  height: 2px;
+  background: rgb(255 255 255 / 56%);
+  transform-origin: left center;
+  animation: toast-timer var(--toast-duration, 3200ms) linear both;
+}
+
 @keyframes toast-in {
   from {
     opacity: 0;
-    transform: translateY(10px);
+    transform: translateY(14px) scale(0.97);
   }
 
   to {
     opacity: 1;
     transform: translateY(0);
   }
+}
+
+@keyframes toast-out {
+  to {
+    opacity: 0;
+    transform: translateY(8px) scale(0.98);
+  }
+}
+
+@keyframes toast-mark-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.4) rotate(-12deg);
+  }
+}
+
+@keyframes toast-timer {
+  from { transform: scaleX(1); }
+  to { transform: scaleX(0); }
 }
 
 .icon-button:hover {
@@ -2698,6 +2879,14 @@ select {
   border-width: 0 2px 2px 0;
   content: "";
   transform: rotate(45deg);
+  animation: check-arrive 220ms var(--ease-ease-spring) both;
+}
+
+@keyframes check-arrive {
+  from {
+    opacity: 0;
+    transform: rotate(45deg) scale(0.35);
+  }
 }
 
 .checkbox-item input[type="checkbox"]:focus-visible {
@@ -2830,6 +3019,14 @@ select {
   border: var(--ease-border-hairline) solid color-mix(in srgb, var(--ease-color-border-strong) 72%, transparent);
   border-radius: 18px;
   background: #f3f6f1;
+  animation: route-card-arrive 420ms var(--ease-ease-out) both;
+}
+
+@keyframes route-card-arrive {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
 }
 
 .settlement-route-card + .settlement-route-card {
@@ -2884,12 +3081,26 @@ select {
   height: 2px;
   border-radius: var(--ease-radius-pill);
   background: color-mix(in srgb, var(--ease-color-text) 32%, transparent);
+  transform-origin: left center;
+  animation: route-line-grow 620ms var(--ease-ease-out) 220ms both;
+}
+
+@keyframes route-line-grow {
+  from { transform: scaleX(0); }
 }
 
 .settlement-route-arrow {
   margin-left: -2px;
   font-size: 1.125rem;
   line-height: 1;
+  animation: route-arrow-arrive 300ms var(--ease-ease-spring) 620ms both;
+}
+
+@keyframes route-arrow-arrive {
+  from {
+    opacity: 0;
+    transform: translateX(-8px) scale(0.7);
+  }
 }
 
 .settlement-route-transfer strong {
@@ -3129,6 +3340,14 @@ select {
 .combination-routes {
   padding: var(--ease-space-sm) 0 var(--ease-space-lg) var(--ease-space-md);
   border-top: var(--ease-border-hairline) solid var(--ease-color-border);
+  animation: routes-reveal 260ms var(--ease-ease-out) both;
+}
+
+@keyframes routes-reveal {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
 }
 
 .combination-routes-heading {

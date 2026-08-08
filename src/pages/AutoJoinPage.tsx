@@ -9,10 +9,12 @@ import { Avatar } from "../components/Avatar";
 import { countLabel, t } from "../i18n";
 import { AvatarCustomizer } from "../components/AvatarCustomizer";
 import { DEFAULT_AVATAR_CONFIG } from "../utils/avatars";
+import { useToast } from "../components/ui/useToast";
 
 const AutoJoinPage = () => {
   const { roomCode } = useParams<{ roomCode: string }>();
   const navigate = useNavigate();
+  const { showToast } = useToast();
   const [loading, setLoading] = useState(true);
   const [trip, setTrip] = useState<Trip | null>(null);
   const [userName, setUserName] = useState("");
@@ -94,6 +96,7 @@ const AutoJoinPage = () => {
         newUser.avatarConfig
       );
 
+      showToast(t("joinedGroup"), "success");
       navigate(`/group/${trip.id}`);
     } catch (error: unknown) {
       console.error("Error joining trip:", error);
@@ -121,6 +124,7 @@ const AutoJoinPage = () => {
       user.avatarConfig
     );
 
+    showToast(t("joinedGroup"), "success");
     navigate(`/group/${trip!.id}`);
   };
 

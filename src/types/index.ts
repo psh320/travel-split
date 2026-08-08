@@ -8,7 +8,19 @@ export type AvatarSkinTone =
   | "tan"
   | "brown"
   | "deep";
-export type AvatarHairStyle = "bob" | "crop" | "curls" | "waves" | "long" | "bun";
+export type AvatarHairStyle =
+  | "bob"
+  | "crop"
+  | "curls"
+  | "waves"
+  | "long"
+  | "bun"
+  | "pixie"
+  | "ponytail"
+  | "braids"
+  | "afro"
+  | "shag"
+  | "locs";
 export type AvatarHairColor = "ink" | "chestnut" | "auburn" | "honey" | "rose";
 export type AvatarEyeStyle = "round" | "happy" | "sparkle" | "sleepy";
 export type AvatarNoseStyle = "dot" | "button" | "soft" | "triangle";

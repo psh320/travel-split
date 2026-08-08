@@ -9,6 +9,7 @@ import type { GroupHistoryItem } from "../services/groupHistory";
 import { timeAgo } from "../utils";
 import { Avatar } from "../components/Avatar";
 import { AVATARS } from "../utils/avatars";
+import { useToast } from "../components/ui/useToast";
 
 const showcaseUsers = AVATARS.map((avatar, index) => ({
   id: `showcase-${avatar.id}`,
@@ -21,6 +22,7 @@ const HomePage = () => {
   const [isNewUser, setIsNewUser] = useState(true);
   const [storageWarning, setStorageWarning] = useState<string | null>(null);
   const navigate = useNavigate();
+  const { showToast } = useToast();
 
   useEffect(() => {
     const history = GroupHistoryService.getGroupHistory();
@@ -52,6 +54,7 @@ const HomePage = () => {
       GroupHistoryService.removeGroupFromHistory(groupId);
       const updatedHistory = GroupHistoryService.getGroupHistory();
       setGroupHistory(updatedHistory);
+      showToast(t("historyRemoved"), "success");
 
       // If no groups left, show intro page
       if (updatedHistory.length === 0) {

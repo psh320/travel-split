@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, type CSSProperties } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { Cell, Pie, PieChart, ResponsiveContainer } from "recharts";
 import { AppHeader } from "../components/ui/AppHeader";
@@ -19,13 +19,14 @@ import { countLabel, t } from "../i18n";
 import type { AvatarConfig, Trip } from "../types";
 import {
   formatAmount,
-  formatCompactAmount,
   formatDate,
   formatExpenseDate,
 } from "../utils";
 import { useToast } from "../components/ui/useToast";
 import { DEFAULT_AVATAR_CONFIG, getAvatarConfig } from "../utils/avatars";
-import { getExpenseShares } from "../utils/expenses";
+import { EXPENSE_CATEGORIES, getExpenseShares } from "../utils/expenses";
+import { AnimatedAmount } from "../components/AnimatedAmount";
+import { useReducedMotion } from "../hooks/useReducedMotion";
 
 const spendColors = [
   "#2F3437",
@@ -46,6 +47,7 @@ const TripDashboard = () => {
   const { groupId } = useParams<{ groupId: string }>();
   const navigate = useNavigate();
   const { showToast } = useToast();
+  const prefersReducedMotion = useReducedMotion();
   const cachedTrip = groupId ? FirebaseService.getCachedTripById(groupId) : null;
   const [trip, setTrip] = useState<Trip | null>(cachedTrip);
   const [loading, setLoading] = useState(!cachedTrip);
@@ -129,6 +131,7 @@ const TripDashboard = () => {
       await FirebaseService.deleteExpense(trip.id, expenseId);
       // Refresh trip data
       await loadTrip();
+      showToast(t("expenseRemoved"), "success");
     } catch (error) {
       console.error("Error deleting expense:", error);
       showToast(t("remove"), "error");
@@ -232,6 +235,7 @@ const TripDashboard = () => {
       await FirebaseService.removeUserFromTrip(trip.id, pendingRemoval.id);
       await loadTrip();
       setPendingRemoval(null);
+      showToast(t("participantRemoved"), "success");
     } catch (error) {
       console.error("Error removing user:", error);
       showToast(t("remove"), "error");
@@ -244,7 +248,7 @@ const TripDashboard = () => {
     const roomCode = localStorage.getItem("roomCode") || trip?.roomCode;
     if (roomCode) {
       navigator.clipboard.writeText(roomCode);
-      showToast(`${t("roomCode")} ${roomCode}`, "success");
+      showToast(t("codeCopied"), "success");
     }
   };
 
@@ -255,7 +259,7 @@ const TripDashboard = () => {
       if (navigator.clipboard) {
         try {
           await navigator.clipboard.writeText(shareableLink);
-          showToast(`${t("shareLink")}: ${shareableLink}`, "success", 5000);
+          showToast(t("linkCopied"), "success");
         } catch {
           showToast(`${t("shareLink")}: ${shareableLink}`, "success", 5000);
         }
@@ -351,6 +355,15 @@ const TripDashboard = () => {
                   color: "#E5E7E9",
                 },
               ];
+          const categorySummary = EXPENSE_CATEGORIES.map((category) => ({
+            category,
+            amount: trip.expenses
+              .filter((expense) => (expense.category ?? "other") === category)
+              .reduce((sum, expense) => sum + expense.amount, 0),
+          }))
+            .filter((item) => item.amount > 0)
+            .sort((a, b) => b.amount - a.amount);
+          const maxCategoryAmount = categorySummary[0]?.amount ?? 0;
           const participantCount = Math.max(trip.participants.length, 1);
           const currentParticipant = trip.participants.find(
             (participant) => participant.id === currentUserId
@@ -407,7 +420,7 @@ const TripDashboard = () => {
               {activeBudgetTarget ? (
                 <div className={`budget-progress${isOverBudget ? " is-over" : ""}`}>
                   <div className="budget-amount-comparison">
-                    <strong>{formatAmount(budgetSpending)}</strong>
+                    <strong><AnimatedAmount amount={budgetSpending} /></strong>
                     <span>/ {formatAmount(activeBudgetTarget)}</span>
                   </div>
                   <div className="budget-progress-caption">
@@ -425,7 +438,10 @@ const TripDashboard = () => {
                     aria-valuenow={Math.round(Math.min(budgetUsage, 100))}
                     aria-valuetext={`${Math.round(budgetUsage)}% ${t("budgetUsed")}`}
                   >
-                    <span style={{ width: `${Math.min(budgetUsage, 100)}%` }} />
+                    <span
+                      className="motion-progress-fill"
+                      style={{ width: `${Math.min(budgetUsage, 100)}%` }}
+                    />
                   </div>
                   {isOverBudget && (
                     <strong className="budget-overage">
@@ -489,7 +505,7 @@ const TripDashboard = () => {
                           animationBegin={80}
                           animationDuration={720}
                           animationEasing="ease-out"
-                          isAnimationActive="auto"
+                          isAnimationActive={!prefersReducedMotion}
                         >
                           {chartData.map((participant) => (
                             <Cell key={participant.id} fill={participant.color} />
@@ -500,7 +516,9 @@ const TripDashboard = () => {
                   </div>
                   <div className="spending-chart-hole">
                     <span>{t("totalSpent")}</span>
-                    <strong>{formatCompactAmount(totalExpenses)}</strong>
+                    <strong>
+                      <AnimatedAmount amount={totalExpenses} compact duration={720} />
+                    </strong>
                   </div>
                 </div>
 
@@ -531,15 +549,51 @@ const TripDashboard = () => {
               <div className="summary-metrics">
                 <div>
                   <span>{t("groupSpent")}</span>
-                  <strong>{formatAmount(totalExpenses)}</strong>
+                  <strong><AnimatedAmount amount={totalExpenses} /></strong>
                 </div>
                 <div>
                   <span>{groupBudget ? t("groupBudget") : t("totalSpent")}</span>
                   <strong>
-                    {formatAmount(groupBudget ?? totalExpenses)}
+                    <AnimatedAmount amount={groupBudget ?? totalExpenses} />
                   </strong>
                 </div>
               </div>
+
+              {categorySummary.length > 0 && (
+                <div className="category-spending-section">
+                  <span className="summary-eyebrow">{t("spendingByCategory")}</span>
+                  <div className="category-bar-list">
+                    {categorySummary.map((item, index) => (
+                      <div className="category-bar-row" key={item.category}>
+                        <div className="category-bar-heading">
+                          <span>
+                            <span
+                              className={`expense-category-dot category-${item.category}`}
+                            />
+                            {t(item.category)}
+                          </span>
+                          <strong><AnimatedAmount amount={item.amount} /></strong>
+                        </div>
+                        <div
+                          className="category-bar-track"
+                          role="img"
+                          aria-label={`${t(item.category)} ${formatAmount(item.amount)}`}
+                        >
+                          <span
+                            className={`category-bar-fill category-${item.category}`}
+                            style={
+                              {
+                                width: `${(item.amount / maxCategoryAmount) * 100}%`,
+                                "--bar-delay": `${160 + index * 80}ms`,
+                              } as CSSProperties
+                            }
+                          />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           );
         })()}
