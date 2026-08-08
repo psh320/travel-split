@@ -38,7 +38,7 @@ export function AvatarIllustration({
       case "locs":
         return (
           <g>
-            <path d="M31 57C29 32 43 20 64 20s36 13 34 38L88 72H40Z" fill={INK} />
+            <path d="M29 58C27 29 42 14 64 14s39 16 36 45L89 75H39Z" fill={INK} />
             <g {...line} strokeWidth="8">
               <path d="M35 48c-5 18-4 38-1 59" /><path d="M44 40c-5 23-4 47-1 72" />
               <path d="M93 48c5 18 4 38 1 59" /><path d="M84 40c5 23 4 47 1 72" />
@@ -46,29 +46,29 @@ export function AvatarIllustration({
           </g>
         );
       case "bob":
-        return <path d="M29 62C27 32 43 18 64 18s38 15 36 45l3 31-15 7-7-19H47l-7 19-15-7Z" fill={INK} />;
+        return <path d="M26 63C24 30 40 13 64 13s41 18 39 51l3 29-17 9-8-20H47l-8 20-17-9Z" fill={INK} />;
       case "waves":
-        return <path d="M28 63C26 33 42 17 64 17c23 0 39 17 37 48 0 22-6 39-17 51l-8-28H51l-8 28C32 103 27 86 28 63Z" fill={INK} />;
+        return <path d="M25 64C23 30 40 12 64 12c25 0 42 19 40 54 0 22-7 40-19 53l-9-31H51l-9 31C30 105 24 87 25 64Z" fill={INK} />;
       case "long":
-        return <path d="M28 60C27 31 43 17 64 17s37 15 36 44l-1 61H78l3-53H47l3 53H29Z" fill={INK} />;
+        return <path d="M26 61C24 29 41 12 64 12s40 17 39 50l-1 63H77l4-56H47l4 56H27Z" fill={INK} />;
       case "bun":
         return (
           <g fill={INK}>
-            <circle cx="64" cy="15" r="14" />
-            <path d="M31 62C29 33 43 19 64 19s36 15 34 44L89 82H39Z" />
+            <circle cx="64" cy="13" r="16" />
+            <path d="M29 63C27 31 42 15 64 15s39 17 36 49L89 84H39Z" />
           </g>
         );
       case "ponytail":
         return (
           <g fill={INK}>
-            <path d="M86 30c19 1 27 12 24 26-3 12 0 24 9 34-18 3-30-6-32-22-2-14-1-26-1-38Z" />
-            <path d="M31 61C29 33 43 19 64 19s36 14 34 43L89 81H39Z" />
+            <path d="M87 25c21 1 30 14 26 30-3 13 1 26 10 37-20 3-33-7-35-24-2-16-1-29-1-43Z" />
+            <path d="M29 62C27 30 42 14 64 14s39 16 36 49L89 83H39Z" />
           </g>
         );
       case "braids":
         return (
           <g>
-            <path d="M31 60C29 33 43 19 64 19s36 14 34 42L89 79H39Z" fill={INK} />
+            <path d="M29 61C27 30 42 14 64 14s39 17 36 48L89 81H39Z" fill={INK} />
             <g fill={INK}>
               {[63, 76, 89, 102].map((cy, index) => <ellipse key={`l-${cy}`} cx={33 - (index % 2)} cy={cy} rx="6" ry="8" />)}
               {[63, 76, 89, 102].map((cy, index) => <ellipse key={`r-${cy}`} cx={95 + (index % 2)} cy={cy} rx="6" ry="8" />)}
@@ -76,7 +76,7 @@ export function AvatarIllustration({
           </g>
         );
       case "shag":
-        return <path d="M29 59C27 33 42 17 63 17c22-1 38 15 38 41l7 12-10-1 5 15-10-5-1 20-12-23H49L37 99l-2-19-10 7 5-17-9 2Z" fill={INK} />;
+        return <path d="M27 60C24 30 41 12 63 12c24-1 41 17 41 46l7 12-11-1 5 16-11-5-2 21-12-25H49L36 101l-2-20-11 7 5-18-10 2Z" fill={INK} />;
       default:
         return null;
     }
@@ -85,20 +85,20 @@ export function AvatarIllustration({
   const renderHairFront = () => {
     switch (config.hairStyle) {
       case "buzz":
-        return <path d="M33 47C34 30 47 20 64 20s29 10 31 27c-7-4-13-6-19-7l-4-8-6 7-8-8-5 8-9-5-3 8Z" fill={INK} />;
+        return <path d="M34 44C36 30 47 23 64 23s28 8 30 22c-9-5-19-8-30-8-12 0-22 2-30 7Z" fill={INK} />;
       case "crop":
-        return <path d="M32 50C33 31 46 20 64 20c15 0 27 8 32 22l-9-3 2 8-10-6-3 8-10-11-6 9-8-8-6 8-7-6-2 8Z" fill={INK} />;
+        return <path d="M31 51C31 30 43 15 62 14c17-1 31 10 35 29l-9-4 1 9-10-7-3 9-10-11-7 9-8-8-6 8-7-6-2 8Z" fill={INK} />;
       case "sidepart":
         return (
           <g>
-            <path d="M32 49c4-19 17-29 34-29 14 0 25 7 30 22-12 1-23-3-31-12-6 11-17 17-33 19Z" fill={INK} />
-            <path {...line} d="M64 25c-1 5-1 9 1 13" stroke={PAPER} strokeWidth="2.2" />
+            <path d="M30 52C31 29 44 15 63 14c18-1 31 11 35 32-13 0-25-5-32-16-7 12-19 20-36 22Z" fill={INK} />
+            <path {...line} d="M66 19c-2 4-2 8-1 12" stroke={PAPER} strokeWidth="1.8" />
           </g>
         );
       case "quiff":
-        return <path d="M32 49c2-14 10-23 23-27 0-9 7-15 15-16-2 5-1 10 2 14 8-6 15-5 20 1-6 2-10 6-12 11 7-2 13 1 16 8-14 4-25 1-33-7-8 10-18 15-31 16Z" fill={INK} />;
+        return <path d="M30 52c1-18 10-29 24-34 2-9 12-14 23-11-5 4-7 9-6 14 8-6 18-5 25 3-7 1-12 5-15 11 8-2 15 1 19 8-13 5-25 2-35-10-8 11-20 17-35 19Z" fill={INK} />;
       case "bowl":
-        return <path d="M31 49c2-19 15-30 33-30s31 11 33 30c-9-5-20-7-33-7s-24 2-33 7Z" fill={INK} />;
+        return <path d="M30 50c1-23 15-36 34-36s33 13 34 36c-10-6-21-9-34-9s-24 3-34 9Z" fill={INK} />;
       case "curls":
         return (
           <g fill={INK}>
@@ -116,23 +116,23 @@ export function AvatarIllustration({
           </g>
         );
       case "locs":
-        return <path d="M31 50c5-20 17-30 33-30 17 0 29 11 34 30-13-1-24-7-34-18-8 10-19 16-33 18Z" fill={INK} />;
+        return <path d="M29 52c5-25 18-38 35-38 19 0 32 14 36 38-14-2-26-9-36-21-9 12-21 19-35 21Z" fill={INK} />;
       case "bob":
-        return <path d="M31 51c5-20 17-31 34-31-1 12-7 22-18 29-5 4-11 6-16 7Zm34-31c17 1 29 12 33 31-13-1-23-7-29-17-3-5-4-9-4-14Z" fill={INK} />;
+        return <path d="M28 54c4-25 18-40 36-40-1 15-8 27-19 35-6 4-11 7-17 9Zm36-40c20 1 34 16 37 40-15-2-27-10-33-23-2-5-4-11-4-17Z" fill={INK} />;
       case "waves":
-        return <path d="M31 50c6-20 18-30 34-30 14 0 26 8 33 25-8 2-15 0-22-7-5 8-13 11-22 7-6 6-14 9-23 9Z" fill={INK} />;
+        return <path d="M28 54c5-26 19-41 37-41 16 0 30 11 37 33-9 3-18 0-25-8-5 9-14 13-24 8-6 7-15 11-25 12Z" fill={INK} />;
       case "long":
-        return <path d="M31 53c3-20 15-31 34-33-1 13-7 23-18 31-5 3-10 5-16 7Zm34-33c18 2 30 13 33 33-14-2-24-9-29-20-2-4-4-8-4-13Z" fill={INK} />;
+        return <path d="M28 56c3-27 17-41 36-43-1 16-8 29-19 37-5 4-11 7-17 10Zm36-43c21 2 35 17 38 43-16-3-28-12-34-25-2-5-4-11-4-18Z" fill={INK} />;
       case "bun":
-        return <path d="M31 53c4-20 16-31 33-32 18 1 30 11 34 32-13-2-24-8-34-19-8 10-19 16-33 19Z" fill={INK} />;
+        return <path d="M28 55c4-27 18-40 36-41 20 1 34 15 38 41-15-2-27-10-38-23-9 12-21 20-36 23Z" fill={INK} />;
       case "pixie":
-        return <path d="M32 50c4-19 17-30 34-29 14 0 25 7 30 19l-10-2 3 8-12-5-2 8-10-12-6 9-8-7-5 8-7-5-2 7Z" fill={INK} />;
+        return <path d="M29 53c3-25 17-39 36-39 17 0 30 10 35 28l-11-4 2 10-12-7-3 10-11-13-7 10-8-8-6 9-7-6-3 9Z" fill={INK} />;
       case "ponytail":
-        return <path d="M31 52c4-21 17-32 34-32 14 0 26 9 33 27-14 1-26-4-34-16-8 12-18 18-33 21Z" fill={INK} />;
+        return <path d="M28 54c4-27 18-40 37-40 16 0 30 11 37 34-16 1-29-6-38-20-9 15-21 23-36 26Z" fill={INK} />;
       case "braids":
-        return <path d="M31 51c5-20 17-31 33-31 17 0 29 11 34 31-13-1-24-7-34-18-9 11-20 17-33 18Z" fill={INK} />;
+        return <path d="M28 54c5-27 18-40 36-40 19 0 33 14 38 40-15-2-27-10-38-23-10 13-22 21-36 23Z" fill={INK} />;
       case "shag":
-        return <path d="M30 53c3-21 16-32 34-33 17-1 30 9 35 29l-11-4 4 10-16-11-8-11c-9 11-21 18-38 20Z" fill={INK} />;
+        return <path d="M27 56c2-28 17-42 36-43 19-1 34 12 39 37l-12-5 3 11-17-12-8-13c-10 14-23 22-41 25Z" fill={INK} />;
     }
   };
 
