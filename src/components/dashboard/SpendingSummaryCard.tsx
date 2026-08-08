@@ -247,6 +247,7 @@ export const SpendingSummaryCard = ({
                   user={participant}
                   size="xs"
                   decorative
+                  memberAccent
                   className="spending-legend-avatar"
                 />
                 <div className="spending-legend-copy">

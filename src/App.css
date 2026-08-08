@@ -145,10 +145,14 @@ body {
   overflow: hidden;
   align-items: center;
   justify-content: center;
-  border: 1.5px solid var(--member-accent-color, #1a1a1a);
-  border-radius: 38%;
+  border: 1.5px solid var(--ease-color-brand);
+  border-radius: 50%;
   background: #fff;
   box-shadow: 0 1px 0 rgb(26 26 26 / 8%);
+}
+
+.avatar.avatar-member-accent {
+  border-color: var(--member-accent-color, var(--ease-color-brand));
 }
 
 .avatar img,
@@ -201,8 +205,9 @@ body {
 
 .avatar-customizer-stage > .avatar-illustration {
   width: 178px;
-  border: 1px solid #d8d8d2;
-  border-radius: 22px;
+  overflow: hidden;
+  border: 1.5px solid var(--ease-color-brand);
+  border-radius: 50%;
   box-shadow: 0 8px 24px rgb(26 26 26 / 8%);
 }
 
@@ -336,7 +341,8 @@ body {
   width: 100%;
   aspect-ratio: 1;
   overflow: hidden;
-  border-radius: 13px;
+  border: 1px solid var(--ease-color-brand);
+  border-radius: 50%;
   background: #fff;
 }
 
@@ -1043,7 +1049,7 @@ select {
 }
 
 .spending-legend-avatar {
-  border-width: 1px;
+  border-width: 1.5px;
 }
 
 .spending-legend-copy {

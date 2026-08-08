@@ -9,6 +9,7 @@ type AvatarProps = {
   size?: "xs" | "sm" | "md" | "lg" | "xl";
   className?: string;
   decorative?: boolean;
+  memberAccent?: boolean;
 };
 
 export function Avatar({
@@ -16,10 +17,11 @@ export function Avatar({
   size = "md",
   className = "",
   decorative = false,
+  memberAccent = false,
 }: AvatarProps) {
   const config = getAvatarConfig(user);
   const memberColorStyle =
-    user.colorIndex === undefined
+    !memberAccent || user.colorIndex === undefined
       ? undefined
       : ({
           "--member-accent-color": getMemberAccentColor(user.colorIndex),
@@ -27,7 +29,9 @@ export function Avatar({
 
   return (
     <span
-      className={`avatar avatar-${size} ${className}`.trim()}
+      className={`avatar avatar-${size}${
+        memberAccent ? " avatar-member-accent" : ""
+      } ${className}`.trim()}
       style={memberColorStyle}
     >
       <AvatarIllustration
