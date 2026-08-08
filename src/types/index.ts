@@ -9,22 +9,26 @@ export type AvatarSkinTone =
   | "brown"
   | "deep";
 export type AvatarHairStyle =
-  | "bob"
+  | "buzz"
   | "crop"
+  | "sidepart"
+  | "quiff"
+  | "bowl"
   | "curls"
+  | "afro"
+  | "locs"
+  | "bob"
   | "waves"
   | "long"
   | "bun"
   | "pixie"
   | "ponytail"
   | "braids"
-  | "afro"
-  | "shag"
-  | "locs";
+  | "shag";
 export type AvatarHairColor = "ink" | "chestnut" | "auburn" | "honey" | "rose";
-export type AvatarEyeStyle = "round" | "happy" | "sparkle" | "sleepy" | "almond" | "wink";
+export type AvatarEyeStyle = "round" | "dot" | "happy" | "sparkle" | "sleepy" | "almond" | "wink" | "curious";
 export type AvatarNoseStyle = "dot" | "button" | "soft" | "triangle" | "bridge" | "snub";
-export type AvatarMouthStyle = "smile" | "grin" | "open" | "pout" | "laugh" | "smirk" | "tiny";
+export type AvatarMouthStyle = "smile" | "grin" | "open" | "pout" | "laugh" | "smirk" | "tiny" | "flat";
 export type AvatarAccessory = "none" | "glasses" | "freckles" | "blush" | "earrings" | "star";
 export type AvatarBackground = "butter" | "sky" | "mint" | "peach" | "lilac" | "rose";
 export type AvatarOutfit = "coral" | "mint" | "blue" | "lilac" | "sunny" | "navy";

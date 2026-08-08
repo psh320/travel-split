@@ -13,11 +13,11 @@ import type {
 } from "../types";
 
 export const AVATARS = [
-  { id: "momo", src: "/avatars/momo.webp", color: "#f7e39b" },
-  { id: "bori", src: "/avatars/bori.webp", color: "#bfe2f3" },
-  { id: "duri", src: "/avatars/duri.webp", color: "#cde8c8" },
-  { id: "navi", src: "/avatars/navi.webp", color: "#f5c8ae" },
-  { id: "toto", src: "/avatars/toto.webp", color: "#d8c9ee" },
+  { id: "momo" },
+  { id: "bori" },
+  { id: "duri" },
+  { id: "navi" },
+  { id: "toto" },
 ] as const;
 
 export type AvatarId = (typeof AVATARS)[number]["id"];
@@ -32,18 +32,22 @@ export const AVATAR_OPTIONS = {
     { id: "deep", color: "#633b2d", ko: "딥", en: "Deep" },
   ] satisfies Array<{ id: AvatarSkinTone; color: string; ko: string; en: string }>,
   hairStyle: [
-    { id: "bob", ko: "단발", en: "Bob" },
+    { id: "buzz", ko: "버즈컷", en: "Buzz" },
     { id: "crop", ko: "숏컷", en: "Crop" },
+    { id: "sidepart", ko: "가르마", en: "Side part" },
+    { id: "quiff", ko: "리젠트", en: "Quiff" },
+    { id: "bowl", ko: "바가지", en: "Bowl" },
     { id: "curls", ko: "곱슬", en: "Curls" },
+    { id: "afro", ko: "아프로", en: "Afro" },
+    { id: "locs", ko: "록스", en: "Locs" },
+    { id: "bob", ko: "단발", en: "Bob" },
     { id: "waves", ko: "웨이브", en: "Waves" },
     { id: "long", ko: "긴 머리", en: "Long" },
-    { id: "bun", ko: "묶은 머리", en: "Bun" },
-    { id: "pixie", ko: "픽시컷", en: "Pixie" },
+    { id: "bun", ko: "번", en: "Bun" },
+    { id: "pixie", ko: "픽시", en: "Pixie" },
     { id: "ponytail", ko: "포니테일", en: "Ponytail" },
-    { id: "braids", ko: "양갈래 땋기", en: "Braids" },
-    { id: "afro", ko: "아프로", en: "Afro" },
-    { id: "shag", ko: "레이어드컷", en: "Shag" },
-    { id: "locs", ko: "록스", en: "Locs" },
+    { id: "braids", ko: "양갈래", en: "Braids" },
+    { id: "shag", ko: "레이어드", en: "Shag" },
   ] satisfies Array<{ id: AvatarHairStyle; ko: string; en: string }>,
   hairColor: [
     { id: "ink", color: "#2f292b", ko: "잉크", en: "Ink" },
@@ -54,11 +58,13 @@ export const AVATAR_OPTIONS = {
   ] satisfies Array<{ id: AvatarHairColor; color: string; ko: string; en: string }>,
   eyeStyle: [
     { id: "round", ko: "동글", en: "Round" },
+    { id: "dot", ko: "콩눈", en: "Dots" },
     { id: "happy", ko: "웃는 눈", en: "Happy" },
     { id: "sparkle", ko: "반짝", en: "Sparkle" },
     { id: "sleepy", ko: "나른", en: "Sleepy" },
     { id: "almond", ko: "아몬드", en: "Almond" },
     { id: "wink", ko: "윙크", en: "Wink" },
+    { id: "curious", ko: "궁금", en: "Curious" },
   ] satisfies Array<{ id: AvatarEyeStyle; ko: string; en: string }>,
   noseStyle: [
     { id: "dot", ko: "콩", en: "Dot" },
@@ -76,6 +82,7 @@ export const AVATAR_OPTIONS = {
     { id: "laugh", ko: "깔깔", en: "Laugh" },
     { id: "smirk", ko: "씨익", en: "Smirk" },
     { id: "tiny", ko: "앙증", en: "Tiny" },
+    { id: "flat", ko: "덤덤", en: "Straight" },
   ] satisfies Array<{ id: AvatarMouthStyle; ko: string; en: string }>,
   accessory: [
     { id: "none", ko: "없음", en: "None" },
@@ -106,21 +113,21 @@ export const AVATAR_OPTIONS = {
 export const DEFAULT_AVATAR_CONFIG: AvatarConfig = {
   version: 1,
   skinTone: "peach",
-  hairStyle: "bob",
+  hairStyle: "crop",
   hairColor: "chestnut",
   eyeStyle: "round",
-  noseStyle: "button",
+  noseStyle: "dot",
   mouthStyle: "smile",
-  accessory: "blush",
+  accessory: "none",
   background: "butter",
   outfit: "coral",
 };
 
 export const AVATAR_PRESETS: Record<AvatarId, AvatarConfig> = {
   momo: DEFAULT_AVATAR_CONFIG,
-  bori: { version: 1, skinTone: "tan", hairStyle: "curls", hairColor: "ink", eyeStyle: "sparkle", noseStyle: "dot", mouthStyle: "smile", accessory: "earrings", background: "sky", outfit: "mint" },
-  duri: { version: 1, skinTone: "porcelain", hairStyle: "long", hairColor: "ink", eyeStyle: "round", noseStyle: "soft", mouthStyle: "smile", accessory: "glasses", background: "mint", outfit: "lilac" },
-  navi: { version: 1, skinTone: "golden", hairStyle: "crop", hairColor: "auburn", eyeStyle: "round", noseStyle: "triangle", mouthStyle: "grin", accessory: "freckles", background: "peach", outfit: "blue" },
+  bori: { version: 1, skinTone: "tan", hairStyle: "sidepart", hairColor: "ink", eyeStyle: "dot", noseStyle: "dot", mouthStyle: "smirk", accessory: "glasses", background: "sky", outfit: "mint" },
+  duri: { version: 1, skinTone: "porcelain", hairStyle: "bob", hairColor: "ink", eyeStyle: "curious", noseStyle: "soft", mouthStyle: "tiny", accessory: "none", background: "mint", outfit: "lilac" },
+  navi: { version: 1, skinTone: "golden", hairStyle: "quiff", hairColor: "auburn", eyeStyle: "round", noseStyle: "triangle", mouthStyle: "grin", accessory: "freckles", background: "peach", outfit: "blue" },
   toto: { version: 1, skinTone: "golden", hairStyle: "bun", hairColor: "ink", eyeStyle: "happy", noseStyle: "button", mouthStyle: "smile", accessory: "star", background: "lilac", outfit: "sunny" },
 };
 
@@ -144,10 +151,6 @@ export const getAvatarId = (
   if (isAvatarId(user.avatarId)) return user.avatarId;
   return AVATARS[stableHash(`${user.id}:${user.name}`) % AVATARS.length].id;
 };
-
-export const getAvatar = (
-  user: Pick<User, "id" | "name" | "avatarId">
-) => AVATARS.find((avatar) => avatar.id === getAvatarId(user)) ?? AVATARS[0];
 
 const hasOption = <T extends string>(
   options: ReadonlyArray<{ id: T }>,
@@ -180,8 +183,3 @@ export const getAvatarConfig = (
   user: Pick<User, "id" | "name" | "avatarId" | "avatarConfig">
 ): AvatarConfig =>
   normalizeAvatarConfig(user.avatarConfig) ?? AVATAR_PRESETS[getAvatarId(user)];
-
-export const getOptionColor = (
-  category: "skinTone" | "hairColor" | "background" | "outfit",
-  id: string
-) => AVATAR_OPTIONS[category].find((option) => option.id === id)?.color ?? "#cccccc";

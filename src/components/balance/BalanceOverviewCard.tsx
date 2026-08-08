@@ -15,7 +15,7 @@ const balanceTone = (amount: number) =>
 export const BalanceOverviewCard = ({ balance, user }: BalanceOverviewCardProps) => (
   <section className="card balance-result-card">
     <div className="balance-result-profile">
-      {user && <Avatar user={user} size="lg" decorative eager />}
+      {user && <Avatar user={user} size="lg" decorative />}
       <div>
         <span>{t("yourBalance")}</span>
         <strong>{user?.name ?? balance.userName}</strong>

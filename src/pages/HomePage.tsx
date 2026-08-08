@@ -98,8 +98,6 @@ const HomePage = () => {
                 user={user}
                 size={index === 2 ? "xl" : "lg"}
                 decorative
-                eager
-                presetArt
               />
             ))}
           </div>
