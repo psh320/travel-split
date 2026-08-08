@@ -45,7 +45,11 @@ export const DashboardMainDialog = ({
                 : t("setBudget")
               : t("participants")}
         </h2>
-        <IconButton onClick={onClose} label={t("close")} autoFocus>
+        <IconButton
+          onClick={onClose}
+          label={t("close")}
+          autoFocus={activeModal !== "budget"}
+        >
           <CloseIcon />
         </IconButton>
       </div>
@@ -142,6 +146,7 @@ const BudgetForm = ({
         placeholder="0.00"
         step="0.01"
         min="0.01"
+        autoFocus
         aria-invalid={Boolean(budget.error)}
         aria-describedby={
           budget.error

@@ -6,6 +6,7 @@ import RouteMeta from "./components/RouteMeta";
 import GoogleAnalytics from "./components/GoogleAnalytics";
 import { RouteLoadingSkeleton } from "./components/ui/PageState";
 import { getLocale } from "./i18n";
+import { useVisualViewport } from "./hooks/useVisualViewport";
 import "./App.css";
 
 const CreateTripPage = lazy(() => import("./pages/CreateTripPage"));
@@ -23,6 +24,8 @@ const GuideArticlePage = lazy(() => import("./pages/GuideArticlePage"));
 const AboutPage = lazy(() => import("./pages/AboutPage"));
 
 function App() {
+  useVisualViewport();
+
   useEffect(() => {
     const locale = getLocale();
     document.documentElement.lang = locale;

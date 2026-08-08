@@ -149,6 +149,7 @@ const CreateTripPage = () => {
               value={formData.name}
               onChange={handleInputChange}
               placeholder={t("newGroup")}
+              autoFocus
               aria-invalid={Boolean(formErrors.name)}
               aria-describedby={formErrors.name ? "group-name-error" : undefined}
               required

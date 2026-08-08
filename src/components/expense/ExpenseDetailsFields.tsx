@@ -5,6 +5,7 @@ import { EXPENSE_CATEGORIES } from "../../utils/expenses";
 import { FieldError } from "../ui/FieldError";
 
 interface ExpenseDetailsFieldsProps {
+  autoFocus?: boolean;
   currentUserId: string;
   errors: {
     amount?: string;
@@ -21,6 +22,7 @@ interface ExpenseDetailsFieldsProps {
 }
 
 export const ExpenseDetailsFields = ({
+  autoFocus,
   currentUserId,
   errors,
   formData,
@@ -38,6 +40,7 @@ export const ExpenseDetailsFields = ({
         value={formData.description}
         onChange={onInputChange}
         placeholder={t("expense").replace(" *", "")}
+        autoFocus={autoFocus}
         aria-invalid={Boolean(errors.description)}
         aria-describedby={
           errors.description ? "expense-description-error" : undefined

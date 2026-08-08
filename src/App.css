@@ -8,6 +8,9 @@
   --pwa-status-bar-height: 44px;
   --safe-area-inset-top: env(safe-area-inset-top, 0px);
   --safe-area-inset-bottom: env(safe-area-inset-bottom, 0px);
+  --visual-viewport-height: 100dvh;
+  --visual-viewport-offset-top: 0px;
+  --keyboard-inset: 0px;
 
   --ease-color-canvas: #F5F5F5;
   --ease-color-background: var(--ease-color-canvas);
@@ -104,7 +107,7 @@
   --ease-component-button-lg-padding-x: 24px;
   --ease-component-button-lg-padding-y: 12px;
 
-  --ease-component-input-md-font-size: 15px;
+  --ease-component-input-md-font-size: 16px;
   --ease-component-input-md-line-height: 20px;
   --ease-component-input-md-padding-x: 14px;
   --ease-component-input-md-padding-y: 11px;
@@ -1190,12 +1193,17 @@ select {
 
 .dashboard-modal-backdrop {
   position: fixed;
-  inset: 0;
+  top: var(--visual-viewport-offset-top);
+  right: 0;
+  bottom: auto;
+  left: 0;
   z-index: 80;
   display: flex;
+  height: var(--visual-viewport-height);
   align-items: flex-end;
   justify-content: center;
-  padding: var(--ease-space-md);
+  padding: var(--ease-space-md) var(--ease-space-md)
+    calc(var(--ease-space-md) + var(--safe-area-inset-bottom));
   background: rgb(26 26 26 / 38%);
   animation: backdrop-in var(--ease-motion-base) ease-out both;
 }
@@ -1206,14 +1214,26 @@ select {
 
 .dashboard-modal {
   width: min(100%, 448px);
-  max-height: min(720px, calc(100dvh - 32px));
+  max-height: min(
+    720px,
+    calc(var(--visual-viewport-height) - 32px - var(--safe-area-inset-bottom))
+  );
   overflow-y: auto;
   padding: var(--ease-space-lg);
   border: var(--ease-border-hairline) solid var(--ease-color-border);
   border-radius: var(--ease-radius-md);
   background: var(--ease-color-surface);
   box-shadow: 0 20px 48px rgb(0 0 0 / 20%);
+  overscroll-behavior: contain;
+  scroll-padding-block: var(--ease-space-lg);
+  -webkit-overflow-scrolling: touch;
   animation: dashboard-modal-in var(--ease-motion-base) ease-out both;
+}
+
+.dashboard-modal input,
+.dashboard-modal textarea,
+.dashboard-modal select {
+  scroll-margin-block: var(--ease-space-xl);
 }
 
 .dashboard-modal-header {
@@ -1410,6 +1430,10 @@ select {
 }
 
 .budget-form .dashboard-modal-actions {
+  position: sticky;
+  bottom: 0;
+  padding-top: var(--ease-space-md);
+  background: var(--ease-color-surface);
   margin-top: 0;
 }
 
@@ -2118,12 +2142,17 @@ select {
 
 .expense-filter-backdrop {
   position: fixed;
-  inset: 0;
+  top: var(--visual-viewport-offset-top);
+  right: 0;
+  bottom: auto;
+  left: 0;
   z-index: 90;
   display: flex;
+  height: var(--visual-viewport-height);
   align-items: flex-end;
   justify-content: center;
-  padding: var(--ease-space-md);
+  padding: var(--ease-space-md) var(--ease-space-md)
+    calc(var(--ease-space-md) + var(--safe-area-inset-bottom));
   background: rgb(26 26 26 / 38%);
   animation: backdrop-in var(--ease-motion-base) ease-out both;
 }
@@ -2131,7 +2160,10 @@ select {
 .expense-filter-sheet {
   display: flex;
   width: min(100%, 448px);
-  max-height: min(760px, calc(100dvh - 32px));
+  max-height: min(
+    760px,
+    calc(var(--visual-viewport-height) - 32px - var(--safe-area-inset-bottom))
+  );
   overflow: hidden;
   flex-direction: column;
   border: var(--ease-border-hairline) solid var(--ease-color-border);
@@ -2139,6 +2171,11 @@ select {
   background: var(--ease-color-surface);
   box-shadow: 0 20px 48px rgb(0 0 0 / 20%);
   animation: dashboard-modal-in 260ms var(--ease-ease-out) both;
+}
+
+html[data-keyboard-open] .add-member-submit-bar {
+  visibility: hidden;
+  pointer-events: none;
 }
 
 .expense-filter-sheet-header {

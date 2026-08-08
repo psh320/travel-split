@@ -304,6 +304,7 @@ const AddExpensePage = () => {
       <div className="content">
         <form onSubmit={handleSubmit} className="form" noValidate>
           <ExpenseDetailsFields
+            autoFocus={!isEditing}
             currentUserId={currentUserId}
             errors={formErrors}
             formData={formData}
