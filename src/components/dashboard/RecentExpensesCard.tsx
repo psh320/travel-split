@@ -59,6 +59,7 @@ export const RecentExpensesCard = ({
                 editTo={`/group/${trip.id}/edit-expense/${expense.id}`}
                 expense={expense}
                 onDelete={() => onDelete(expense.id)}
+                participants={trip.participants}
                 paidByUser={trip.participants.find(
                   (participant) => participant.id === expense.paidBy
                 )}

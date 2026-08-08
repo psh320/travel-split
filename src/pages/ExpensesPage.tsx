@@ -253,6 +253,7 @@ const ExpensesPage = () => {
                   }
                   expense={expense}
                   onDelete={() => handleDeleteExpense(expense.id)}
+                  participants={trip.participants}
                   paidByUser={trip.participants.find(
                     (participant) => participant.id === expense.paidBy
                   )}

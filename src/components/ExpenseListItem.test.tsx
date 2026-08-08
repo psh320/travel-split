@@ -11,6 +11,13 @@ const paidByUser: User = {
   createdAt: new Date("2026-08-09T00:00:00Z"),
 };
 
+const participant: User = {
+  id: "member-b",
+  name: "Mina",
+  colorIndex: 1,
+  createdAt: new Date("2026-08-09T00:00:00Z"),
+};
+
 const expense: Expense = {
   id: "expense-a",
   description: "Hotel",
@@ -32,6 +39,7 @@ describe("ExpenseListItem", () => {
           expense={expense}
           onDelete={() => undefined}
           paidByUser={paidByUser}
+          participants={[paidByUser, participant]}
         />
       </MemoryRouter>
     );
@@ -43,5 +51,8 @@ describe("ExpenseListItem", () => {
     expect(markup).toContain('aria-label="2 people"');
     expect(markup).not.toContain(">Split</span>");
     expect(markup).not.toContain("26/08/09");
+    expect(markup).toContain("expense-list-details-trigger");
+    expect(markup).toContain('<button type="button"');
+    expect(markup).toContain('aria-haspopup="dialog"');
   });
 });
