@@ -5,7 +5,14 @@ import { FirebaseService } from "../services/firebase";
 import { t } from "../i18n";
 import { formatAmount } from "../utils";
 import { useToast } from "../components/ui/useToast";
-import type { Trip, AddExpenseForm } from "../types";
+import { Avatar } from "../components/Avatar";
+import type { Trip, AddExpenseForm, ExpenseSplitMode } from "../types";
+import {
+  createEqualShares,
+  EXPENSE_CATEGORIES,
+  parseExpenseDateInput,
+  toExpenseDateInput,
+} from "../utils/expenses";
 
 const AddExpensePage = () => {
   const { groupId, expenseId } = useParams<{
@@ -24,6 +31,10 @@ const AddExpensePage = () => {
     amount: "",
     paidBy: "",
     participants: [],
+    category: "other",
+    date: toExpenseDateInput(new Date()),
+    splitMode: "equal",
+    shares: {},
   });
 
   const loadTrip = useCallback(async () => {
@@ -73,6 +84,15 @@ const AddExpensePage = () => {
         amount: expenseToEdit.amount.toString(),
         paidBy: expenseToEdit.paidBy,
         participants: expenseToEdit.participants,
+        category: expenseToEdit.category ?? "other",
+        date: toExpenseDateInput(expenseToEdit.date),
+        splitMode: expenseToEdit.splitMode ?? "equal",
+        shares: Object.fromEntries(
+          Object.entries(expenseToEdit.shares ?? {}).map(([id, amount]) => [
+            id,
+            amount.toFixed(2),
+          ])
+        ),
       });
       return;
     }
@@ -105,6 +125,11 @@ const AddExpensePage = () => {
       participants: checked
         ? [...prev.participants, participantId]
         : prev.participants.filter((id) => id !== participantId),
+      shares: checked
+        ? { ...prev.shares, [participantId]: prev.shares[participantId] ?? "" }
+        : Object.fromEntries(
+            Object.entries(prev.shares).filter(([id]) => id !== participantId)
+          ),
     }));
   };
 
@@ -120,6 +145,51 @@ const AddExpensePage = () => {
     setFormData((prev) => ({
       ...prev,
       participants: [],
+      shares: {},
+    }));
+  };
+
+  const setSplitMode = (splitMode: ExpenseSplitMode) => {
+    setFormData((prev) => {
+      if (splitMode === "equal") return { ...prev, splitMode };
+
+      const equalShares = createEqualShares(
+        Number(prev.amount),
+        prev.participants
+      );
+      return {
+        ...prev,
+        splitMode,
+        shares: Object.fromEntries(
+          Object.entries(equalShares).map(([id, share]) => [
+            id,
+            share.toFixed(2),
+          ])
+        ),
+      };
+    });
+  };
+
+  const handleShareChange = (participantId: string, value: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      shares: { ...prev.shares, [participantId]: value },
+    }));
+  };
+
+  const resetEqualShares = () => {
+    const equalShares = createEqualShares(
+      Number(formData.amount),
+      formData.participants
+    );
+    setFormData((prev) => ({
+      ...prev,
+      shares: Object.fromEntries(
+        Object.entries(equalShares).map(([id, share]) => [
+          id,
+          share.toFixed(2),
+        ])
+      ),
     }));
   };
 
@@ -147,6 +217,26 @@ const AddExpensePage = () => {
       return;
     }
 
+    const shares = Object.fromEntries(
+      formData.participants.map((participantId) => [
+        participantId,
+        Number(formData.shares[participantId] || 0),
+      ])
+    );
+    const customTotal = Object.values(shares).reduce(
+      (sum, share) => sum + share,
+      0
+    );
+    if (
+      formData.splitMode === "custom" &&
+      (Object.values(shares).some(
+        (share) => !Number.isFinite(share) || share < 0
+      ) || Math.round(customTotal * 100) !== Math.round(amount * 100))
+    ) {
+      showToast(t("customSplitMismatch"), "error");
+      return;
+    }
+
     setLoading(true);
     try {
       if (expenseId) {
@@ -156,7 +246,11 @@ const AddExpensePage = () => {
           formData.description.trim(),
           amount,
           formData.paidBy,
-          formData.participants
+          formData.participants,
+          formData.category,
+          parseExpenseDateInput(formData.date),
+          formData.splitMode,
+          formData.splitMode === "custom" ? shares : undefined
         );
       } else {
         await FirebaseService.addExpense(
@@ -164,7 +258,11 @@ const AddExpensePage = () => {
           formData.description.trim(),
           amount,
           formData.paidBy,
-          formData.participants
+          formData.participants,
+          formData.category,
+          parseExpenseDateInput(formData.date),
+          formData.splitMode,
+          formData.splitMode === "custom" ? shares : undefined
         );
       }
 
@@ -192,6 +290,12 @@ const AddExpensePage = () => {
     formData.amount && formData.participants.length > 0
       ? parseFloat(formData.amount) / formData.participants.length
       : 0;
+  const customTotal = formData.participants.reduce(
+    (sum, participantId) => sum + Number(formData.shares[participantId] || 0),
+    0
+  );
+  const enteredAmount = Number(formData.amount) || 0;
+  const customRemaining = Math.round((enteredAmount - customTotal) * 100) / 100;
 
   return (
     <>
@@ -219,7 +323,7 @@ const AddExpensePage = () => {
             <label htmlFor="amount">{t("amount")}</label>
             <input
               type="number"
-              inputMode="tel"
+              inputMode="decimal"
               id="amount"
               name="amount"
               value={formData.amount}
@@ -230,6 +334,40 @@ const AddExpensePage = () => {
               required
             />
           </div>
+
+          <div className="form-group">
+            <label htmlFor="date">{t("expenseDate")}</label>
+            <input
+              type="date"
+              id="date"
+              name="date"
+              value={formData.date}
+              onChange={handleInputChange}
+              required
+            />
+          </div>
+
+          <fieldset className="form-group expense-category-fieldset">
+            <legend>{t("category")}</legend>
+            <div className="expense-category-grid">
+              {EXPENSE_CATEGORIES.map((category) => (
+                <button
+                  key={category}
+                  type="button"
+                  className={`expense-category-option${
+                    formData.category === category ? " is-selected" : ""
+                  }`}
+                  aria-pressed={formData.category === category}
+                  onClick={() =>
+                    setFormData((prev) => ({ ...prev, category }))
+                  }
+                >
+                  <span className={`expense-category-dot category-${category}`} />
+                  {t(category)}
+                </button>
+              ))}
+            </div>
+          </fieldset>
 
           <div className="form-group">
             <label htmlFor="paidBy">{t("paidBy")}</label>
@@ -252,20 +390,18 @@ const AddExpensePage = () => {
 
           <div className="form-group">
             <label>{t("splitWith")}</label>
-            <div style={{ display: "flex", gap: "0.5rem", margin: "0.5rem 0" }}>
+            <div className="expense-selection-actions">
               <button
                 type="button"
                 onClick={selectAllParticipants}
-                className="btn btn-secondary"
-                style={{ padding: "0.375rem 0.75rem", fontSize: "0.75rem" }}
+                className="btn btn-secondary btn-small"
               >
                 {t("selectAll")}
               </button>
               <button
                 type="button"
                 onClick={selectNoParticipants}
-                className="btn btn-secondary"
-                style={{ padding: "0.375rem 0.75rem", fontSize: "0.75rem" }}
+                className="btn btn-secondary btn-small"
               >
                 {t("selectNone")}
               </button>
@@ -287,19 +423,98 @@ const AddExpensePage = () => {
                 </label>
               ))}
             </div>
-            {formData.participants.length > 0 && splitAmount > 0 && (
-              <div
-                style={{
-                  marginTop: "0.5rem",
-                  fontSize: "0.875rem",
-                  color: "var(--ease-color-text-muted)",
-                  padding: "0.5rem",
-                  background: "var(--ease-color-surface-raised)",
-                  borderRadius: "0.375rem",
-                }}
-              >
-                {t("splitWith").replace(" *", "")}:{" "}
-                <strong>{formatAmount(splitAmount)}</strong>
+            {formData.participants.length > 0 && (
+              <div className="split-method-section">
+                <span className="split-method-label">{t("splitMethod")}</span>
+                <div
+                  className="split-method-toggle"
+                  role="group"
+                  aria-label={t("splitMethod")}
+                >
+                  <button
+                    type="button"
+                    className={formData.splitMode === "equal" ? "is-selected" : ""}
+                    aria-pressed={formData.splitMode === "equal"}
+                    onClick={() => setSplitMode("equal")}
+                  >
+                    {t("splitEqually")}
+                  </button>
+                  <button
+                    type="button"
+                    className={formData.splitMode === "custom" ? "is-selected" : ""}
+                    aria-pressed={formData.splitMode === "custom"}
+                    onClick={() => setSplitMode("custom")}
+                  >
+                    {t("splitCustom")}
+                  </button>
+                </div>
+
+                {formData.splitMode === "equal" ? (
+                  splitAmount > 0 && (
+                    <div className="split-summary">
+                      <span>{t("each")}</span>
+                      <strong>{formatAmount(splitAmount)}</strong>
+                    </div>
+                  )
+                ) : (
+                  <div className="custom-share-editor">
+                    <div className="custom-share-heading">
+                      <span>{t("customSplitHelp")}</span>
+                      <button type="button" onClick={resetEqualShares}>
+                        {t("fillEqually")}
+                      </button>
+                    </div>
+                    {formData.participants.map((participantId) => {
+                      const participant = trip.participants.find(
+                        (person) => person.id === participantId
+                      );
+                      if (!participant) return null;
+
+                      return (
+                        <label key={participantId} className="custom-share-row">
+                          <span>
+                            <Avatar user={participant} size="xs" decorative />
+                            <strong>{participant.name}</strong>
+                          </span>
+                          <span className="custom-share-input">
+                            <span aria-hidden="true">$</span>
+                            <input
+                              type="number"
+                              inputMode="decimal"
+                              min="0"
+                              step="0.01"
+                              value={formData.shares[participantId] ?? ""}
+                              onChange={(event) =>
+                                handleShareChange(participantId, event.target.value)
+                              }
+                              aria-label={participant.name + " " + t("shareAmount")}
+                            />
+                          </span>
+                        </label>
+                      );
+                    })}
+                    <div
+                      className={
+                        "custom-share-total" +
+                        (customRemaining === 0 ? " is-balanced" : "")
+                      }
+                      aria-live="polite"
+                    >
+                      <span>
+                        {t("allocated")}: {formatAmount(customTotal)}
+                      </span>
+                      <strong>
+                        {customRemaining === 0
+                          ? t("allocationComplete")
+                          : customRemaining > 0
+                            ? formatAmount(customRemaining) + " " + t("leftToAllocate")
+                            : formatAmount(Math.abs(customRemaining)) +
+                              " " +
+                              t("overAllocated")}
+                      </strong>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </div>

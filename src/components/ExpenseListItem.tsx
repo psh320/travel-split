@@ -34,7 +34,15 @@ export function ExpenseListItem({
         <strong title={paidByUser?.name}>{paidByUser?.name || "-"}</strong>
       </div>
       <div className="list-item-content expense-list-item-content">
-        <div className="list-item-title">{expense.description}</div>
+        <div className="expense-list-title-row">
+          <div className="list-item-title">{expense.description}</div>
+          <span className="expense-category-badge">
+            <span
+              className={`expense-category-dot category-${expense.category ?? "other"}`}
+            />
+            {t(expense.category ?? "other")}
+          </span>
+        </div>
         <div className="expense-list-item-summary">
           <strong className="expense-list-item-amount">
             {formatAmount(expense.amount)}
@@ -45,6 +53,7 @@ export function ExpenseListItem({
             <span className="expense-list-item-meta-label">{t("split")}</span>
             <strong>
               {countLabel("person", expense.participants.length)}
+              {expense.splitMode === "custom" ? ` · ${t("splitCustom")}` : ""}
             </strong>
           </span>
           <time

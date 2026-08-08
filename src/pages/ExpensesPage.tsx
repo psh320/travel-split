@@ -5,8 +5,9 @@ import { IconLink } from "../components/ui/IconButton";
 import { ExpenseListItem } from "../components/ExpenseListItem";
 import { Dropdown } from "../components/ui/Dropdown";
 import { FirebaseService } from "../services/firebase";
-import type { Trip } from "../types";
+import type { ExpenseCategory, Trip } from "../types";
 import { formatAmount, formatExpenseDate } from "../utils";
+import { EXPENSE_CATEGORIES } from "../utils/expenses";
 import { t } from "../i18n";
 import { useToast } from "../components/ui/useToast";
 
@@ -22,6 +23,9 @@ const ExpensesPage = () => {
   const [filterBy, setFilterBy] = useState<
     "all" | "paid-by-me" | "split-with-me"
   >("all");
+  const [categoryFilter, setCategoryFilter] = useState<"all" | ExpenseCategory>(
+    "all"
+  );
   const [sortBy, setSortBy] = useState<
     "date-desc" | "date-asc" | "amount-desc" | "amount-asc"
   >("date-desc");
@@ -90,10 +94,12 @@ const ExpensesPage = () => {
           (p) => p.id === expense.paidBy
         );
         const paidByName = paidByUser?.name.toLowerCase() || "";
+        const categoryName = t(expense.category ?? "other").toLowerCase();
 
         if (
           !description.includes(searchLower) &&
-          !paidByName.includes(searchLower)
+          !paidByName.includes(searchLower) &&
+          !categoryName.includes(searchLower)
         ) {
           return false;
         }
@@ -104,6 +110,13 @@ const ExpensesPage = () => {
         return expense.paidBy === currentUserId;
       } else if (filterBy === "split-with-me") {
         return expense.participants.includes(currentUserId);
+      }
+
+      if (
+        categoryFilter !== "all" &&
+        (expense.category ?? "other") !== categoryFilter
+      ) {
+        return false;
       }
 
       return true;
@@ -126,7 +139,7 @@ const ExpensesPage = () => {
     });
 
     return filtered;
-  }, [trip, searchTerm, filterBy, sortBy, currentUserId]);
+  }, [trip, searchTerm, filterBy, categoryFilter, sortBy, currentUserId]);
 
   if (loading) {
     return (
@@ -249,11 +262,23 @@ const ExpensesPage = () => {
                 { value: "amount-asc", label: t("lowestAmount") },
               ]}
             />
+            <Dropdown
+              label={t("category")}
+              value={categoryFilter}
+              onChange={setCategoryFilter}
+              options={[
+                { value: "all", label: t("allCategories") },
+                ...EXPENSE_CATEGORIES.map((category) => ({
+                  value: category,
+                  label: t(category),
+                })),
+              ]}
+            />
           </div>
         </div>
 
         {/* Quick Stats */}
-        {(searchTerm || filterBy !== "all") && (
+        {(searchTerm || filterBy !== "all" || categoryFilter !== "all") && (
           <div className="card">
             <div
               style={{
@@ -306,7 +331,7 @@ const ExpensesPage = () => {
                   >
                     {Math.round(
                       (filteredAndSortedExpenses.length /
-                        trip.expenses.length) *
+                        Math.max(trip.expenses.length, 1)) *
                         100
                     )}
                     %

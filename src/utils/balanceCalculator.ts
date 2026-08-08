@@ -6,6 +6,7 @@ import type {
   CombinationBalance,
   Expense,
 } from "../types";
+import { getExpenseShares } from "./expenses";
 
 // Calculate balances and settlements for a trip
 export const calculateBalances = (trip: Trip): BalanceSummary => {
@@ -25,7 +26,7 @@ export const calculateBalances = (trip: Trip): BalanceSummary => {
   // Calculate total paid and owed for each user
   trip.expenses.forEach((expense) => {
     const paidBy = expense.paidBy;
-    const splitAmount = expense.amount / expense.participants.length;
+    const shares = getExpenseShares(expense);
 
     // Add to total paid for the payer
     if (balances[paidBy]) {
@@ -35,7 +36,7 @@ export const calculateBalances = (trip: Trip): BalanceSummary => {
     // Add to total owed for each participant
     expense.participants.forEach((participantId) => {
       if (balances[participantId]) {
-        balances[participantId].totalOwed += splitAmount;
+        balances[participantId].totalOwed += shares[participantId] ?? 0;
       }
     });
   });
@@ -157,7 +158,7 @@ const calculateCombinationBalances = (trip: Trip): CombinationBalance[] => {
     // Calculate paid and owed amounts for this combination
     let totalAmount = 0;
     expenses.forEach((expense) => {
-      const splitAmount = expense.amount / expense.participants.length;
+      const shares = getExpenseShares(expense);
       totalAmount += expense.amount;
 
       // Add to total paid for the payer
@@ -177,7 +178,7 @@ const calculateCombinationBalances = (trip: Trip): CombinationBalance[] => {
       // Add to total owed for each participant
       expense.participants.forEach((participantId) => {
         if (balances[participantId]) {
-          balances[participantId].totalOwed += splitAmount;
+          balances[participantId].totalOwed += shares[participantId] ?? 0;
         }
       });
     });

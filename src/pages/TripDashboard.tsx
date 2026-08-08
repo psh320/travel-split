@@ -25,6 +25,7 @@ import {
 } from "../utils";
 import { useToast } from "../components/ui/useToast";
 import { DEFAULT_AVATAR_CONFIG, getAvatarConfig } from "../utils/avatars";
+import { getExpenseShares } from "../utils/expenses";
 
 const spendColors = [
   "#2F3437",
@@ -363,7 +364,7 @@ const TripDashboard = () => {
                   return sum;
                 }
 
-                return sum + expense.amount / expense.participants.length;
+                return sum + (getExpenseShares(expense)[currentParticipant.id] ?? 0);
               }, 0)
             : null;
           const perPersonBudget = trip.perPersonBudget;

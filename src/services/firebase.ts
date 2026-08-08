@@ -20,6 +20,8 @@ import type {
   FirestoreExpense,
   FirestoreTripData,
   AvatarConfig,
+  ExpenseCategory,
+  ExpenseSplitMode,
 } from "../types";
 import { DEFAULT_AVATAR_CONFIG } from "../utils/avatars";
 import { generateRoomCode, generateId } from "../utils";
@@ -317,12 +319,24 @@ export class FirebaseService {
       // split. Expenses with nobody left to split with are no longer valid.
       const updatedExpenses = tripData.expenses
         .filter((expense) => expense.paidBy !== userId)
-        .map((expense) => ({
-          ...expense,
-          participants: expense.participants.filter(
+        .map((expense) => {
+          const participantWasRemoved = expense.participants.includes(userId);
+          const participants = expense.participants.filter(
             (participantId) => participantId !== userId
-          ),
-        }))
+          );
+
+          if (participantWasRemoved && expense.splitMode === "custom") {
+            const expenseWithoutShares = { ...expense };
+            delete expenseWithoutShares.shares;
+            return {
+              ...expenseWithoutShares,
+              participants,
+              splitMode: "equal" as const,
+            };
+          }
+
+          return { ...expense, participants };
+        })
         .filter((expense) => expense.participants.length > 0);
 
       await updateDoc(tripRef, {
@@ -336,10 +350,24 @@ export class FirebaseService {
         participants: trip.participants.filter((user) => user.id !== userId),
         expenses: trip.expenses
           .filter((expense) => expense.paidBy !== userId)
-          .map((expense) => ({
-            ...expense,
-            participants: expense.participants.filter((id) => id !== userId),
-          }))
+          .map((expense) => {
+            const participantWasRemoved = expense.participants.includes(userId);
+            const participants = expense.participants.filter(
+              (id) => id !== userId
+            );
+
+            if (participantWasRemoved && expense.splitMode === "custom") {
+              const expenseWithoutShares = { ...expense };
+              delete expenseWithoutShares.shares;
+              return {
+                ...expenseWithoutShares,
+                participants,
+                splitMode: "equal" as const,
+              };
+            }
+
+            return { ...expense, participants };
+          })
           .filter((expense) => expense.participants.length > 0),
         updatedAt: new Date(),
       }));
@@ -355,7 +383,11 @@ export class FirebaseService {
     description: string,
     amount: number,
     paidBy: string,
-    participants: string[]
+    participants: string[],
+    category: ExpenseCategory = "other",
+    date: Date = new Date(),
+    splitMode: ExpenseSplitMode = "equal",
+    shares?: Record<string, number>
   ): Promise<Expense> {
     try {
       const tripRef = doc(db, "trips", tripId);
@@ -372,7 +404,10 @@ export class FirebaseService {
         amount,
         paidBy,
         participants,
-        date: new Date(),
+        category,
+        splitMode,
+        ...(splitMode === "custom" && shares ? { shares } : {}),
+        date,
         createdAt: new Date(),
         tripId,
       };
@@ -410,7 +445,11 @@ export class FirebaseService {
     description: string,
     amount: number,
     paidBy: string,
-    participants: string[]
+    participants: string[],
+    category: ExpenseCategory = "other",
+    date?: Date,
+    splitMode: ExpenseSplitMode = "equal",
+    shares?: Record<string, number>
   ): Promise<Expense> {
     try {
       const tripRef = doc(db, "trips", tripId);
@@ -429,12 +468,18 @@ export class FirebaseService {
         throw new Error("Expense not found");
       }
 
+      const existingExpenseWithoutShares = { ...existingExpense };
+      delete existingExpenseWithoutShares.shares;
       const updatedExpense = {
-        ...existingExpense,
+        ...existingExpenseWithoutShares,
         description,
         amount,
         paidBy,
         participants,
+        category,
+        splitMode,
+        ...(splitMode === "custom" && shares ? { shares } : {}),
+        ...(date ? { date: Timestamp.fromDate(date) } : {}),
       };
       const updatedExpenses = tripData.expenses.map((expense) =>
         expense.id === expenseId ? updatedExpense : expense

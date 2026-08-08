@@ -39,12 +39,25 @@ export interface User {
   createdAt: Date;
 }
 
+export type ExpenseCategory =
+  | "food"
+  | "transport"
+  | "lodging"
+  | "activities"
+  | "shopping"
+  | "other";
+
+export type ExpenseSplitMode = "equal" | "custom";
+
 export interface Expense {
   id: string;
   description: string;
   amount: number;
   paidBy: string; // User ID who paid
   participants: string[]; // Array of User IDs who should split this expense
+  category?: ExpenseCategory;
+  splitMode?: ExpenseSplitMode;
+  shares?: Record<string, number>; // Exact amount owed by each participant
   date: Date;
   createdAt: Date;
   tripId: string;
@@ -113,6 +126,10 @@ export interface AddExpenseForm {
   amount: string; // Keep as string for form handling
   paidBy: string;
   participants: string[];
+  category: ExpenseCategory;
+  date: string;
+  splitMode: ExpenseSplitMode;
+  shares: Record<string, string>;
 }
 
 // Firestore-specific types (with Timestamp objects instead of Date objects)
@@ -133,6 +150,9 @@ export interface FirestoreExpense {
   amount: number;
   paidBy: string;
   participants: string[];
+  category?: ExpenseCategory;
+  splitMode?: ExpenseSplitMode;
+  shares?: Record<string, number>;
   date: {
     toDate(): Date;
   };
