@@ -5,6 +5,7 @@ import {
   EditIcon,
   IconButton,
   IconLink,
+  PersonFilledIcon,
   TrashIcon,
 } from "./ui/IconButton";
 import { Avatar } from "./Avatar";
@@ -30,7 +31,7 @@ export function ExpenseListItem({
         className="expense-list-payer-profile"
         aria-label={`${t("paidBy").replace(" *", "")} ${paidByUser?.name || "-"}`}
       >
-        {paidByUser && <Avatar user={paidByUser} size="md" decorative />}
+        {paidByUser && <Avatar user={paidByUser} size="xs" decorative />}
         <strong title={paidByUser?.name}>{paidByUser?.name || "-"}</strong>
       </div>
       <div className="list-item-content expense-list-item-content">
@@ -39,15 +40,6 @@ export function ExpenseListItem({
           <strong className="expense-list-item-amount">
             {formatAmount(expense.amount)}
           </strong>
-        </div>
-        <div className="expense-list-item-meta">
-          <span className="expense-list-item-meta-entry">
-            <span className="expense-list-item-meta-label">{t("split")}</span>
-            <strong>
-              {countLabel("person", expense.participants.length)}
-              {expense.splitMode === "custom" ? ` · ${t("splitCustom")}` : ""}
-            </strong>
-          </span>
           <time
             className="expense-list-item-date"
             dateTime={expense.date.toISOString()}
@@ -56,21 +48,33 @@ export function ExpenseListItem({
           </time>
         </div>
       </div>
-      <div className="list-item-actions">
-        <IconLink
-          to={editTo}
-          className="list-item-icon-action"
-          label={t("editExpense")}
+      <div className="expense-list-item-side">
+        <div className="list-item-actions">
+          <IconLink
+            to={editTo}
+            className="list-item-icon-action"
+            label={t("editExpense")}
+          >
+            <EditIcon />
+          </IconLink>
+          <IconButton
+            onClick={onDelete}
+            className="list-item-icon-action list-item-delete-action"
+            label={t("remove")}
+          >
+            <TrashIcon />
+          </IconButton>
+        </div>
+        <span
+          className="expense-list-participant-count"
+          aria-label={`${countLabel("person", expense.participants.length)}${
+            expense.splitMode === "custom" ? ` · ${t("splitCustom")}` : ""
+          }`}
+          title={countLabel("person", expense.participants.length)}
         >
-          <EditIcon />
-        </IconLink>
-        <IconButton
-          onClick={onDelete}
-          className="list-item-icon-action list-item-delete-action"
-          label={t("remove")}
-        >
-          <TrashIcon />
-        </IconButton>
+          <strong>{expense.participants.length}</strong>
+          <PersonFilledIcon />
+        </span>
       </div>
     </div>
   );

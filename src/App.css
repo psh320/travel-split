@@ -2743,9 +2743,10 @@ select {
 
 .expense-list-item {
   display: grid;
-  grid-template-columns: 64px minmax(0, 1fr) 88px;
+  grid-template-columns: 48px minmax(0, 1fr) 88px;
   align-items: center;
-  gap: var(--ease-space-md);
+  gap: var(--ease-space-sm);
+  padding: var(--ease-space-sm) 0;
   animation: list-item-arrive 340ms var(--ease-ease-out) both;
 }
 
@@ -2762,73 +2763,71 @@ select {
 }
 
 .expense-list-item-content .list-item-title {
-  margin-bottom: 2px;
+  margin-bottom: var(--ease-space-xs);
   color: var(--ease-color-text-muted);
-  font-size: 0.875rem;
-  font-weight: 640;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  line-height: 1.25;
   overflow-wrap: anywhere;
 }
 
 .expense-list-item-summary {
-  margin-bottom: var(--ease-space-xs);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--ease-space-sm);
 }
 
 .expense-list-item-amount {
   color: var(--ease-color-text);
-  font-size: 1.125rem;
+  font-size: 0.9375rem;
   font-variant-numeric: tabular-nums;
-  font-weight: 800;
+  font-weight: 600;
   letter-spacing: var(--ease-tracking-tight);
-  line-height: 1.3;
+  line-height: 1.25;
 }
 
 .expense-list-item-date {
   flex-shrink: 0;
   color: var(--ease-color-text-soft);
-  font-size: var(--ease-type-caption-size);
+  font-size: 0.6875rem;
   line-height: inherit;
   white-space: nowrap;
 }
 
-.expense-list-item-meta {
+.expense-list-participant-count {
   display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  column-gap: var(--ease-space-md);
-  row-gap: var(--ease-space-xs);
-  color: var(--ease-color-text-muted);
-  font-size: 0.8125rem;
-  line-height: 1.25;
-}
-
-.expense-list-item-meta-entry {
-  display: inline-flex;
-  align-items: baseline;
-  gap: var(--ease-space-xs);
-}
-
-.expense-list-item-meta-label {
+  align-items: center;
+  gap: var(--ease-space-xxs);
   color: var(--ease-color-text-soft);
+  font-size: 0.6875rem;
+  line-height: 1;
 }
 
-.expense-list-item-meta-entry strong {
-  color: var(--ease-color-text-muted);
-  font-weight: 680;
+.expense-list-participant-count strong {
+  font-weight: 600;
 }
 
-.expense-list-item > .list-item-actions {
-  align-self: flex-start;
+.expense-list-item-side {
+  display: flex;
+  min-height: 58px;
+  align-self: stretch;
+  align-items: flex-end;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.expense-list-item-side .list-item-actions {
   justify-content: flex-end;
-  margin-top: calc(var(--ease-space-xs) * -1);
 }
 
 .expense-list-payer-profile {
   display: flex;
-  width: 64px;
+  width: 48px;
   min-width: 0;
   align-items: center;
   flex-direction: column;
-  gap: var(--ease-space-xs);
+  gap: var(--ease-space-xxs);
 }
 
 .expense-list-payer-profile .avatar {
@@ -2840,9 +2839,9 @@ select {
   width: 100%;
   overflow: hidden;
   color: var(--ease-color-text-muted);
-  font-size: 0.75rem;
-  font-weight: 680;
-  line-height: 1.25;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  line-height: 1.2;
   text-align: center;
   text-overflow: ellipsis;
   white-space: nowrap;

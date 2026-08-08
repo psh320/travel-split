@@ -130,6 +130,21 @@ export function UsersIcon() {
   );
 }
 
+export function PersonFilledIcon() {
+  return (
+    <svg
+      aria-hidden="true"
+      viewBox="0 0 16 16"
+      width="13"
+      height="13"
+      fill="currentColor"
+    >
+      <circle cx="8" cy="5" r="3" />
+      <path d="M2.5 14c.35-3.05 2.2-4.7 5.5-4.7s5.15 1.65 5.5 4.7Z" />
+    </svg>
+  );
+}
+
 export function LinkIcon() {
   return (
     <svg

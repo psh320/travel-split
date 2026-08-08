@@ -40,5 +40,8 @@ describe("ExpenseListItem", () => {
     expect(markup).toContain(">Hotel</div>");
     expect(markup).not.toContain("expense-category-badge");
     expect(markup).not.toContain("category-lodging");
+    expect(markup).toContain("expense-list-participant-count");
+    expect(markup).toContain('aria-label="2 people"');
+    expect(markup).not.toContain(">Split</span>");
   });
 });
