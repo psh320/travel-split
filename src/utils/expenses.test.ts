@@ -1,7 +1,11 @@
 import { describe, expect, it } from "vitest";
 import type { Expense, Trip, User } from "../types";
 import { calculateBalances } from "./balanceCalculator";
-import { createEqualShares, getExpenseShares } from "./expenses";
+import {
+  createEqualShares,
+  getExpenseShares,
+  getParticipantCategorySpending,
+} from "./expenses";
 
 const createdAt = new Date("2026-08-08T12:00:00");
 const participants: User[] = [
@@ -101,6 +105,62 @@ describe("expense shares", () => {
         toUserName: "A",
         amount: 0.01,
       },
+    ]);
+  });
+
+  it("groups only the participant's own shares by category", () => {
+    const expenses: Expense[] = [
+      {
+        id: "dinner",
+        tripId: "trip",
+        description: "Dinner",
+        amount: 90,
+        paidBy: "b",
+        participants: ["a", "b"],
+        category: "food",
+        date: createdAt,
+        createdAt,
+      },
+      {
+        id: "snack",
+        tripId: "trip",
+        description: "Snack",
+        amount: 10,
+        paidBy: "a",
+        participants: ["a"],
+        category: "food",
+        date: createdAt,
+        createdAt,
+      },
+      {
+        id: "train",
+        tripId: "trip",
+        description: "Train",
+        amount: 120,
+        paidBy: "b",
+        participants: ["a", "b"],
+        splitMode: "custom",
+        shares: { a: 20, b: 100 },
+        category: "transport",
+        date: createdAt,
+        createdAt,
+      },
+      {
+        id: "hotel",
+        tripId: "trip",
+        description: "Hotel",
+        amount: 200,
+        paidBy: "b",
+        participants: ["b"],
+        category: "lodging",
+        date: createdAt,
+        createdAt,
+      },
+    ];
+
+    expect(getParticipantCategorySpending(expenses, "a")).toEqual([
+      { category: "food", amount: 55 },
+      { category: "transport", amount: 20 },
     ]);
   });
 });

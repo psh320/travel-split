@@ -4,7 +4,7 @@ import { getMemberAccentColor } from "../../config/trip";
 import { t } from "../../i18n";
 import type { Trip } from "../../types";
 import { formatAmount } from "../../utils";
-import { EXPENSE_CATEGORIES, getExpenseShares } from "../../utils/expenses";
+import { getParticipantCategorySpending } from "../../utils/expenses";
 import { AnimatedAmount } from "../AnimatedAmount";
 import { Avatar } from "../Avatar";
 
@@ -43,24 +43,16 @@ export const SpendingSummaryCard = ({
           color: "#E5E7E9",
         },
       ];
-  const categorySummary = EXPENSE_CATEGORIES.map((category) => ({
-    category,
-    amount: trip.expenses
-      .filter((expense) => (expense.category ?? "other") === category)
-      .reduce((sum, expense) => sum + expense.amount, 0),
-  }))
-    .filter((item) => item.amount > 0)
-    .sort((a, b) => b.amount - a.amount);
-  const maxCategoryAmount = categorySummary[0]?.amount ?? 0;
   const participantCount = Math.max(trip.participants.length, 1);
   const currentParticipant = trip.participants.find(
     (participant) => participant.id === currentUserId
   );
+  const categorySummary = currentParticipant
+    ? getParticipantCategorySpending(trip.expenses, currentParticipant.id)
+    : [];
+  const maxCategoryAmount = categorySummary[0]?.amount ?? 0;
   const currentUserSpending = currentParticipant
-    ? trip.expenses.reduce((sum, expense) => {
-        if (!expense.participants.includes(currentParticipant.id)) return sum;
-        return sum + (getExpenseShares(expense)[currentParticipant.id] ?? 0);
-      }, 0)
+    ? categorySummary.reduce((sum, item) => sum + item.amount, 0)
     : null;
   const groupBudget = trip.perPersonBudget
     ? trip.perPersonBudget * participantCount
@@ -94,68 +86,112 @@ export const SpendingSummaryCard = ({
         </div>
       )}
 
-      {activeBudgetTarget ? (
-        <div className={`budget-progress${isOverBudget ? " is-over" : ""}`}>
-          <div className="budget-amount-comparison">
-            <strong>
-              <AnimatedAmount amount={budgetSpending} />
-            </strong>
-            <span>/ {formatAmount(activeBudgetTarget)}</span>
+      <div className="personal-spending-summary">
+        {activeBudgetTarget ? (
+          <div className={`budget-progress${isOverBudget ? " is-over" : ""}`}>
+            <div className="budget-amount-comparison">
+              <strong>
+                <AnimatedAmount amount={budgetSpending} />
+              </strong>
+              <span>/ {formatAmount(activeBudgetTarget)}</span>
+            </div>
+            <div className="budget-progress-caption">
+              <span>{spendingLabel}</span>
+              <span>
+                {Math.round(budgetUsage)}% {t("budgetUsed")}
+              </span>
+            </div>
+            <div
+              className="budget-progress-track"
+              role="progressbar"
+              aria-label={`${spendingLabel} ${formatAmount(
+                budgetSpending
+              )} / ${formatAmount(activeBudgetTarget)}`}
+              aria-valuemin={0}
+              aria-valuemax={100}
+              aria-valuenow={Math.round(Math.min(budgetUsage, 100))}
+              aria-valuetext={`${Math.round(budgetUsage)}% ${t("budgetUsed")}`}
+            >
+              <span
+                className="motion-progress-fill"
+                style={{ width: `${Math.min(budgetUsage, 100)}%` }}
+              />
+            </div>
+            {isOverBudget && (
+              <strong className="budget-overage">
+                {formatAmount(budgetOverage)} {t("overBudget")}
+              </strong>
+            )}
+            {trip.createdBy === currentUserId && (
+              <button
+                type="button"
+                className="budget-edit-trigger"
+                onClick={onEditBudget}
+              >
+                {t("editBudget")}
+              </button>
+            )}
           </div>
-          <div className="budget-progress-caption">
-            <span>{spendingLabel}</span>
-            <span>
-              {Math.round(budgetUsage)}% {t("budgetUsed")}
+        ) : (
+          <div className="budget-empty-state">
+            <div>
+              <strong>{t("budgetNotSet")}</strong>
+              <span>{t("perPersonBudgetHelp")}</span>
+            </div>
+            {trip.createdBy === currentUserId && (
+              <button
+                type="button"
+                className="btn btn-secondary"
+                onClick={onEditBudget}
+              >
+                {t("setBudget")}
+              </button>
+            )}
+          </div>
+        )}
+
+        {categorySummary.length > 0 && (
+          <div className="category-spending-section is-personal">
+            <span className="summary-eyebrow">
+              {t("mySpendingByCategory")}
             </span>
+            <div className="category-bar-list">
+              {categorySummary.map((item, index) => (
+                <div className="category-bar-row" key={item.category}>
+                  <div className="category-bar-heading">
+                    <span>
+                      <span
+                        className={`expense-category-dot category-${item.category}`}
+                      />
+                      {t(item.category)}
+                    </span>
+                    <strong>
+                      <AnimatedAmount amount={item.amount} />
+                    </strong>
+                  </div>
+                  <div
+                    className="category-bar-track"
+                    role="img"
+                    aria-label={`${t("mySpendingByCategory")}: ${t(
+                      item.category
+                    )} ${formatAmount(item.amount)}`}
+                  >
+                    <span
+                      className={`category-bar-fill category-${item.category}`}
+                      style={
+                        {
+                          width: `${(item.amount / maxCategoryAmount) * 100}%`,
+                          "--bar-delay": `${160 + index * 80}ms`,
+                        } as CSSProperties
+                      }
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
-          <div
-            className="budget-progress-track"
-            role="progressbar"
-            aria-label={`${spendingLabel} ${formatAmount(
-              budgetSpending
-            )} / ${formatAmount(activeBudgetTarget)}`}
-            aria-valuemin={0}
-            aria-valuemax={100}
-            aria-valuenow={Math.round(Math.min(budgetUsage, 100))}
-            aria-valuetext={`${Math.round(budgetUsage)}% ${t("budgetUsed")}`}
-          >
-            <span
-              className="motion-progress-fill"
-              style={{ width: `${Math.min(budgetUsage, 100)}%` }}
-            />
-          </div>
-          {isOverBudget && (
-            <strong className="budget-overage">
-              {formatAmount(budgetOverage)} {t("overBudget")}
-            </strong>
-          )}
-          {trip.createdBy === currentUserId && (
-            <button
-              type="button"
-              className="budget-edit-trigger"
-              onClick={onEditBudget}
-            >
-              {t("editBudget")}
-            </button>
-          )}
-        </div>
-      ) : (
-        <div className="budget-empty-state">
-          <div>
-            <strong>{t("budgetNotSet")}</strong>
-            <span>{t("perPersonBudgetHelp")}</span>
-          </div>
-          {trip.createdBy === currentUserId && (
-            <button
-              type="button"
-              className="btn btn-secondary"
-              onClick={onEditBudget}
-            >
-              {t("setBudget")}
-            </button>
-          )}
-        </div>
-      )}
+        )}
+      </div>
 
       <div className="spending-breakdown-heading">
         <span className="summary-eyebrow">{t("spendingByPerson")}</span>
@@ -245,43 +281,6 @@ export const SpendingSummaryCard = ({
         </div>
       </div>
 
-      {categorySummary.length > 0 && (
-        <div className="category-spending-section">
-          <span className="summary-eyebrow">{t("spendingByCategory")}</span>
-          <div className="category-bar-list">
-            {categorySummary.map((item, index) => (
-              <div className="category-bar-row" key={item.category}>
-                <div className="category-bar-heading">
-                  <span>
-                    <span
-                      className={`expense-category-dot category-${item.category}`}
-                    />
-                    {t(item.category)}
-                  </span>
-                  <strong>
-                    <AnimatedAmount amount={item.amount} />
-                  </strong>
-                </div>
-                <div
-                  className="category-bar-track"
-                  role="img"
-                  aria-label={`${t(item.category)} ${formatAmount(item.amount)}`}
-                >
-                  <span
-                    className={`category-bar-fill category-${item.category}`}
-                    style={
-                      {
-                        width: `${(item.amount / maxCategoryAmount) * 100}%`,
-                        "--bar-delay": `${160 + index * 80}ms`,
-                      } as CSSProperties
-                    }
-                  />
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
     </div>
   );
 };

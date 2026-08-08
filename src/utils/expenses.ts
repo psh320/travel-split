@@ -78,6 +78,25 @@ export const getExpenseShares = (expense: Expense): Record<string, number> => {
   return normalized;
 };
 
+export const getParticipantCategorySpending = (
+  expenses: Expense[],
+  participantId: string
+): Array<{ category: ExpenseCategory; amount: number }> =>
+  EXPENSE_CATEGORIES.map((category) => ({
+    category,
+    amount: fromMinorUnits(
+      expenses
+        .filter((expense) => (expense.category ?? "other") === category)
+        .reduce(
+          (sum, expense) =>
+            sum + toMinorUnits(getExpenseShares(expense)[participantId] ?? 0),
+          0
+        )
+    ),
+  }))
+    .filter((item) => item.amount > 0)
+    .sort((left, right) => right.amount - left.amount);
+
 export const toExpenseDateInput = (date: Date): string => {
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, "0");

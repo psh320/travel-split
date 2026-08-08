@@ -813,6 +813,15 @@ select {
   margin-bottom: var(--ease-space-xxl);
 }
 
+.personal-spending-summary {
+  margin-bottom: var(--ease-space-xxl);
+}
+
+.personal-spending-summary > .budget-progress,
+.personal-spending-summary > .budget-empty-state {
+  margin-bottom: 0;
+}
+
 .budget-amount-comparison {
   display: flex;
   align-items: baseline;
@@ -1102,6 +1111,10 @@ select {
   margin-top: var(--ease-space-xl);
   padding-top: var(--ease-space-xl);
   border-top: var(--ease-border-hairline) solid var(--ease-color-border);
+}
+
+.category-spending-section.is-personal {
+  margin-bottom: 0;
 }
 
 .category-spending-section .summary-eyebrow {
