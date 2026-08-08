@@ -16,6 +16,7 @@ import {
   TripParticipantLimitError,
 } from "../config/trip";
 import { currentTripSession } from "../services/currentTripSession";
+import { PageSkeleton } from "../components/ui/PageState";
 
 const AutoJoinPage = () => {
   const { roomCode } = useParams<{ roomCode: string }>();
@@ -155,20 +156,7 @@ const AutoJoinPage = () => {
   };
 
   if (loading) {
-    return (
-      <>
-        <AppHeader
-          backTo="/"
-          title={t("joiningGroup")}
-          subtitle={t("loading")}
-        />
-        <div className="content">
-          <div className="loading">
-            <div className="spinner" />
-          </div>
-        </div>
-      </>
-    );
+    return <PageSkeleton variant="list" />;
   }
 
   if (loadError) {

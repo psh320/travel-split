@@ -13,6 +13,7 @@ import {
   TripParticipantLimitError,
 } from "../config/trip";
 import { currentTripSession } from "../services/currentTripSession";
+import { PageSkeleton } from "../components/ui/PageState";
 
 const AddMemberPage = () => {
   const { groupId } = useParams<{ groupId: string }>();
@@ -107,11 +108,7 @@ const AddMemberPage = () => {
   };
 
   if (loading || !trip) {
-    return (
-      <div className="loading">
-        <div className="spinner" />
-      </div>
-    );
+    return <PageSkeleton variant="form" />;
   }
 
   return (

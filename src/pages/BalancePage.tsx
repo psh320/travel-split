@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { AppHeader } from "../components/ui/AppHeader";
-import { PageErrorState, PageLoading } from "../components/ui/PageState";
+import { PageErrorState, PageSkeleton } from "../components/ui/PageState";
 import { BalanceOverviewCard } from "../components/balance/BalanceOverviewCard";
 import { CombinationBalancesCard } from "../components/balance/CombinationBalancesCard";
 import { CombinationDetailsDialog } from "../components/balance/CombinationDetailsDialog";
@@ -38,7 +38,7 @@ const BalancePage = () => {
     { lockBodyScroll: false }
   );
 
-  if (loading) return <PageLoading />;
+  if (loading) return <PageSkeleton variant="balance" />;
 
   if (!trip || !balanceSummary) {
     return (

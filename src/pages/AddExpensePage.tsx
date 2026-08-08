@@ -11,7 +11,7 @@ import {
   toExpenseDateInput,
 } from "../utils/expenses";
 import { toMinorUnits } from "../utils/currency";
-import { PageLoading } from "../components/ui/PageState";
+import { PageSkeleton } from "../components/ui/PageState";
 import { ExpenseDetailsFields } from "../components/expense/ExpenseDetailsFields";
 import { ExpenseSplitEditor } from "../components/expense/ExpenseSplitEditor";
 import { useCurrentTripUserId } from "../hooks/useCurrentTripUserId";
@@ -291,7 +291,7 @@ const AddExpensePage = () => {
   };
 
   if (!trip) {
-    return <PageLoading />;
+    return <PageSkeleton variant="form" />;
   }
 
   return (

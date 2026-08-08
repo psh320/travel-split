@@ -3231,13 +3231,229 @@ select {
   box-shadow: 0 0 0 2px var(--ease-color-brand-soft);
 }
 
-.loading {
+.page-skeleton {
+  min-height: 100vh;
+  min-height: 100dvh;
+  opacity: 0;
+  animation: skeleton-reveal 140ms ease 100ms forwards;
+}
+
+.skeleton-header {
+  display: flex;
+  min-height: 92px;
+  align-items: center;
+  gap: var(--ease-space-md);
+  padding: calc(var(--ease-space-md) + var(--safe-area-inset-top))
+    var(--ease-page-gutter) var(--ease-space-md);
+  border-bottom: var(--ease-border-hairline) solid var(--ease-color-border);
+}
+
+.skeleton-header-copy,
+.skeleton-row-copy,
+.skeleton-summary-copy,
+.skeleton-profile-copy,
+.skeleton-metrics > span {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+  gap: var(--ease-space-sm);
+}
+
+.skeleton-content {
+  min-height: auto;
+}
+
+.skeleton-shape {
+  position: relative;
+  display: block;
+  overflow: hidden;
+  border-radius: var(--ease-radius-sm);
+  background: color-mix(
+    in srgb,
+    var(--ease-color-surface-subtle) 82%,
+    var(--ease-color-border)
+  );
+}
+
+.skeleton-shape::after {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    100deg,
+    transparent 15%,
+    color-mix(in srgb, var(--ease-color-surface) 72%, transparent) 48%,
+    transparent 82%
+  );
+  content: "";
+  transform: translateX(-110%);
+  animation: skeleton-sheen 1.4s ease-in-out infinite;
+}
+
+.skeleton-line {
+  width: 56%;
+  height: 12px;
+}
+
+.skeleton-line.is-title {
+  width: min(52%, 180px);
+  height: 24px;
+}
+
+.skeleton-line.is-subtitle {
+  width: min(38%, 132px);
+  height: 10px;
+}
+
+.skeleton-line.is-section-title {
+  width: min(34%, 128px);
+  height: 16px;
+  margin-bottom: var(--ease-space-lg);
+}
+
+.skeleton-line.is-label {
+  width: 72px;
+  height: 9px;
+}
+
+.skeleton-line.is-short {
+  width: 34%;
+}
+
+.skeleton-line.is-medium {
+  width: 58%;
+}
+
+.skeleton-line.is-wide {
+  width: 84%;
+}
+
+.skeleton-line.is-amount {
+  width: 64px;
+  flex: 0 0 64px;
+}
+
+.skeleton-line.is-balance {
+  width: min(72%, 260px);
+  height: 20px;
+}
+
+.skeleton-back {
+  width: var(--ease-size-touch-min);
+  height: var(--ease-size-touch-min);
+  flex: 0 0 var(--ease-size-touch-min);
+  border-radius: 50%;
+}
+
+.skeleton-section {
+  padding: var(--ease-section-padding-y) 0;
+}
+
+.skeleton-section + .skeleton-section {
+  border-top: var(--ease-border-hairline) solid var(--ease-color-border);
+}
+
+.skeleton-actions {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--ease-space-sm);
+  padding: var(--ease-space-lg) 0 var(--ease-space-xl);
+}
+
+.skeleton-action {
+  height: 72px;
+  border-radius: var(--ease-radius-md);
+}
+
+.skeleton-summary {
   display: flex;
   align-items: center;
-  justify-content: center;
-  min-height: 70vh;
-  min-height: calc(100dvh - 96px);
-  padding: var(--ease-space-xxl);
+  gap: var(--ease-space-xl);
+  border-top: var(--ease-border-hairline) solid var(--ease-color-border);
+}
+
+.skeleton-chart {
+  width: 132px;
+  height: 132px;
+  flex: 0 0 132px;
+  border-radius: 50%;
+}
+
+.skeleton-row {
+  display: flex;
+  min-height: 68px;
+  align-items: center;
+  gap: var(--ease-space-md);
+  padding: var(--ease-space-md) 0;
+  border-bottom: var(--ease-border-hairline) solid var(--ease-color-border);
+}
+
+.skeleton-avatar {
+  width: 40px;
+  height: 40px;
+  flex: 0 0 40px;
+  border-radius: 50%;
+}
+
+.skeleton-avatar.is-large {
+  width: 64px;
+  height: 64px;
+  flex-basis: 64px;
+}
+
+.skeleton-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ease-space-xl);
+}
+
+.skeleton-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ease-space-sm);
+}
+
+.skeleton-input {
+  width: 100%;
+  height: 48px;
+}
+
+.skeleton-button {
+  width: 100%;
+  height: 48px;
+  margin-top: var(--ease-space-sm);
+}
+
+.skeleton-balance-hero {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ease-space-xl);
+}
+
+.skeleton-profile {
+  display: flex;
+  align-items: center;
+  gap: var(--ease-space-md);
+}
+
+.skeleton-metrics {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--ease-space-md);
+  padding-top: var(--ease-space-lg);
+  border-top: var(--ease-border-hairline) solid var(--ease-color-border);
+}
+
+@keyframes skeleton-reveal {
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes skeleton-sheen {
+  to {
+    transform: translateX(110%);
+  }
 }
 
 .spinner {
@@ -4119,6 +4335,10 @@ select {
     animation-duration: 1ms !important;
     scroll-behavior: auto !important;
     transition-duration: 1ms !important;
+  }
+
+  .skeleton-shape::after {
+    animation: none !important;
   }
 }
 

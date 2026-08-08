@@ -15,7 +15,7 @@ import { useToast } from "../components/ui/useToast";
 import { DEFAULT_AVATAR_CONFIG, getAvatarConfig } from "../utils/avatars";
 import { useReducedMotion } from "../hooks/useReducedMotion";
 import { currentTripSession } from "../services/currentTripSession";
-import { PageErrorState, PageLoading } from "../components/ui/PageState";
+import { PageErrorState, PageSkeleton } from "../components/ui/PageState";
 import { useDialogLifecycle } from "../hooks/useDialogLifecycle";
 import { SpendingSummaryCard } from "../components/dashboard/SpendingSummaryCard";
 import { RecentExpensesCard } from "../components/dashboard/RecentExpensesCard";
@@ -216,7 +216,7 @@ const TripDashboard = () => {
   };
 
   if (loading) {
-    return <PageLoading />;
+    return <PageSkeleton variant="dashboard" />;
   }
 
   if (!trip) {

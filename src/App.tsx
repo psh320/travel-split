@@ -4,6 +4,7 @@ import HomePage from "./pages/HomePage";
 import { ToastProvider } from "./components/ui/Toast";
 import RouteMeta from "./components/RouteMeta";
 import GoogleAnalytics from "./components/GoogleAnalytics";
+import { RouteLoadingSkeleton } from "./components/ui/PageState";
 import { getLocale } from "./i18n";
 import "./App.css";
 
@@ -41,13 +42,7 @@ function App() {
           <Router>
             <RouteMeta />
             <GoogleAnalytics />
-            <Suspense
-              fallback={
-                <div className="loading">
-                  <div className="spinner" />
-                </div>
-              }
-            >
+            <Suspense fallback={<RouteLoadingSkeleton />}>
               <Routes>
                 <Route path="/" element={<HomePage />} />
                 <Route path="/create-group" element={<CreateTripPage />} />

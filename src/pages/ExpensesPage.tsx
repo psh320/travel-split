@@ -16,7 +16,7 @@ import { FirebaseService } from "../services/firebase";
 import type { ExpenseCategory } from "../types";
 import { formatAmount, formatExpenseDate } from "../utils";
 import { EXPENSE_CATEGORIES } from "../utils/expenses";
-import { PageErrorState, PageLoading } from "../components/ui/PageState";
+import { PageErrorState, PageSkeleton } from "../components/ui/PageState";
 import { useDialogLifecycle } from "../hooks/useDialogLifecycle";
 import { useCurrentTripUserId } from "../hooks/useCurrentTripUserId";
 import { useTripData } from "../hooks/useTripData";
@@ -121,7 +121,7 @@ const ExpensesPage = () => {
   }, [categoryFilter, currentUserId, filterBy, searchTerm, sortBy, trip]);
 
   if (loading) {
-    return <PageLoading />;
+    return <PageSkeleton variant="list" />;
   }
 
   if (!trip) {
