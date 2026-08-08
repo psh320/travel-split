@@ -170,22 +170,22 @@ export function AvatarIllustration({
   const renderMouth = () => {
     switch (config.mouthStyle) {
       case "grin":
-        return <path d="M51 88q13 15 26 0c-1 13-25 14-26 0Z" fill={PAPER} stroke={INK} strokeWidth="3" strokeLinejoin="round" />;
+        return <path d="M51 89q13 9 26 0c-2 13-24 13-26 0Z" fill={PAPER} stroke={INK} strokeWidth="2.8" strokeLinejoin="round" />;
       case "open":
-        return <ellipse cx="64" cy="93" rx="7" ry="8.5" fill={INK} />;
+        return <ellipse cx="64" cy="93" rx="5.2" ry="6.2" fill={PAPER} stroke={INK} strokeWidth="3" />;
       case "pout":
-        return <path {...line} d="M56 93q4-6 8 0 4-6 8 0-4 4-8 4t-8-4Z" strokeWidth="3" />;
+        return <path {...line} d="M57 93q3-4 7-1 4-3 7 1-3 4-7 4t-7-4Z" strokeWidth="2.6" />;
       case "laugh":
         return (
           <g>
-            <path d="M50 88q14 9 28 0c-1 17-27 18-28 0Z" fill={INK} />
-            <path {...line} d="M54 91q10 4 20 0" stroke={PAPER} strokeWidth="2" />
+            <path d="M50 88q14 10 28 0c-2 17-26 18-28 0Z" fill={INK} />
+            <path {...line} d="M54 91q10 4 20 0" stroke={PAPER} strokeWidth="2.2" />
           </g>
         );
       case "smirk":
-        return <path {...line} d="M54 93q12 4 22-5" strokeWidth="3.5" />;
+        return <path {...line} d="M54 92q11 5 21-2" strokeWidth="3.2" />;
       case "tiny":
-        return <path {...line} d="M60 92q4-4 8 0-4 4-8 0Z" strokeWidth="2.8" />;
+        return <path {...line} d="M60 92q4 5 8 0" strokeWidth="2.6" />;
       case "flat":
         return <path {...line} d="M57 92h14" strokeWidth="3.5" />;
       default:

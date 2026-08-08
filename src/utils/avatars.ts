@@ -76,12 +76,12 @@ export const AVATAR_OPTIONS = {
   ] satisfies Array<{ id: AvatarNoseStyle; ko: string; en: string }>,
   mouthStyle: [
     { id: "smile", ko: "미소", en: "Smile" },
-    { id: "grin", ko: "활짝", en: "Grin" },
-    { id: "open", ko: "신남", en: "Excited" },
+    { id: "grin", ko: "이빨", en: "Teeth" },
+    { id: "open", ko: "동그라미", en: "O mouth" },
     { id: "pout", ko: "새침", en: "Pout" },
-    { id: "laugh", ko: "깔깔", en: "Laugh" },
+    { id: "laugh", ko: "활짝", en: "Laugh" },
     { id: "smirk", ko: "씨익", en: "Smirk" },
-    { id: "tiny", ko: "앙증", en: "Tiny" },
+    { id: "tiny", ko: "작은 미소", en: "Tiny" },
     { id: "flat", ko: "덤덤", en: "Straight" },
   ] satisfies Array<{ id: AvatarMouthStyle; ko: string; en: string }>,
   accessory: [
