@@ -59,12 +59,12 @@ export const AVATAR_OPTIONS = {
   eyeStyle: [
     { id: "round", ko: "동글", en: "Round" },
     { id: "dot", ko: "콩눈", en: "Dots" },
-    { id: "happy", ko: "웃는 눈", en: "Happy" },
-    { id: "sparkle", ko: "반짝", en: "Sparkle" },
-    { id: "sleepy", ko: "나른", en: "Sleepy" },
-    { id: "almond", ko: "아몬드", en: "Almond" },
-    { id: "wink", ko: "윙크", en: "Wink" },
-    { id: "curious", ko: "궁금", en: "Curious" },
+    { id: "happy", ko: "실눈", en: "Narrow" },
+    { id: "sparkle", ko: "큰눈", en: "Big" },
+    { id: "sleepy", ko: "반달", en: "Crescent" },
+    { id: "almond", ko: "가로", en: "Wide" },
+    { id: "wink", ko: "세로", en: "Tall" },
+    { id: "curious", ko: "아치", en: "Arch" },
   ] satisfies Array<{ id: AvatarEyeStyle; ko: string; en: string }>,
   noseStyle: [
     { id: "dot", ko: "콩", en: "Dot" },

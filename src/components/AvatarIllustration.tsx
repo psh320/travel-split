@@ -141,31 +141,25 @@ export function AvatarIllustration({
       case "dot":
         return <g fill={INK}><circle cx="49" cy="67" r="3.2" /><circle cx="79" cy="67" r="3.2" /></g>;
       case "happy":
-        return <g {...line} strokeWidth="4"><path d="M41 69q8-10 16 0M71 69q8-10 16 0" /></g>;
+        return <g {...line} strokeWidth="3.6"><path d="M42 67h14M72 67h14" /></g>;
       case "sleepy":
-        return <g {...line} strokeWidth="3.5"><path d="M40 66q9 8 18 0M70 66q9 8 18 0" /></g>;
+        return <g {...line} strokeWidth="3.5"><path d="M40 65q9 9 18 0M70 65q9 9 18 0" /></g>;
       case "almond":
-        return <g fill={INK}><path d="M39 67q10-11 20 0-10 9-20 0ZM69 67q10-11 20 0-10 9-20 0Z" /></g>;
+        return <g fill={INK}><ellipse cx="49" cy="67" rx="7.4" ry="3.8" /><ellipse cx="79" cy="67" rx="7.4" ry="3.8" /></g>;
       case "wink":
-        return (
-          <g>
-            <ellipse cx="49" cy="67" rx="5.2" ry="7" fill={INK} />
-            <path {...line} d="M71 69q8-10 16 0" strokeWidth="4" />
-          </g>
-        );
+        return <g fill={INK}><ellipse cx="49" cy="67" rx="3.8" ry="8.4" /><ellipse cx="79" cy="67" rx="3.8" ry="8.4" /></g>;
       case "curious":
         return (
-          <g fill={INK}>
-            <ellipse cx="49" cy="68" rx="4.4" ry="6.3" />
-            <ellipse cx="79" cy="66" rx="6" ry="8.5" />
-            <path {...line} d="M42 57q7-4 14 0M72 55q7-5 14-1" strokeWidth="2.6" />
+          <g>
+            <path {...line} d="M40 69q9-12 18 0M70 69q9-12 18 0" strokeWidth="3" />
+            <g fill={INK}><circle cx="49" cy="67" r="2.4" /><circle cx="79" cy="67" r="2.4" /></g>
           </g>
         );
       case "sparkle":
         return (
           <g>
-            <ellipse cx="49" cy="67" rx="6" ry="8" fill={INK} /><ellipse cx="79" cy="67" rx="6" ry="8" fill={INK} />
-            <g fill={PAPER}><circle cx="47" cy="64" r="1.7" /><circle cx="77" cy="64" r="1.7" /><circle cx="51" cy="69" r="1" /><circle cx="81" cy="69" r="1" /></g>
+            <ellipse cx="49" cy="67" rx="6.6" ry="8.8" fill={INK} /><ellipse cx="79" cy="67" rx="6.6" ry="8.8" fill={INK} />
+            <g fill={PAPER}><circle cx="46.8" cy="63.5" r="1.9" /><circle cx="76.8" cy="63.5" r="1.9" /><circle cx="51.5" cy="69.5" r="1" /><circle cx="81.5" cy="69.5" r="1" /></g>
           </g>
         );
       default:
