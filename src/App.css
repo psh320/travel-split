@@ -2769,38 +2769,6 @@ select {
   overflow-wrap: anywhere;
 }
 
-.expense-list-title-row {
-  display: flex;
-  min-width: 0;
-  align-items: center;
-  gap: var(--ease-space-sm);
-}
-
-.expense-list-title-row .list-item-title {
-  min-width: 0;
-  flex: 1;
-}
-
-.expense-category-badge {
-  display: inline-flex;
-  flex-shrink: 0;
-  align-items: center;
-  gap: var(--ease-space-xs);
-  padding: 2px 6px;
-  border: var(--ease-border-hairline) solid var(--ease-color-border);
-  border-radius: var(--ease-radius-pill);
-  color: var(--ease-color-text-soft);
-  font-size: 0.6875rem;
-  font-weight: 680;
-  line-height: 1.35;
-}
-
-.expense-category-badge .expense-category-dot {
-  width: 6px;
-  min-width: 6px;
-  height: 6px;
-}
-
 .expense-list-item-summary {
   margin-bottom: var(--ease-space-xs);
 }
