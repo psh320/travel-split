@@ -1,59 +1,57 @@
-import { useState, useEffect, useCallback, type CSSProperties } from "react";
+import { useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
-import { Cell, Pie, PieChart, ResponsiveContainer } from "recharts";
 import { AppHeader } from "../components/ui/AppHeader";
-import { FieldError } from "../components/ui/FieldError";
 import {
-  CloseIcon,
   IconButton,
   InfoIcon,
   LinkIcon,
-  TrashIcon,
   UsersIcon,
 } from "../components/ui/IconButton";
-import { ExpenseListItem } from "../components/ExpenseListItem";
-import { Avatar } from "../components/Avatar";
-import { AvatarCustomizer } from "../components/AvatarCustomizer";
 import { FirebaseService } from "../services/firebase";
 import { GroupHistoryService } from "../services/groupHistory";
 import { countLabel, t } from "../i18n";
 import type { AvatarConfig, Trip } from "../types";
-import {
-  formatAmount,
-  formatDate,
-  formatExpenseDate,
-} from "../utils";
 import { useToast } from "../components/ui/useToast";
 import { DEFAULT_AVATAR_CONFIG, getAvatarConfig } from "../utils/avatars";
-import { EXPENSE_CATEGORIES, getExpenseShares } from "../utils/expenses";
-import { AnimatedAmount } from "../components/AnimatedAmount";
 import { useReducedMotion } from "../hooks/useReducedMotion";
+import { currentTripSession } from "../services/currentTripSession";
+import { PageErrorState, PageLoading } from "../components/ui/PageState";
+import { useDialogLifecycle } from "../hooks/useDialogLifecycle";
+import { SpendingSummaryCard } from "../components/dashboard/SpendingSummaryCard";
+import { RecentExpensesCard } from "../components/dashboard/RecentExpensesCard";
 import {
-  getMemberAccentColor,
-  MAX_TRIP_PARTICIPANTS,
-} from "../config/trip";
-
-type DashboardModal = "details" | "participants" | "budget" | null;
-type PendingRemoval = {
-  id: string;
-  name: string;
-  linkedExpenseCount: number;
-} | null;
+  TripDashboardDialogs,
+  type DashboardModal,
+  type PendingParticipantRemoval,
+} from "../components/dashboard/TripDashboardDialogs";
+import { useCurrentTripUserId } from "../hooks/useCurrentTripUserId";
+import { useTripData } from "../hooks/useTripData";
 
 const TripDashboard = () => {
   const { groupId } = useParams<{ groupId: string }>();
   const navigate = useNavigate();
   const { showToast } = useToast();
   const prefersReducedMotion = useReducedMotion();
-  const cachedTrip = groupId ? FirebaseService.getCachedTripById(groupId) : null;
-  const [trip, setTrip] = useState<Trip | null>(cachedTrip);
-  const [loading, setLoading] = useState(!cachedTrip);
-  const [currentUserId, setCurrentUserId] = useState<string>("");
+  const currentUserId = useCurrentTripUserId();
+  const { trip, setTrip, loading, reload: loadTrip } = useTripData(groupId, {
+    onLoaded: () => {
+      if (groupId) GroupHistoryService.updateLastAccessed(groupId);
+    },
+    onMissing: () => {
+      showToast(t("noMatches"), "error");
+      void navigate("/");
+    },
+    onError: (error) => {
+      console.error("Error loading trip:", error);
+      showToast(t("noMatches"), "error");
+    },
+  });
   const [activeModal, setActiveModal] = useState<DashboardModal>(null);
   const [budgetValue, setBudgetValue] = useState("");
   const [budgetError, setBudgetError] = useState("");
   const [savingBudget, setSavingBudget] = useState(false);
-  const [pendingRemoval, setPendingRemoval] = useState<PendingRemoval>(null);
+  const [pendingRemoval, setPendingRemoval] =
+    useState<PendingParticipantRemoval>(null);
   const [removingUser, setRemovingUser] = useState(false);
   const [editingAvatar, setEditingAvatar] = useState(false);
   const [avatarDraft, setAvatarDraft] = useState<AvatarConfig>({
@@ -61,61 +59,10 @@ const TripDashboard = () => {
   });
   const [savingAvatar, setSavingAvatar] = useState(false);
 
-  const loadTrip = useCallback(async (showLoading = false) => {
-    if (!groupId) return;
-
-    if (showLoading) setLoading(true);
-    try {
-      const tripData = await FirebaseService.getTripById(groupId, {
-        force: Boolean(FirebaseService.getCachedTripById(groupId)),
-      });
-      if (tripData) {
-        setTrip(tripData);
-        // Update last accessed time in group history
-        GroupHistoryService.updateLastAccessed(groupId);
-      } else {
-        showToast(t("noMatches"), "error");
-        navigate("/");
-      }
-    } catch (error) {
-      console.error("Error loading trip:", error);
-      showToast(t("noMatches"), "error");
-    } finally {
-      setLoading(false);
-    }
-  }, [groupId, navigate, showToast]);
-
-  useEffect(() => {
-    const userId = localStorage.getItem("currentUserId");
-    if (userId) {
-      setCurrentUserId(userId);
-    }
-
-    loadTrip(!FirebaseService.getCachedTripById(groupId ?? ""));
-  }, [groupId, loadTrip]);
-
-  useEffect(() => {
-    if (!activeModal) return;
-
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
-        if (pendingRemoval) {
-          setPendingRemoval(null);
-          return;
-        }
-        setActiveModal(null);
-      }
-    };
-
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    document.addEventListener("keydown", handleKeyDown);
-
-    return () => {
-      document.body.style.overflow = previousOverflow;
-      document.removeEventListener("keydown", handleKeyDown);
-    };
-  }, [activeModal, pendingRemoval]);
+  useDialogLifecycle(Boolean(activeModal), () => {
+    if (pendingRemoval) setPendingRemoval(null);
+    else setActiveModal(null);
+  });
 
   const handleDeleteExpense = async (expenseId: string) => {
     if (
@@ -242,15 +189,17 @@ const TripDashboard = () => {
   };
 
   const copyRoomCode = () => {
-    const roomCode = localStorage.getItem("roomCode") || trip?.roomCode;
+    const roomCode = currentTripSession.get().roomCode || trip?.roomCode;
     if (roomCode) {
-      navigator.clipboard.writeText(roomCode);
-      showToast(t("codeCopied"), "success");
+      void navigator.clipboard
+        .writeText(roomCode)
+        .then(() => showToast(t("codeCopied"), "success"))
+        .catch(() => showToast(`${t("shareCode")}: ${roomCode}`, "success"));
     }
   };
 
   const copyShareableLink = async () => {
-    const roomCode = localStorage.getItem("roomCode") || trip?.roomCode;
+    const roomCode = currentTripSession.get().roomCode || trip?.roomCode;
     if (roomCode) {
       const shareableLink = `${window.location.origin}/join/${roomCode}`;
       if (navigator.clipboard) {
@@ -267,23 +216,16 @@ const TripDashboard = () => {
   };
 
   if (loading) {
-    return (
-      <div className="loading">
-        <div className="spinner" />
-      </div>
-    );
+    return <PageLoading />;
   }
 
   if (!trip) {
     return (
-      <div className="content">
-        <div className="card">
-          <h3>{t("noMatches")}</h3>
-          <Link to="/" className="btn btn-primary">
-            {t("splitExpenses")}
-          </Link>
-        </div>
-      </div>
+      <PageErrorState
+        message={t("noMatches")}
+        actionTo="/"
+        actionLabel={t("splitExpenses")}
+      />
     );
   }
 
@@ -328,273 +270,13 @@ const TripDashboard = () => {
       />
 
       <div className="content dashboard-content">
-        {(() => {
-          const paidSummary = trip.participants
-            .map((participant, index) => ({
-              id: participant.id,
-              name: participant.name,
-              colorIndex: participant.colorIndex,
-              avatarId: participant.avatarId,
-              avatarConfig: participant.avatarConfig,
-              amount: trip.expenses
-                .filter((expense) => expense.paidBy === participant.id)
-                .reduce((sum, expense) => sum + expense.amount, 0),
-              color: getMemberAccentColor(participant.colorIndex, index),
-            }))
-            .filter((participant) => participant.amount > 0)
-            .sort((a, b) => b.amount - a.amount);
-          const chartData = paidSummary.length
-            ? paidSummary
-            : [
-                {
-                  id: "empty",
-                  name: t("noExpenses"),
-                  amount: 1,
-                  color: "#E5E7E9",
-                },
-              ];
-          const categorySummary = EXPENSE_CATEGORIES.map((category) => ({
-            category,
-            amount: trip.expenses
-              .filter((expense) => (expense.category ?? "other") === category)
-              .reduce((sum, expense) => sum + expense.amount, 0),
-          }))
-            .filter((item) => item.amount > 0)
-            .sort((a, b) => b.amount - a.amount);
-          const maxCategoryAmount = categorySummary[0]?.amount ?? 0;
-          const participantCount = Math.max(trip.participants.length, 1);
-          const currentParticipant = trip.participants.find(
-            (participant) => participant.id === currentUserId
-          );
-          const currentUserSpending = currentParticipant
-            ? trip.expenses.reduce((sum, expense) => {
-                if (
-                  !expense.participants.includes(currentParticipant.id) ||
-                  expense.participants.length === 0
-                ) {
-                  return sum;
-                }
-
-                return sum + (getExpenseShares(expense)[currentParticipant.id] ?? 0);
-              }, 0)
-            : null;
-          const perPersonBudget = trip.perPersonBudget;
-          const groupBudget = perPersonBudget
-            ? perPersonBudget * participantCount
-            : null;
-          const budgetSpending = currentUserSpending ?? totalExpenses;
-          const activeBudgetTarget = perPersonBudget
-            ? currentParticipant
-              ? perPersonBudget
-              : groupBudget
-            : null;
-          const budgetUsage = activeBudgetTarget
-            ? (budgetSpending / activeBudgetTarget) * 100
-            : 0;
-          const isOverBudget = Boolean(
-            activeBudgetTarget && budgetSpending > activeBudgetTarget
-          );
-          const budgetOverage = activeBudgetTarget
-            ? Math.max(budgetSpending - activeBudgetTarget, 0)
-            : 0;
-          const spendingLabel = currentParticipant
-            ? t("mySpending")
-            : t("groupSpent");
-
-          return (
-            <div className="card spending-summary-card">
-              <div className="summary-card-heading">
-                <span className="summary-eyebrow">{t("budgetAtGlance")}</span>
-              </div>
-
-              {currentParticipant && (
-                <div className="budget-user-context">
-                  <Avatar user={currentParticipant} size="sm" decorative />
-                  <span>{t("currentUser")}</span>
-                  <strong>{currentParticipant.name}</strong>
-                </div>
-              )}
-
-              {activeBudgetTarget ? (
-                <div className={`budget-progress${isOverBudget ? " is-over" : ""}`}>
-                  <div className="budget-amount-comparison">
-                    <strong><AnimatedAmount amount={budgetSpending} /></strong>
-                    <span>/ {formatAmount(activeBudgetTarget)}</span>
-                  </div>
-                  <div className="budget-progress-caption">
-                    <span>{spendingLabel}</span>
-                    <span>{Math.round(budgetUsage)}% {t("budgetUsed")}</span>
-                  </div>
-                  <div
-                    className="budget-progress-track"
-                    role="progressbar"
-                    aria-label={`${spendingLabel} ${formatAmount(
-                      budgetSpending
-                    )} / ${formatAmount(activeBudgetTarget)}`}
-                    aria-valuemin={0}
-                    aria-valuemax={100}
-                    aria-valuenow={Math.round(Math.min(budgetUsage, 100))}
-                    aria-valuetext={`${Math.round(budgetUsage)}% ${t("budgetUsed")}`}
-                  >
-                    <span
-                      className="motion-progress-fill"
-                      style={{ width: `${Math.min(budgetUsage, 100)}%` }}
-                    />
-                  </div>
-                  {isOverBudget && (
-                    <strong className="budget-overage">
-                      {formatAmount(budgetOverage)} {t("overBudget")}
-                    </strong>
-                  )}
-                  {trip.createdBy === currentUserId && (
-                    <button
-                      type="button"
-                      className="budget-edit-trigger"
-                      onClick={openBudgetModal}
-                    >
-                      {t("editBudget")}
-                    </button>
-                  )}
-                </div>
-              ) : (
-                <div className="budget-empty-state">
-                  <div>
-                    <strong>{t("budgetNotSet")}</strong>
-                    <span>{t("perPersonBudgetHelp")}</span>
-                  </div>
-                  {trip.createdBy === currentUserId && (
-                    <button
-                      type="button"
-                      className="btn btn-secondary"
-                      onClick={openBudgetModal}
-                    >
-                      {t("setBudget")}
-                    </button>
-                  )}
-                </div>
-              )}
-
-              <div className="spending-breakdown-heading">
-                <span className="summary-eyebrow">{t("spendingByPerson")}</span>
-              </div>
-
-              <div className="spending-summary-body">
-                <div
-                  className="spending-chart"
-                  role="img"
-                  aria-label={`${t("totalSpent")} ${formatAmount(totalExpenses)}`}
-                >
-                  <div className="spending-chart-canvas" aria-hidden="true">
-                    <ResponsiveContainer width="100%" height="100%" minWidth={0}>
-                      <PieChart accessibilityLayer={false}>
-                        <Pie
-                          data={chartData}
-                          dataKey="amount"
-                          nameKey="name"
-                          rootTabIndex={-1}
-                          cx="50%"
-                          cy="50%"
-                          innerRadius="60%"
-                          outerRadius="92%"
-                          paddingAngle={paidSummary.length > 1 ? 2 : 0}
-                          cornerRadius={4}
-                          stroke="var(--ease-color-surface-raised)"
-                          strokeWidth={2}
-                          animationBegin={80}
-                          animationDuration={720}
-                          animationEasing="ease-out"
-                          isAnimationActive={!prefersReducedMotion}
-                        >
-                          {chartData.map((participant) => (
-                            <Cell key={participant.id} fill={participant.color} />
-                          ))}
-                        </Pie>
-                      </PieChart>
-                    </ResponsiveContainer>
-                  </div>
-                  <div className="spending-chart-hole">
-                    <span>{t("totalSpent")}</span>
-                    <strong>
-                      <AnimatedAmount amount={totalExpenses} compact duration={720} />
-                    </strong>
-                  </div>
-                </div>
-
-                <div className="spending-legend">
-                  {paidSummary.length ? (
-                    paidSummary.map((participant) => (
-                      <div key={participant.id} className="spending-legend-item">
-                        <Avatar
-                          user={participant}
-                          size="xs"
-                          decorative
-                          className="spending-legend-avatar"
-                        />
-                        <div className="spending-legend-copy">
-                          <span className="spending-legend-name" title={participant.name}>
-                            {participant.name}
-                          </span>
-                          <strong>{formatAmount(participant.amount)}</strong>
-                        </div>
-                      </div>
-                    ))
-                  ) : (
-                    <p className="muted">{t("noExpenses")}</p>
-                  )}
-                </div>
-              </div>
-
-              <div className="summary-metrics">
-                <div>
-                  <span>{t("groupSpent")}</span>
-                  <strong><AnimatedAmount amount={totalExpenses} /></strong>
-                </div>
-                <div>
-                  <span>{groupBudget ? t("groupBudget") : t("totalSpent")}</span>
-                  <strong>
-                    <AnimatedAmount amount={groupBudget ?? totalExpenses} />
-                  </strong>
-                </div>
-              </div>
-
-              {categorySummary.length > 0 && (
-                <div className="category-spending-section">
-                  <span className="summary-eyebrow">{t("spendingByCategory")}</span>
-                  <div className="category-bar-list">
-                    {categorySummary.map((item, index) => (
-                      <div className="category-bar-row" key={item.category}>
-                        <div className="category-bar-heading">
-                          <span>
-                            <span
-                              className={`expense-category-dot category-${item.category}`}
-                            />
-                            {t(item.category)}
-                          </span>
-                          <strong><AnimatedAmount amount={item.amount} /></strong>
-                        </div>
-                        <div
-                          className="category-bar-track"
-                          role="img"
-                          aria-label={`${t(item.category)} ${formatAmount(item.amount)}`}
-                        >
-                          <span
-                            className={`category-bar-fill category-${item.category}`}
-                            style={
-                              {
-                                width: `${(item.amount / maxCategoryAmount) * 100}%`,
-                                "--bar-delay": `${160 + index * 80}ms`,
-                              } as CSSProperties
-                            }
-                          />
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-          );
-        })()}
+        <SpendingSummaryCard
+          currentUserId={currentUserId}
+          onEditBudget={openBudgetModal}
+          prefersReducedMotion={prefersReducedMotion}
+          totalExpenses={totalExpenses}
+          trip={trip}
+        />
 
         {/* Quick Actions */}
         <div
@@ -621,342 +303,44 @@ const TripDashboard = () => {
           </Link>
         </div>
 
-        {/* Recent Expenses */}
-        <div className="card">
-          <Link
-            to={`/group/${trip.id}/expenses`}
-            className="expense-section-link"
-            aria-label={`${t("allExpenses")} · ${countLabel("expense", trip.expenses.length)}`}
-          >
-            <div className="section-heading">
-              <h3>{t("expenses")}</h3>
-              <span
-                className="count-dot"
-                aria-label={countLabel("expense", trip.expenses.length)}
-                title={countLabel("expense", trip.expenses.length)}
-              >
-                {trip.expenses.length}
-              </span>
-            </div>
-            <span className="expense-section-chevron" aria-hidden="true" />
-          </Link>
-
-          {trip.expenses.length === 0 ? (
-            <div
-              style={{
-                textAlign: "center",
-                padding: "2rem",
-                color: "var(--ease-color-text-muted)",
-                fontSize: "0.875rem",
-              }}
-            >
-              <p>{t("noExpenses")}</p>
-            </div>
-          ) : (
-            <div className="list">
-              {[...trip.expenses]
-                .sort((a, b) => b.date.getTime() - a.date.getTime())
-                .slice(0, 10) // Show last 10 expenses
-                .map((expense) => {
-                  const paidByUser = trip.participants.find(
-                    (p) => p.id === expense.paidBy
-                  );
-                  return (
-                    <ExpenseListItem
-                      key={expense.id}
-                      dateLabel={formatExpenseDate(expense.date)}
-                      editTo={`/group/${trip.id}/edit-expense/${expense.id}`}
-                      expense={expense}
-                      onDelete={() => handleDeleteExpense(expense.id)}
-                      paidByUser={paidByUser}
-                    />
-                  );
-                })}
-            </div>
-          )}
-        </div>
-
-        {/* Show all expenses button if there are many */}
-        {trip.expenses.length > 10 && (
-          <div style={{ textAlign: "center", marginTop: "1rem" }}>
-            <Link
-              to={`/group/${trip.id}/expenses`}
-              className="btn btn-secondary"
-              style={{ fontSize: "0.875rem" }}
-            >
-              {t("allExpenses")} ({trip.expenses.length})
-            </Link>
-          </div>
-        )}
+        <RecentExpensesCard trip={trip} onDelete={handleDeleteExpense} />
       </div>
 
-      {activeModal && !(activeModal === "participants" && editingAvatar) && (
-        <div
-          className="dashboard-modal-backdrop"
-          onMouseDown={(event) => {
-            if (event.target === event.currentTarget) closeModal();
-          }}
-        >
-          <section
-            className="dashboard-modal"
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="dashboard-modal-title"
-          >
-            <div className="dashboard-modal-header">
-              <h2 id="dashboard-modal-title">
-                {activeModal === "details"
-                  ? t("groupDetails")
-                  : activeModal === "budget"
-                    ? trip.perPersonBudget
-                      ? t("editBudget")
-                      : t("setBudget")
-                    : t("participants")}
-              </h2>
-              <IconButton onClick={closeModal} label={t("close")}>
-                <CloseIcon />
-              </IconButton>
-            </div>
-
-            {activeModal === "details" ? (
-              <>
-                <div className="dashboard-detail-list">
-                  <div>
-                    <span>{t("roomCode")}</span>
-                    <strong>{trip.roomCode}</strong>
-                  </div>
-                  <div>
-                    <span>{t("created")}</span>
-                    <strong>{formatDate(trip.createdAt)}</strong>
-                  </div>
-                  <div>
-                    <span>{t("budgetTarget")}</span>
-                    <strong>
-                      {trip.perPersonBudget
-                        ? formatAmount(trip.perPersonBudget)
-                        : t("budgetNotSet")}
-                    </strong>
-                  </div>
-                  {trip.description && (
-                    <div>
-                      <span>{t("description")}</span>
-                      <strong>{trip.description}</strong>
-                    </div>
-                  )}
-                </div>
-                <div className="dashboard-modal-actions">
-                  <button type="button" className="btn btn-secondary" onClick={copyRoomCode}>
-                    {t("copyCode")}
-                  </button>
-                  <button type="button" className="btn btn-primary" onClick={copyShareableLink}>
-                    {t("shareLink")}
-                  </button>
-                </div>
-              </>
-            ) : activeModal === "budget" ? (
-              <form className="form budget-form" onSubmit={handleBudgetSubmit} noValidate>
-                <div className="form-group">
-                  <label htmlFor="dashboardBudget">{t("perPersonBudget")}</label>
-                  <input
-                    type="number"
-                    inputMode="decimal"
-                    id="dashboardBudget"
-                    value={budgetValue}
-                    onChange={(event) => {
-                      setBudgetValue(event.target.value);
-                      if (budgetError) setBudgetError("");
-                    }}
-                    placeholder="0.00"
-                    step="0.01"
-                    min="0.01"
-                    autoFocus
-                    aria-invalid={Boolean(budgetError)}
-                    aria-describedby={
-                      budgetError
-                        ? "dashboard-budget-help dashboard-budget-error"
-                        : "dashboard-budget-help"
-                    }
-                  />
-                  <span id="dashboard-budget-help" className="form-help">
-                    {t("budgetEditHelp")}
-                  </span>
-                  <FieldError
-                    id="dashboard-budget-error"
-                    message={budgetError}
-                  />
-                </div>
-                <div className="dashboard-modal-actions">
-                  <button
-                    type="button"
-                    className="btn btn-secondary"
-                    onClick={closeModal}
-                    disabled={savingBudget}
-                  >
-                    {t("cancel")}
-                  </button>
-                  <button
-                    type="submit"
-                    className="btn btn-primary"
-                    disabled={savingBudget}
-                  >
-                    {savingBudget ? (
-                      <div className="spinner spinner-small" />
-                    ) : (
-                      t("saveChanges")
-                    )}
-                  </button>
-                </div>
-              </form>
-            ) : (
-              <>
-                <div className="participants-modal-heading">
-                  <div>
-                    <strong>{countLabel("person", trip.participants.length)}</strong>
-                    <span>{t("tapYourName")}</span>
-                  </div>
-                  {trip.createdBy === currentUserId && !editingAvatar && (
-                    <button
-                      type="button"
-                      className="btn btn-secondary participants-add-button"
-                      onClick={() => navigate(`/group/${trip.id}/add-member`)}
-                      disabled={trip.participants.length >= MAX_TRIP_PARTICIPANTS}
-                    >
-                      {trip.participants.length < MAX_TRIP_PARTICIPANTS && (
-                        <span aria-hidden="true">+</span>
-                      )}
-                      {trip.participants.length >= MAX_TRIP_PARTICIPANTS
-                        ? t("groupFull")
-                        : t("addUser")}
-                    </button>
-                  )}
-                </div>
-
-                <div className="participants-modal-list">
-                  {trip.participants.map((participant) => (
-                    <div key={participant.id} className="participant-modal-item">
-                      <Avatar user={participant} size="sm" decorative />
-                      <div className="participant-modal-copy">
-                        <strong>
-                          {participant.name}
-                          {participant.id === currentUserId && ` (${t("you")})`}
-                          {participant.id === trip.createdBy && ` (${t("creator")})`}
-                        </strong>
-                      </div>
-                      {participant.id === currentUserId && (
-                        <button
-                          type="button"
-                          className="avatar-edit-trigger"
-                          onClick={() => beginAvatarEdit(participant)}
-                        >
-                          {t("changeAvatar")}
-                        </button>
-                      )}
-                      {trip.createdBy === currentUserId &&
-                        participant.id !== currentUserId &&
-                        participant.id !== trip.createdBy && (
-                          <IconButton
-                            className="participant-remove-icon"
-                            label={`${t("remove")} ${participant.name}`}
-                            onClick={() => handleRemoveUser(participant.id, participant.name)}
-                          >
-                            <TrashIcon />
-                          </IconButton>
-                        )}
-                    </div>
-                  ))}
-                </div>
-              </>
-            )}
-          </section>
-        </div>
-      )}
-
-      {activeModal === "participants" && editingAvatar && (
-        <section
-          className="avatar-editor-shell"
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="avatar-editor-title"
-        >
-          <header className="avatar-editor-header">
-            <IconButton
-              onClick={() => setEditingAvatar(false)}
-              label={t("close")}
-              disabled={savingAvatar}
-            >
-              <CloseIcon />
-            </IconButton>
-            <h2 id="avatar-editor-title">{t("changeAvatar")}</h2>
-            <button
-              type="button"
-              className="avatar-editor-save"
-              onClick={saveAvatar}
-              disabled={savingAvatar}
-            >
-              {savingAvatar ? <div className="spinner spinner-small" /> : t("done")}
-            </button>
-          </header>
-          <AvatarCustomizer
-            value={avatarDraft}
-            onChange={setAvatarDraft}
-            label={t("changeAvatar")}
-            editor
-          />
-        </section>
-      )}
-
-      {pendingRemoval && (
-        <div className="participant-confirm-backdrop">
-          <section
-            className="participant-confirm-dialog"
-            role="alertdialog"
-            aria-modal="true"
-            aria-labelledby="participant-confirm-title"
-            aria-describedby="participant-confirm-description"
-          >
-            <div className="participant-confirm-icon" aria-hidden="true">
-              <TrashIcon />
-            </div>
-            <h2 id="participant-confirm-title">
-              {pendingRemoval.linkedExpenseCount > 0
-                ? t("participantLinkedTitle")
-                : t("participantRemoveTitle")}
-            </h2>
-            <strong className="participant-confirm-name">{pendingRemoval.name}</strong>
-            <p id="participant-confirm-description">
-              {pendingRemoval.linkedExpenseCount > 0
-                ? t("participantLinkedBody")
-                : t("participantRemoveBody")}
-            </p>
-
-            {pendingRemoval.linkedExpenseCount > 0 && (
-              <div className="participant-linked-count">
-                <span>{t("relatedExpenses")}</span>
-                <strong>{pendingRemoval.linkedExpenseCount}</strong>
-              </div>
-            )}
-
-            <div className="participant-confirm-actions">
-              <button
-                type="button"
-                className="btn btn-secondary"
-                onClick={() => setPendingRemoval(null)}
-                disabled={removingUser}
-              >
-                {t("cancel")}
-              </button>
-              <button
-                type="button"
-                className="btn btn-danger"
-                onClick={confirmRemoveUser}
-                disabled={removingUser}
-              >
-                {removingUser ? <div className="spinner spinner-small" /> : t("remove")}
-              </button>
-            </div>
-          </section>
-        </div>
-      )}
+      <TripDashboardDialogs
+        activeModal={activeModal}
+        avatar={{
+          draft: avatarDraft,
+          editing: editingAvatar,
+          onBegin: beginAvatarEdit,
+          onChange: setAvatarDraft,
+          onClose: () => setEditingAvatar(false),
+          onSave: () => void saveAvatar(),
+          saving: savingAvatar,
+        }}
+        budget={{
+          error: budgetError,
+          onChange: (value) => {
+            setBudgetValue(value);
+            if (budgetError) setBudgetError("");
+          },
+          onSubmit: (event) => void handleBudgetSubmit(event),
+          saving: savingBudget,
+          value: budgetValue,
+        }}
+        currentUserId={currentUserId}
+        onAddMember={() => void navigate(`/group/${trip.id}/add-member`)}
+        onClose={closeModal}
+        onCopyRoomCode={copyRoomCode}
+        onCopyShareLink={copyShareableLink}
+        removal={{
+          onCancel: () => setPendingRemoval(null),
+          onConfirm: () => void confirmRemoveUser(),
+          onRequest: handleRemoveUser,
+          pending: pendingRemoval,
+          saving: removingUser,
+        }}
+        trip={trip}
+      />
     </>
   );
 };

@@ -9,6 +9,7 @@ import { useToast } from "../components/ui/useToast";
 import { FieldError } from "../components/ui/FieldError";
 import { AvatarCustomizer } from "../components/AvatarCustomizer";
 import { DEFAULT_AVATAR_CONFIG } from "../utils/avatars";
+import { currentTripSession } from "../services/currentTripSession";
 
 type CreateTripErrors = Partial<
   Record<"name" | "creatorName" | "perPersonBudget", string>
@@ -77,11 +78,12 @@ const CreateTripPage = () => {
         avatarConfig
       );
 
-      // Store room code and user info in localStorage for easy access
-      localStorage.setItem("currentTripId", trip.id);
-      localStorage.setItem("currentUserId", trip.participants[0].id);
-      localStorage.setItem("currentUserName", trip.participants[0].name);
-      localStorage.setItem("roomCode", roomCode);
+      currentTripSession.set({
+        tripId: trip.id,
+        userId: trip.participants[0].id,
+        userName: trip.participants[0].name,
+        roomCode,
+      });
 
       // Add group to history
       GroupHistoryService.addGroupToHistory(
@@ -119,7 +121,7 @@ const CreateTripPage = () => {
       }
 
       // Navigate to trip dashboard
-      navigate(`/group/${trip.id}`);
+      void navigate(`/group/${trip.id}`);
     } catch (error) {
       console.error("Error creating trip:", error);
       showToast(t("createGroup"), "error");

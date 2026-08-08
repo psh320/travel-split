@@ -41,7 +41,7 @@ try {
   console.log('   - https://cloudconvert.com/svg-to-png');
   console.log('\n4. Or install Sharp and run this script again:');
   console.log('   npm install sharp');
-  console.log('   node scripts/generate-icons.js');
+  console.log('   npm run generate:icons');
   process.exit(0);
 }
 

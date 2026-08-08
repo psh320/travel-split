@@ -7,6 +7,7 @@ import type {
   Expense,
 } from "../types";
 import { getExpenseShares } from "./expenses";
+import { fromMinorUnits, roundCurrency, toMinorUnits } from "./currency";
 
 // Calculate balances and settlements for a trip
 export const calculateBalances = (trip: Trip): BalanceSummary => {
@@ -30,20 +31,24 @@ export const calculateBalances = (trip: Trip): BalanceSummary => {
 
     // Add to total paid for the payer
     if (balances[paidBy]) {
-      balances[paidBy].totalPaid += expense.amount;
+      balances[paidBy].totalPaid = roundCurrency(
+        balances[paidBy].totalPaid + expense.amount
+      );
     }
 
     // Add to total owed for each participant
     expense.participants.forEach((participantId) => {
       if (balances[participantId]) {
-        balances[participantId].totalOwed += shares[participantId] ?? 0;
+        balances[participantId].totalOwed = roundCurrency(
+          balances[participantId].totalOwed + (shares[participantId] ?? 0)
+        );
       }
     });
   });
 
   // Calculate net balances
   Object.values(balances).forEach((balance) => {
-    balance.netBalance = balance.totalPaid - balance.totalOwed;
+    balance.netBalance = roundCurrency(balance.totalPaid - balance.totalOwed);
   });
 
   // Calculate settlements using the algorithm to minimize transactions
@@ -65,14 +70,20 @@ const calculateSettlements = (balances: Balance[]): Settlement[] => {
 
   // Create copies for manipulation
   const creditors = balances
-    .filter((b) => b.netBalance > 0.01) // They are owed money
-    .map((b) => ({ ...b }))
-    .sort((a, b) => b.netBalance - a.netBalance); // Largest creditors first
+    .filter((balance) => toMinorUnits(balance.netBalance) > 0)
+    .map((balance) => ({
+      ...balance,
+      remaining: toMinorUnits(balance.netBalance),
+    }))
+    .sort((a, b) => b.remaining - a.remaining); // Largest creditors first
 
   const debtors = balances
-    .filter((b) => b.netBalance < -0.01) // They owe money
-    .map((b) => ({ ...b, netBalance: Math.abs(b.netBalance) }))
-    .sort((a, b) => b.netBalance - a.netBalance); // Largest debtors first
+    .filter((balance) => toMinorUnits(balance.netBalance) < 0)
+    .map((balance) => ({
+      ...balance,
+      remaining: Math.abs(toMinorUnits(balance.netBalance)),
+    }))
+    .sort((a, b) => b.remaining - a.remaining); // Largest debtors first
 
   let i = 0,
     j = 0;
@@ -81,24 +92,24 @@ const calculateSettlements = (balances: Balance[]): Settlement[] => {
     const creditor = creditors[i];
     const debtor = debtors[j];
 
-    const settlementAmount = Math.min(creditor.netBalance, debtor.netBalance);
+    const settlementAmount = Math.min(creditor.remaining, debtor.remaining);
 
-    if (settlementAmount > 0.01) {
+    if (settlementAmount > 0) {
       // Only create settlement if amount is significant
       settlements.push({
         fromUserId: debtor.userId,
         fromUserName: debtor.userName,
         toUserId: creditor.userId,
         toUserName: creditor.userName,
-        amount: Math.round(settlementAmount * 100) / 100, // Round to 2 decimal places
+        amount: fromMinorUnits(settlementAmount),
       });
     }
 
-    creditor.netBalance -= settlementAmount;
-    debtor.netBalance -= settlementAmount;
+    creditor.remaining -= settlementAmount;
+    debtor.remaining -= settlementAmount;
 
-    if (creditor.netBalance < 0.01) i++; // Move to next creditor
-    if (debtor.netBalance < 0.01) j++; // Move to next debtor
+    if (creditor.remaining === 0) i++; // Move to next creditor
+    if (debtor.remaining === 0) j++; // Move to next debtor
   }
 
   return settlements;
@@ -117,28 +128,27 @@ const calculateCombinationBalances = (trip: Trip): CombinationBalance[] => {
     const sortedParticipants = [...expense.participants].sort();
     const key = sortedParticipants.join(",");
 
-    if (!combinationGroups.has(key)) {
-      combinationGroups.set(key, {
+    let group = combinationGroups.get(key);
+    if (!group) {
+      group = {
         expenses: [],
         participantIds: sortedParticipants,
-      });
+      };
+      combinationGroups.set(key, group);
     }
 
-    combinationGroups.get(key)!.expenses.push(expense);
+    group.expenses.push(expense);
   });
 
   // Calculate balances for each combination
   const combinationBalances: CombinationBalance[] = [];
+  const participantMap = new Map(
+    trip.participants.map((participant) => [participant.id, participant.name])
+  );
 
   combinationGroups.forEach(({ expenses, participantIds }) => {
-    // Create a map to get participant names
-    const participantMap = new Map<string, string>();
-    trip.participants.forEach((p) => {
-      participantMap.set(p.id, p.name);
-    });
-
     const participantNames = participantIds.map(
-      (id) => participantMap.get(id) || id
+      (id) => participantMap.get(id) ?? id
     );
 
     // Calculate balances for this combination
@@ -148,7 +158,7 @@ const calculateCombinationBalances = (trip: Trip): CombinationBalance[] => {
     participantIds.forEach((userId) => {
       balances[userId] = {
         userId,
-        userName: participantMap.get(userId) || userId,
+        userName: participantMap.get(userId) ?? userId,
         totalPaid: 0,
         totalOwed: 0,
         netBalance: 0,
@@ -159,7 +169,7 @@ const calculateCombinationBalances = (trip: Trip): CombinationBalance[] => {
     let totalAmount = 0;
     expenses.forEach((expense) => {
       const shares = getExpenseShares(expense);
-      totalAmount += expense.amount;
+      totalAmount = roundCurrency(totalAmount + expense.amount);
 
       // Add to total paid for the payer
       // The payer may be outside the participant combination (e.g. one person
@@ -167,25 +177,29 @@ const calculateCombinationBalances = (trip: Trip): CombinationBalance[] => {
       if (!balances[expense.paidBy]) {
         balances[expense.paidBy] = {
           userId: expense.paidBy,
-          userName: participantMap.get(expense.paidBy) || expense.paidBy,
+          userName: participantMap.get(expense.paidBy) ?? expense.paidBy,
           totalPaid: 0,
           totalOwed: 0,
           netBalance: 0,
         };
       }
-      balances[expense.paidBy].totalPaid += expense.amount;
+      balances[expense.paidBy].totalPaid = roundCurrency(
+        balances[expense.paidBy].totalPaid + expense.amount
+      );
 
       // Add to total owed for each participant
       expense.participants.forEach((participantId) => {
         if (balances[participantId]) {
-          balances[participantId].totalOwed += shares[participantId] ?? 0;
+          balances[participantId].totalOwed = roundCurrency(
+            balances[participantId].totalOwed + (shares[participantId] ?? 0)
+          );
         }
       });
     });
 
     // Calculate net balances
     Object.values(balances).forEach((balance) => {
-      balance.netBalance = balance.totalPaid - balance.totalOwed;
+      balance.netBalance = roundCurrency(balance.totalPaid - balance.totalOwed);
     });
 
     // Calculate settlements for this combination

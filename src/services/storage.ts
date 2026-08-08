@@ -14,11 +14,12 @@ class LocalStorageService implements StorageService {
 
   isAvailable(): boolean {
     if (this.available !== null) return this.available;
+    if (typeof window === "undefined") return false;
 
     try {
       const testKey = "__storage_test__";
-      localStorage.setItem(testKey, "test");
-      localStorage.removeItem(testKey);
+      window.localStorage.setItem(testKey, "test");
+      window.localStorage.removeItem(testKey);
       this.available = true;
       return true;
     } catch {
@@ -30,7 +31,7 @@ class LocalStorageService implements StorageService {
   getItem(key: string): string | null {
     if (!this.isAvailable()) return null;
     try {
-      return localStorage.getItem(key);
+      return window.localStorage.getItem(key);
     } catch (e) {
       console.warn("localStorage.getItem failed:", e);
       return null;
@@ -40,7 +41,7 @@ class LocalStorageService implements StorageService {
   setItem(key: string, value: string): boolean {
     if (!this.isAvailable()) return false;
     try {
-      localStorage.setItem(key, value);
+      window.localStorage.setItem(key, value);
       return true;
     } catch (e) {
       console.warn("localStorage.setItem failed:", e);
@@ -51,7 +52,7 @@ class LocalStorageService implements StorageService {
   removeItem(key: string): boolean {
     if (!this.isAvailable()) return false;
     try {
-      localStorage.removeItem(key);
+      window.localStorage.removeItem(key);
       return true;
     } catch (e) {
       console.warn("localStorage.removeItem failed:", e);
@@ -65,6 +66,7 @@ class CookieStorageService implements StorageService {
 
   isAvailable(): boolean {
     if (this.available !== null) return this.available;
+    if (typeof document === "undefined") return false;
 
     try {
       document.cookie = "__cookie_test__=test; path=/; max-age=1";
@@ -83,10 +85,12 @@ class CookieStorageService implements StorageService {
   getItem(key: string): string | null {
     if (!this.isAvailable()) return null;
     try {
-      const match = document.cookie.match(
-        new RegExp("(^| )" + key + "=([^;]+)")
-      );
-      return match ? decodeURIComponent(match[2]) : null;
+      const prefix = `${encodeURIComponent(key)}=`;
+      const cookie = document.cookie
+        .split(";")
+        .map((part) => part.trim())
+        .find((part) => part.startsWith(prefix));
+      return cookie ? decodeURIComponent(cookie.slice(prefix.length)) : null;
     } catch (e) {
       console.warn("Cookie getItem failed:", e);
       return null;
@@ -99,7 +103,7 @@ class CookieStorageService implements StorageService {
       // Set cookie with 30 days expiration
       const expires = new Date();
       expires.setDate(expires.getDate() + 30);
-      document.cookie = `${key}=${encodeURIComponent(
+      document.cookie = `${encodeURIComponent(key)}=${encodeURIComponent(
         value
       )}; path=/; expires=${expires.toUTCString()}; SameSite=Lax`;
       return true;
@@ -112,7 +116,7 @@ class CookieStorageService implements StorageService {
   removeItem(key: string): boolean {
     if (!this.isAvailable()) return false;
     try {
-      document.cookie = `${key}=; path=/; max-age=0`;
+      document.cookie = `${encodeURIComponent(key)}=; path=/; max-age=0`;
       return true;
     } catch (e) {
       console.warn("Cookie removeItem failed:", e);
@@ -129,7 +133,7 @@ class MemoryStorageService implements StorageService {
   }
 
   getItem(key: string): string | null {
-    return this.storage.get(key) || null;
+    return this.storage.get(key) ?? null;
   }
 
   setItem(key: string, value: string): boolean {
@@ -145,29 +149,24 @@ class MemoryStorageService implements StorageService {
 // Storage service with automatic fallback
 class CrossBrowserStorage implements StorageService {
   private primaryStorage: StorageService;
-  private fallbackStorage: StorageService | null = null;
-  private memoryStorage: StorageService;
   private storageType: "localStorage" | "cookie" | "memory" = "memory";
 
   constructor() {
     this.primaryStorage = new LocalStorageService();
-    this.memoryStorage = new MemoryStorageService();
 
     // Determine best available storage
     if (this.primaryStorage.isAvailable()) {
       this.storageType = "localStorage";
     } else {
-      this.fallbackStorage = new CookieStorageService();
-      if (this.fallbackStorage.isAvailable()) {
+      const cookieStorage = new CookieStorageService();
+      if (cookieStorage.isAvailable()) {
         this.storageType = "cookie";
-        this.primaryStorage = this.fallbackStorage;
+        this.primaryStorage = cookieStorage;
       } else {
         this.storageType = "memory";
-        this.primaryStorage = this.memoryStorage;
+        this.primaryStorage = new MemoryStorageService();
       }
     }
-
-    console.log(`Using storage type: ${this.storageType}`);
   }
 
   isAvailable(): boolean {

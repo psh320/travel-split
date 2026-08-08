@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useState } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { useMemo, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import { ExpenseListItem } from "../components/ExpenseListItem";
 import { AppHeader } from "../components/ui/AppHeader";
 import {
@@ -13,9 +13,13 @@ import {
 import { useToast } from "../components/ui/useToast";
 import { t, countLabel } from "../i18n";
 import { FirebaseService } from "../services/firebase";
-import type { ExpenseCategory, Trip } from "../types";
+import type { ExpenseCategory } from "../types";
 import { formatAmount, formatExpenseDate } from "../utils";
 import { EXPENSE_CATEGORIES } from "../utils/expenses";
+import { PageErrorState, PageLoading } from "../components/ui/PageState";
+import { useDialogLifecycle } from "../hooks/useDialogLifecycle";
+import { useCurrentTripUserId } from "../hooks/useCurrentTripUserId";
+import { useTripData } from "../hooks/useTripData";
 
 type ExpenseFilter = "all" | "paid-by-me" | "split-with-me";
 type ExpenseSort = "date-desc" | "date-asc" | "amount-desc" | "amount-asc";
@@ -24,10 +28,17 @@ const ExpensesPage = () => {
   const { groupId } = useParams<{ groupId: string }>();
   const navigate = useNavigate();
   const { showToast } = useToast();
-  const cachedTrip = groupId ? FirebaseService.getCachedTripById(groupId) : null;
-  const [trip, setTrip] = useState<Trip | null>(cachedTrip);
-  const [loading, setLoading] = useState(!cachedTrip);
-  const [currentUserId, setCurrentUserId] = useState("");
+  const currentUserId = useCurrentTripUserId();
+  const { trip, loading, reload } = useTripData(groupId, {
+    onMissing: () => {
+      showToast(t("groupNotFound"), "error");
+      void navigate("/");
+    },
+    onError: (error) => {
+      console.error("Error loading trip:", error);
+      showToast(t("groupNotFound"), "error");
+    },
+  });
   const [searchTerm, setSearchTerm] = useState("");
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
@@ -37,60 +48,14 @@ const ExpensesPage = () => {
   );
   const [sortBy, setSortBy] = useState<ExpenseSort>("date-desc");
 
-  useEffect(() => {
-    const userId = localStorage.getItem("currentUserId");
-    if (userId) setCurrentUserId(userId);
-
-    const loadTrip = async () => {
-      if (!groupId) return;
-
-      const hasCachedTrip = Boolean(FirebaseService.getCachedTripById(groupId));
-      if (!hasCachedTrip) setLoading(true);
-
-      try {
-        const tripData = await FirebaseService.getTripById(groupId, {
-          force: hasCachedTrip,
-        });
-        if (tripData) {
-          setTrip(tripData);
-        } else {
-          showToast(t("groupNotFound"), "error");
-          navigate("/");
-        }
-      } catch (error) {
-        console.error("Error loading trip:", error);
-        showToast(t("groupNotFound"), "error");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    void loadTrip();
-  }, [groupId, navigate, showToast]);
-
-  useEffect(() => {
-    if (!isFilterOpen) return;
-
-    const previousOverflow = document.body.style.overflow;
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setIsFilterOpen(false);
-    };
-
-    document.body.style.overflow = "hidden";
-    window.addEventListener("keydown", handleKeyDown);
-    return () => {
-      document.body.style.overflow = previousOverflow;
-      window.removeEventListener("keydown", handleKeyDown);
-    };
-  }, [isFilterOpen]);
+  useDialogLifecycle(isFilterOpen, () => setIsFilterOpen(false));
 
   const handleDeleteExpense = async (expenseId: string) => {
     if (!trip || !window.confirm(t("remove"))) return;
 
     try {
       await FirebaseService.deleteExpense(trip.id, expenseId);
-      const tripData = await FirebaseService.getTripById(trip.id);
-      if (tripData) setTrip(tripData);
+      await reload();
       showToast(t("expenseRemoved"), "success");
     } catch (error) {
       console.error("Error deleting expense:", error);
@@ -156,23 +121,16 @@ const ExpensesPage = () => {
   }, [categoryFilter, currentUserId, filterBy, searchTerm, sortBy, trip]);
 
   if (loading) {
-    return (
-      <div className="loading">
-        <div className="spinner" />
-      </div>
-    );
+    return <PageLoading />;
   }
 
   if (!trip) {
     return (
-      <div className="content">
-        <div className="card">
-          <h3>{t("groupNotFound")}</h3>
-          <Link to="/" className="btn btn-primary">
-            {t("goHome")}
-          </Link>
-        </div>
-      </div>
+      <PageErrorState
+        message={t("groupNotFound")}
+        actionTo="/"
+        actionLabel={t("goHome")}
+      />
     );
   }
 

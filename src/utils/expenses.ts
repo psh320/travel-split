@@ -1,4 +1,5 @@
 import type { Expense, ExpenseCategory } from "../types";
+import { fromMinorUnits, toMinorUnits } from "./currency";
 
 export const EXPENSE_CATEGORIES: ExpenseCategory[] = [
   "food",
@@ -9,8 +10,6 @@ export const EXPENSE_CATEGORIES: ExpenseCategory[] = [
   "other",
 ];
 
-const roundCurrency = (amount: number) => Math.round(amount * 100) / 100;
-
 export const createEqualShares = (
   amount: number,
   participantIds: string[]
@@ -19,16 +18,17 @@ export const createEqualShares = (
     return {};
   }
 
-  const baseShare = Math.floor((amount * 100) / participantIds.length) / 100;
+  const amountInMinorUnits = toMinorUnits(amount);
+  const baseShare = Math.floor(amountInMinorUnits / participantIds.length);
   let assigned = 0;
 
   return participantIds.reduce<Record<string, number>>((shares, id, index) => {
     const share =
       index === participantIds.length - 1
-        ? roundCurrency(amount - assigned)
+        ? amountInMinorUnits - assigned
         : baseShare;
-    shares[id] = share;
-    assigned = roundCurrency(assigned + share);
+    shares[id] = fromMinorUnits(share);
+    assigned += share;
     return shares;
   }, {});
 };
@@ -45,7 +45,7 @@ export const getExpenseShares = (expense: Expense): Record<string, number> => {
       const value = expense.shares?.[participantId];
       shares[participantId] =
         typeof value === "number" && Number.isFinite(value) && value >= 0
-          ? value
+          ? toMinorUnits(value)
           : 0;
       return shares;
     },
@@ -60,24 +60,20 @@ export const getExpenseShares = (expense: Expense): Record<string, number> => {
     return createEqualShares(expense.amount, expense.participants);
   }
 
+  const expenseAmount = toMinorUnits(expense.amount);
+  let assigned = 0;
   const normalized = Object.entries(selectedShares).reduce<Record<string, number>>(
-    (shares, [participantId, share]) => {
-      shares[participantId] = roundCurrency((share / shareTotal) * expense.amount);
+    (shares, [participantId, share], index, entries) => {
+      const normalizedShare =
+        index === entries.length - 1
+          ? expenseAmount - assigned
+          : Math.floor((share / shareTotal) * expenseAmount);
+      shares[participantId] = fromMinorUnits(normalizedShare);
+      assigned += normalizedShare;
       return shares;
     },
     {}
   );
-  const normalizedTotal = Object.values(normalized).reduce(
-    (sum, share) => sum + share,
-    0
-  );
-  const lastParticipantId = expense.participants.at(-1);
-
-  if (lastParticipantId) {
-    normalized[lastParticipantId] = roundCurrency(
-      normalized[lastParticipantId] + expense.amount - normalizedTotal
-    );
-  }
 
   return normalized;
 };

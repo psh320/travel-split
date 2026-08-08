@@ -15,6 +15,7 @@ import {
   MAX_TRIP_PARTICIPANTS,
   TripParticipantLimitError,
 } from "../config/trip";
+import { currentTripSession } from "../services/currentTripSession";
 
 const JoinTripPage = () => {
   const navigate = useNavigate();
@@ -68,10 +69,12 @@ const JoinTripPage = () => {
     if (joining || !trip) return;
 
     // User already exists, log them in
-    localStorage.setItem("currentTripId", trip.id);
-    localStorage.setItem("currentUserId", participant.id);
-    localStorage.setItem("currentUserName", participant.name);
-    localStorage.setItem("roomCode", trip.roomCode);
+    currentTripSession.set({
+      tripId: trip.id,
+      userId: participant.id,
+      userName: participant.name,
+      roomCode: trip.roomCode,
+    });
 
     // Add group to history
     GroupHistoryService.addGroupToHistory(
@@ -86,7 +89,7 @@ const JoinTripPage = () => {
     );
 
     showToast(t("joinedGroup"), "success");
-    navigate(`/group/${trip.id}`);
+    void navigate(`/group/${trip.id}`);
   };
 
   const handleNewUserJoin = async (e: React.FormEvent) => {
@@ -122,10 +125,12 @@ const JoinTripPage = () => {
         avatarConfig
       );
 
-      localStorage.setItem("currentTripId", trip.id);
-      localStorage.setItem("currentUserId", newUser.id);
-      localStorage.setItem("currentUserName", newUser.name);
-      localStorage.setItem("roomCode", trip.roomCode);
+      currentTripSession.set({
+        tripId: trip.id,
+        userId: newUser.id,
+        userName: newUser.name,
+        roomCode: trip.roomCode,
+      });
 
       // Add group to history
       GroupHistoryService.addGroupToHistory(
@@ -140,7 +145,7 @@ const JoinTripPage = () => {
       );
 
       showToast(t("joinedGroup"), "success");
-      navigate(`/group/${trip.id}`);
+      void navigate(`/group/${trip.id}`);
     } catch (error) {
       console.error("Error joining trip:", error);
       setError(

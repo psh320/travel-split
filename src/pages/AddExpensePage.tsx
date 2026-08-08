@@ -1,19 +1,21 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { AppHeader } from "../components/ui/AppHeader";
 import { FirebaseService } from "../services/firebase";
 import { t } from "../i18n";
-import { formatAmount } from "../utils";
 import { useToast } from "../components/ui/useToast";
-import { FieldError } from "../components/ui/FieldError";
-import { Avatar } from "../components/Avatar";
-import type { Trip, AddExpenseForm, ExpenseSplitMode } from "../types";
+import type { AddExpenseForm, ExpenseSplitMode } from "../types";
 import {
   createEqualShares,
-  EXPENSE_CATEGORIES,
   parseExpenseDateInput,
   toExpenseDateInput,
 } from "../utils/expenses";
+import { toMinorUnits } from "../utils/currency";
+import { PageLoading } from "../components/ui/PageState";
+import { ExpenseDetailsFields } from "../components/expense/ExpenseDetailsFields";
+import { ExpenseSplitEditor } from "../components/expense/ExpenseSplitEditor";
+import { useCurrentTripUserId } from "../hooks/useCurrentTripUserId";
+import { useTripData } from "../hooks/useTripData";
 
 type ExpenseFormErrors = Partial<
   Record<
@@ -30,10 +32,18 @@ const AddExpensePage = () => {
   const navigate = useNavigate();
   const { showToast } = useToast();
   const isEditing = Boolean(expenseId);
-  const cachedTrip = groupId ? FirebaseService.getCachedTripById(groupId) : null;
-  const [trip, setTrip] = useState<Trip | null>(cachedTrip);
-  const [loading, setLoading] = useState(false);
-  const [currentUserId, setCurrentUserId] = useState<string>("");
+  const [saving, setSaving] = useState(false);
+  const currentUserId = useCurrentTripUserId();
+  const { trip } = useTripData(groupId, {
+    onMissing: () => {
+      showToast(t("noMatches"), "error");
+      void navigate("/");
+    },
+    onError: (error) => {
+      console.error("Error loading trip:", error);
+      showToast(t("noMatches"), "error");
+    },
+  });
   const [formData, setFormData] = useState<AddExpenseForm>({
     description: "",
     amount: "",
@@ -46,34 +56,6 @@ const AddExpensePage = () => {
   });
   const [formErrors, setFormErrors] = useState<ExpenseFormErrors>({});
 
-  const loadTrip = useCallback(async () => {
-    if (!groupId) return;
-
-    try {
-      const tripData = await FirebaseService.getTripById(groupId, {
-        force: Boolean(FirebaseService.getCachedTripById(groupId)),
-      });
-      if (tripData) {
-        setTrip(tripData);
-      } else {
-        showToast(t("noMatches"), "error");
-        navigate("/");
-      }
-    } catch (error) {
-      console.error("Error loading trip:", error);
-      showToast(t("noMatches"), "error");
-    }
-  }, [groupId, navigate, showToast]);
-
-  useEffect(() => {
-    const userId = localStorage.getItem("currentUserId");
-    if (userId) {
-      setCurrentUserId(userId);
-    }
-
-    loadTrip();
-  }, [groupId, loadTrip]);
-
   useEffect(() => {
     if (!trip) return;
 
@@ -83,7 +65,7 @@ const AddExpensePage = () => {
 
     if (expenseId && !expenseToEdit) {
       showToast(t("noMatches"), "error");
-      navigate(`/group/${trip.id}/expenses`);
+      void navigate(`/group/${trip.id}/expenses`);
       return;
     }
 
@@ -257,7 +239,7 @@ const AddExpensePage = () => {
       formData.splitMode === "custom" &&
       (Object.values(shares).some(
         (share) => !Number.isFinite(share) || share < 0
-      ) || Math.round(customTotal * 100) !== Math.round(amount * 100))
+      ) || toMinorUnits(customTotal) !== toMinorUnits(amount))
     ) {
       nextErrors.shares = t("customSplitMismatch");
     }
@@ -267,7 +249,7 @@ const AddExpensePage = () => {
       return;
     }
 
-    setLoading(true);
+    setSaving(true);
     try {
       if (expenseId) {
         await FirebaseService.updateExpense(
@@ -297,35 +279,20 @@ const AddExpensePage = () => {
       }
 
       showToast(isEditing ? t("expenseUpdated") : t("expenseAdded"), "success");
-      navigate(
+      void navigate(
         isEditing ? `/group/${trip.id}/expenses` : `/group/${trip.id}`
       );
     } catch (error) {
       console.error("Error adding expense:", error);
       showToast(t("error"), "error");
     } finally {
-      setLoading(false);
+      setSaving(false);
     }
   };
 
   if (!trip) {
-    return (
-      <div className="loading">
-        <div className="spinner" />
-      </div>
-    );
+    return <PageLoading />;
   }
-
-  const splitAmount =
-    formData.amount && formData.participants.length > 0
-      ? parseFloat(formData.amount) / formData.participants.length
-      : 0;
-  const customTotal = formData.participants.reduce(
-    (sum, participantId) => sum + Number(formData.shares[participantId] || 0),
-    0
-  );
-  const enteredAmount = Number(formData.amount) || 0;
-  const customRemaining = Math.round((enteredAmount - customTotal) * 100) / 100;
 
   return (
     <>
@@ -336,262 +303,36 @@ const AddExpensePage = () => {
 
       <div className="content">
         <form onSubmit={handleSubmit} className="form" noValidate>
-          <div className="form-group">
-            <label htmlFor="description">{t("expense")}</label>
-            <input
-              type="text"
-              id="description"
-              name="description"
-              value={formData.description}
-              onChange={handleInputChange}
-              placeholder={t("expense").replace(" *", "")}
-              aria-invalid={Boolean(formErrors.description)}
-              aria-describedby={
-                formErrors.description ? "expense-description-error" : undefined
-              }
-              required
-            />
-            <FieldError
-              id="expense-description-error"
-              message={formErrors.description}
-            />
-          </div>
+          <ExpenseDetailsFields
+            currentUserId={currentUserId}
+            errors={formErrors}
+            formData={formData}
+            onCategoryChange={(category) =>
+              setFormData((current) => ({ ...current, category }))
+            }
+            onInputChange={handleInputChange}
+            participants={trip.participants}
+          />
 
-          <div className="form-group">
-            <label htmlFor="amount">{t("amount")}</label>
-            <input
-              type="number"
-              inputMode="decimal"
-              id="amount"
-              name="amount"
-              value={formData.amount}
-              onChange={handleInputChange}
-              placeholder="0.00"
-              step="0.01"
-              min="0.01"
-              aria-invalid={Boolean(formErrors.amount)}
-              aria-describedby={formErrors.amount ? "expense-amount-error" : undefined}
-              required
-            />
-            <FieldError id="expense-amount-error" message={formErrors.amount} />
-          </div>
-
-          <div className="form-group">
-            <label htmlFor="date">{t("expenseDate")}</label>
-            <input
-              type="date"
-              id="date"
-              name="date"
-              value={formData.date}
-              onChange={handleInputChange}
-              aria-invalid={Boolean(formErrors.date)}
-              aria-describedby={formErrors.date ? "expense-date-error" : undefined}
-              required
-            />
-            <FieldError id="expense-date-error" message={formErrors.date} />
-          </div>
-
-          <fieldset className="form-group expense-category-fieldset">
-            <legend>{t("category")}</legend>
-            <div className="expense-category-grid">
-              {EXPENSE_CATEGORIES.map((category) => (
-                <button
-                  key={category}
-                  type="button"
-                  className={`expense-category-option${
-                    formData.category === category ? " is-selected" : ""
-                  }`}
-                  aria-pressed={formData.category === category}
-                  onClick={() =>
-                    setFormData((prev) => ({ ...prev, category }))
-                  }
-                >
-                  <span className={`expense-category-dot category-${category}`} />
-                  {t(category)}
-                </button>
-              ))}
-            </div>
-          </fieldset>
-
-          <div className="form-group">
-            <label htmlFor="paidBy">{t("paidBy")}</label>
-            <select
-              id="paidBy"
-              name="paidBy"
-              value={formData.paidBy}
-              onChange={handleInputChange}
-              aria-invalid={Boolean(formErrors.paidBy)}
-              aria-describedby={formErrors.paidBy ? "expense-payer-error" : undefined}
-              required
-            >
-              <option value="">{t("paidBy").replace(" *", "")}</option>
-              {trip.participants.map((participant) => (
-                <option key={participant.id} value={participant.id}>
-                  {participant.name}
-                  {participant.id === currentUserId ? ` (${t("you")})` : ""}
-                </option>
-              ))}
-            </select>
-            <FieldError id="expense-payer-error" message={formErrors.paidBy} />
-          </div>
-
-          <div className="form-group">
-            <label id="split-with-label">{t("splitWith")}</label>
-            <div className="expense-selection-actions">
-              <button
-                type="button"
-                onClick={selectAllParticipants}
-                className="btn btn-secondary btn-small"
-              >
-                {t("selectAll")}
-              </button>
-              <button
-                type="button"
-                onClick={selectNoParticipants}
-                className="btn btn-secondary btn-small"
-              >
-                {t("selectNone")}
-              </button>
-            </div>
-            <div
-              className="checkbox-group"
-              role="group"
-              aria-labelledby="split-with-label"
-              aria-invalid={Boolean(formErrors.participants)}
-              aria-describedby={
-                formErrors.participants ? "expense-participants-error" : undefined
-              }
-            >
-              {trip.participants.map((participant) => (
-                <label key={participant.id} className="checkbox-item">
-                  <input
-                    type="checkbox"
-                    checked={formData.participants.includes(participant.id)}
-                    onChange={(e) =>
-                      handleParticipantChange(participant.id, e.target.checked)
-                    }
-                  />
-                  <span>
-                    {participant.name}
-                    {participant.id === currentUserId ? ` (${t("you")})` : ""}
-                  </span>
-                </label>
-              ))}
-            </div>
-            <FieldError
-              id="expense-participants-error"
-              message={formErrors.participants}
-            />
-            {formData.participants.length > 0 && (
-              <div className="split-method-section">
-                <span className="split-method-label">{t("splitMethod")}</span>
-                <div
-                  className="split-method-toggle"
-                  role="group"
-                  aria-label={t("splitMethod")}
-                >
-                  <button
-                    type="button"
-                    className={formData.splitMode === "equal" ? "is-selected" : ""}
-                    aria-pressed={formData.splitMode === "equal"}
-                    onClick={() => setSplitMode("equal")}
-                  >
-                    {t("splitEqually")}
-                  </button>
-                  <button
-                    type="button"
-                    className={formData.splitMode === "custom" ? "is-selected" : ""}
-                    aria-pressed={formData.splitMode === "custom"}
-                    onClick={() => setSplitMode("custom")}
-                  >
-                    {t("splitCustom")}
-                  </button>
-                </div>
-
-                {formData.splitMode === "equal" ? (
-                  splitAmount > 0 && (
-                    <div className="split-summary">
-                      <span>{t("each")}</span>
-                      <strong>{formatAmount(splitAmount)}</strong>
-                    </div>
-                  )
-                ) : (
-                  <div className="custom-share-editor">
-                    <div className="custom-share-heading">
-                      <span>{t("customSplitHelp")}</span>
-                      <button type="button" onClick={resetEqualShares}>
-                        {t("fillEqually")}
-                      </button>
-                    </div>
-                    {formData.participants.map((participantId) => {
-                      const participant = trip.participants.find(
-                        (person) => person.id === participantId
-                      );
-                      if (!participant) return null;
-
-                      return (
-                        <label key={participantId} className="custom-share-row">
-                          <span>
-                            <Avatar user={participant} size="xs" decorative />
-                            <strong>{participant.name}</strong>
-                          </span>
-                          <span className="custom-share-input">
-                            <span aria-hidden="true">$</span>
-                            <input
-                              type="number"
-                              inputMode="decimal"
-                              min="0"
-                              step="0.01"
-                              value={formData.shares[participantId] ?? ""}
-                              onChange={(event) =>
-                                handleShareChange(participantId, event.target.value)
-                              }
-                              aria-label={participant.name + " " + t("shareAmount")}
-                              aria-invalid={Boolean(formErrors.shares)}
-                              aria-describedby={
-                                formErrors.shares ? "expense-shares-error" : undefined
-                              }
-                            />
-                          </span>
-                        </label>
-                      );
-                    })}
-                    <div
-                      className={
-                        "custom-share-total" +
-                        (customRemaining === 0 ? " is-balanced" : "")
-                      }
-                      aria-live="polite"
-                    >
-                      <span>
-                        {t("allocated")}: {formatAmount(customTotal)}
-                      </span>
-                      <strong>
-                        {customRemaining === 0
-                          ? t("allocationComplete")
-                          : customRemaining > 0
-                            ? formatAmount(customRemaining) + " " + t("leftToAllocate")
-                            : formatAmount(Math.abs(customRemaining)) +
-                              " " +
-                              t("overAllocated")}
-                      </strong>
-                    </div>
-                    <FieldError
-                      id="expense-shares-error"
-                      message={formErrors.shares}
-                    />
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
+          <ExpenseSplitEditor
+            currentUserId={currentUserId}
+            errors={formErrors}
+            formData={formData}
+            onParticipantChange={handleParticipantChange}
+            onResetEqualShares={resetEqualShares}
+            onSelectAll={selectAllParticipants}
+            onSelectNone={selectNoParticipants}
+            onShareChange={handleShareChange}
+            onSplitModeChange={setSplitMode}
+            participants={trip.participants}
+          />
 
           <button
             type="submit"
             className="btn btn-primary btn-full"
-            disabled={loading}
+            disabled={saving}
           >
-            {loading ? (
+            {saving ? (
               <div
                 className="spinner"
                 style={{ width: "1rem", height: "1rem", margin: "0 auto" }}

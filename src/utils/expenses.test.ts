@@ -31,6 +31,13 @@ describe("expense shares", () => {
     );
   });
 
+  it("keeps floating-point edge cases at the exact cent total", () => {
+    const shares = createEqualShares(10.01, ["a", "b", "c"]);
+
+    expect(shares).toEqual({ a: 3.33, b: 3.33, c: 3.35 });
+    expect(Math.round(Object.values(shares).reduce((sum, share) => sum + share, 0) * 100)).toBe(1001);
+  });
+
   it("uses exact custom shares in the final balances", () => {
     const expense: Expense = {
       id: "expense",
@@ -72,5 +79,28 @@ describe("expense shares", () => {
     };
 
     expect(getExpenseShares(expense)).toEqual({ a: 10, b: 10, c: 10 });
+  });
+
+  it("does not drop a one-cent settlement", () => {
+    const expense: Expense = {
+      id: "cent",
+      tripId: "trip",
+      description: "Rounding edge",
+      amount: 0.02,
+      paidBy: "a",
+      participants: ["a", "b"],
+      date: createdAt,
+      createdAt,
+    };
+
+    expect(calculateBalances(makeTrip(expense)).settlements).toEqual([
+      {
+        fromUserId: "b",
+        fromUserName: "B",
+        toUserId: "a",
+        toUserName: "A",
+        amount: 0.01,
+      },
+    ]);
   });
 });

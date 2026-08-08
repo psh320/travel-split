@@ -1,6 +1,10 @@
 // Service for managing user's group history with Safari compatibility
 import { storage } from "./storage";
-import type { AvatarId } from "../utils/avatars";
+import {
+  isAvatarId,
+  normalizeAvatarConfig,
+  type AvatarId,
+} from "../utils/avatars";
 import type { AvatarConfig } from "../types";
 
 export interface GroupHistoryItem {
@@ -29,6 +33,44 @@ interface StoredGroupHistoryItem {
 
 const STORAGE_KEY = "travel_split_group_history";
 
+const parseStoredGroupHistory = (stored: string): StoredGroupHistoryItem[] => {
+  const parsed: unknown = JSON.parse(stored);
+  if (!Array.isArray(parsed)) return [];
+
+  return parsed.flatMap((value) => {
+    if (!value || typeof value !== "object") return [];
+    const item = value as Record<string, unknown>;
+    if (
+      typeof item.id !== "string" ||
+      typeof item.name !== "string" ||
+      typeof item.roomCode !== "string" ||
+      (item.role !== "creator" && item.role !== "participant") ||
+      typeof item.lastAccessed !== "string" ||
+      Number.isNaN(new Date(item.lastAccessed).getTime()) ||
+      typeof item.userIdInGroup !== "string" ||
+      typeof item.userNameInGroup !== "string"
+    ) {
+      return [];
+    }
+
+    const avatarId = isAvatarId(item.avatarId) ? item.avatarId : undefined;
+    const avatarConfig = normalizeAvatarConfig(item.avatarConfig);
+    return [
+      {
+        id: item.id,
+        name: item.name,
+        roomCode: item.roomCode,
+        role: item.role,
+        lastAccessed: item.lastAccessed,
+        userIdInGroup: item.userIdInGroup,
+        userNameInGroup: item.userNameInGroup,
+        ...(avatarId ? { avatarId } : {}),
+        ...(avatarConfig ? { avatarConfig } : {}),
+      },
+    ];
+  });
+};
+
 export class GroupHistoryService {
   // Get all groups from history
   static getGroupHistory(): GroupHistoryItem[] {
@@ -36,7 +78,7 @@ export class GroupHistoryService {
       const stored = storage.getItem(STORAGE_KEY);
       if (!stored) return [];
 
-      const parsed: StoredGroupHistoryItem[] = JSON.parse(stored);
+      const parsed = parseStoredGroupHistory(stored);
       return parsed.map((item) => ({
         ...item,
         lastAccessed: new Date(item.lastAccessed),

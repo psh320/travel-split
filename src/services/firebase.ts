@@ -32,6 +32,10 @@ import {
   normalizeMemberColorIndex,
   TripParticipantLimitError,
 } from "../config/trip";
+import {
+  assertValidExpenseInput,
+  removeParticipantFromExpenses,
+} from "../utils/tripMutations";
 
 type TripCacheEntry = {
   trip: Trip;
@@ -48,13 +52,8 @@ export class FirebaseService {
     return trip;
   }
 
-  private static updateCachedTrip(
-    tripId: string,
-    update: (trip: Trip) => Trip
-  ): void {
-    const cached = this.tripCache.get(tripId);
-    if (!cached) return;
-    this.cacheTrip(update(cached.trip));
+  private static invalidateTripCache(tripId: string): void {
+    this.tripCache.delete(tripId);
   }
 
   static getCachedTripById(tripId: string): Trip | null {
@@ -212,11 +211,7 @@ export class FirebaseService {
         updatedAt: Timestamp.fromDate(updatedAt),
       });
 
-      this.updateCachedTrip(tripId, (trip) => ({
-        ...trip,
-        perPersonBudget: perPersonBudget ?? undefined,
-        updatedAt,
-      }));
+      this.invalidateTripCache(tripId);
     } catch (error) {
       console.error("Error updating trip budget:", error);
       throw new Error("Failed to update trip budget");
@@ -273,11 +268,7 @@ export class FirebaseService {
         });
       });
 
-      this.updateCachedTrip(tripId, (trip) => ({
-        ...trip,
-        participants: [...trip.participants, newUser],
-        updatedAt,
-      }));
+      this.invalidateTripCache(tripId);
 
       return newUser;
     } catch (error) {
@@ -294,27 +285,32 @@ export class FirebaseService {
   ): Promise<void> {
     try {
       const tripRef = doc(db, "trips", tripId);
-      const tripSnap = await getDoc(tripRef);
+      const updatedAt = new Date();
 
-      if (!tripSnap.exists()) throw new Error("Trip not found");
+      await runTransaction(db, async (transaction) => {
+        const tripSnap = await transaction.get(tripRef);
+        if (!tripSnap.exists()) throw new Error("Trip not found");
 
-      const tripData = tripSnap.data() as FirestoreTripData;
-      const updatedParticipants = tripData.participants.map((participant) =>
-        participant.id === userId ? { ...participant, avatarConfig } : participant
-      );
+        const tripData = tripSnap.data() as FirestoreTripData;
+        if (
+          !tripData.participants.some(
+            (participant) => participant.id === userId
+          )
+        ) {
+          throw new Error("Participant not found");
+        }
 
-      await updateDoc(tripRef, {
-        participants: updatedParticipants,
-        updatedAt: Timestamp.fromDate(new Date()),
+        transaction.update(tripRef, {
+          participants: tripData.participants.map((participant) =>
+            participant.id === userId
+              ? { ...participant, avatarConfig }
+              : participant
+          ),
+          updatedAt: Timestamp.fromDate(updatedAt),
+        });
       });
 
-      this.updateCachedTrip(tripId, (trip) => ({
-        ...trip,
-        participants: trip.participants.map((participant) =>
-          participant.id === userId ? { ...participant, avatarConfig } : participant
-        ),
-        updatedAt: new Date(),
-      }));
+      this.invalidateTripCache(tripId);
     } catch (error) {
       console.error("Error updating user avatar config:", error);
       throw new Error("Failed to update user avatar config");
@@ -327,75 +323,34 @@ export class FirebaseService {
   ): Promise<void> {
     try {
       const tripRef = doc(db, "trips", tripId);
-      const tripSnap = await getDoc(tripRef);
+      const updatedAt = new Date();
 
-      if (!tripSnap.exists()) {
-        throw new Error("Trip not found");
-      }
+      await runTransaction(db, async (transaction) => {
+        const tripSnap = await transaction.get(tripRef);
+        if (!tripSnap.exists()) throw new Error("Trip not found");
 
-      const tripData = tripSnap.data() as FirestoreTripData;
+        const tripData = tripSnap.data() as FirestoreTripData;
+        if (tripData.createdBy === userId) {
+          throw new Error("The trip creator cannot be removed");
+        }
+        if (
+          !tripData.participants.some(
+            (participant) => participant.id === userId
+          )
+        ) {
+          throw new Error("Participant not found");
+        }
 
-      // Remove user from participants array
-      const updatedParticipants = tripData.participants.filter(
-        (participant) => participant.id !== userId
-      );
-
-      // Remove expenses paid by this user, then remove them from every other
-      // split. Expenses with nobody left to split with are no longer valid.
-      const updatedExpenses = tripData.expenses
-        .filter((expense) => expense.paidBy !== userId)
-        .map((expense) => {
-          const participantWasRemoved = expense.participants.includes(userId);
-          const participants = expense.participants.filter(
-            (participantId) => participantId !== userId
-          );
-
-          if (participantWasRemoved && expense.splitMode === "custom") {
-            const expenseWithoutShares = { ...expense };
-            delete expenseWithoutShares.shares;
-            return {
-              ...expenseWithoutShares,
-              participants,
-              splitMode: "equal" as const,
-            };
-          }
-
-          return { ...expense, participants };
-        })
-        .filter((expense) => expense.participants.length > 0);
-
-      await updateDoc(tripRef, {
-        participants: updatedParticipants,
-        expenses: updatedExpenses,
-        updatedAt: Timestamp.fromDate(new Date()),
+        transaction.update(tripRef, {
+          participants: tripData.participants.filter(
+            (participant) => participant.id !== userId
+          ),
+          expenses: removeParticipantFromExpenses(tripData.expenses, userId),
+          updatedAt: Timestamp.fromDate(updatedAt),
+        });
       });
 
-      this.updateCachedTrip(tripId, (trip) => ({
-        ...trip,
-        participants: trip.participants.filter((user) => user.id !== userId),
-        expenses: trip.expenses
-          .filter((expense) => expense.paidBy !== userId)
-          .map((expense) => {
-            const participantWasRemoved = expense.participants.includes(userId);
-            const participants = expense.participants.filter(
-              (id) => id !== userId
-            );
-
-            if (participantWasRemoved && expense.splitMode === "custom") {
-              const expenseWithoutShares = { ...expense };
-              delete expenseWithoutShares.shares;
-              return {
-                ...expenseWithoutShares,
-                participants,
-                splitMode: "equal" as const,
-              };
-            }
-
-            return { ...expense, participants };
-          })
-          .filter((expense) => expense.participants.length > 0),
-        updatedAt: new Date(),
-      }));
+      this.invalidateTripCache(tripId);
     } catch (error) {
       console.error("Error removing user from trip:", error);
       throw new Error("Failed to remove user from trip");
@@ -416,13 +371,6 @@ export class FirebaseService {
   ): Promise<Expense> {
     try {
       const tripRef = doc(db, "trips", tripId);
-      const tripSnap = await getDoc(tripRef);
-
-      if (!tripSnap.exists()) {
-        throw new Error("Trip not found");
-      }
-
-      const tripData = tripSnap.data() as FirestoreTripData;
       const newExpense: Expense = {
         id: generateId(),
         description,
@@ -436,26 +384,40 @@ export class FirebaseService {
         createdAt: new Date(),
         tripId,
       };
+      const updatedAt = new Date();
 
-      const updatedExpenses = [
-        ...tripData.expenses,
-        {
-          ...newExpense,
-          date: Timestamp.fromDate(newExpense.date),
-          createdAt: Timestamp.fromDate(newExpense.createdAt),
-        },
-      ];
+      await runTransaction(db, async (transaction) => {
+        const tripSnap = await transaction.get(tripRef);
+        if (!tripSnap.exists()) throw new Error("Trip not found");
 
-      await updateDoc(tripRef, {
-        expenses: updatedExpenses,
-        updatedAt: Timestamp.fromDate(new Date()),
+        const tripData = tripSnap.data() as FirestoreTripData;
+        assertValidExpenseInput(
+          {
+            description,
+            amount,
+            paidBy,
+            participants,
+            splitMode,
+            shares,
+            date,
+          },
+          tripData.participants.map(({ id }) => id)
+        );
+
+        transaction.update(tripRef, {
+          expenses: [
+            ...tripData.expenses,
+            {
+              ...newExpense,
+              date: Timestamp.fromDate(newExpense.date),
+              createdAt: Timestamp.fromDate(newExpense.createdAt),
+            },
+          ],
+          updatedAt: Timestamp.fromDate(updatedAt),
+        });
       });
 
-      this.updateCachedTrip(tripId, (trip) => ({
-        ...trip,
-        expenses: [...trip.expenses, newExpense],
-        updatedAt: new Date(),
-      }));
+      this.invalidateTripCache(tripId);
 
       return newExpense;
     } catch (error) {
@@ -478,56 +440,56 @@ export class FirebaseService {
   ): Promise<Expense> {
     try {
       const tripRef = doc(db, "trips", tripId);
-      const tripSnap = await getDoc(tripRef);
+      let expense!: Expense;
+      const updatedAt = new Date();
 
-      if (!tripSnap.exists()) {
-        throw new Error("Trip not found");
-      }
+      await runTransaction(db, async (transaction) => {
+        const tripSnap = await transaction.get(tripRef);
+        if (!tripSnap.exists()) throw new Error("Trip not found");
 
-      const tripData = tripSnap.data() as FirestoreTripData;
-      const existingExpense = tripData.expenses.find(
-        (expense) => expense.id === expenseId
-      );
+        const tripData = tripSnap.data() as FirestoreTripData;
+        const existingExpense = tripData.expenses.find(
+          (currentExpense) => currentExpense.id === expenseId
+        );
+        if (!existingExpense) throw new Error("Expense not found");
 
-      if (!existingExpense) {
-        throw new Error("Expense not found");
-      }
+        const nextDate = date ?? existingExpense.date.toDate();
+        assertValidExpenseInput(
+          {
+            description,
+            amount,
+            paidBy,
+            participants,
+            splitMode,
+            shares,
+            date: nextDate,
+          },
+          tripData.participants.map(({ id }) => id)
+        );
 
-      const existingExpenseWithoutShares = { ...existingExpense };
-      delete existingExpenseWithoutShares.shares;
-      const updatedExpense = {
-        ...existingExpenseWithoutShares,
-        description,
-        amount,
-        paidBy,
-        participants,
-        category,
-        splitMode,
-        ...(splitMode === "custom" && shares ? { shares } : {}),
-        ...(date ? { date: Timestamp.fromDate(date) } : {}),
-      };
-      const updatedExpenses = tripData.expenses.map((expense) =>
-        expense.id === expenseId ? updatedExpense : expense
-      );
+        const updatedExpense = { ...existingExpense };
+        delete updatedExpense.shares;
+        Object.assign(updatedExpense, {
+          description,
+          amount,
+          paidBy,
+          participants,
+          category,
+          splitMode,
+          date: Timestamp.fromDate(nextDate),
+          ...(splitMode === "custom" && shares ? { shares } : {}),
+        });
 
-      await updateDoc(tripRef, {
-        expenses: updatedExpenses,
-        updatedAt: Timestamp.fromDate(new Date()),
+        transaction.update(tripRef, {
+          expenses: tripData.expenses.map((currentExpense) =>
+            currentExpense.id === expenseId ? updatedExpense : currentExpense
+          ),
+          updatedAt: Timestamp.fromDate(updatedAt),
+        });
+        expense = this.toExpense(updatedExpense);
       });
 
-      const expense: Expense = {
-        ...updatedExpense,
-        date: existingExpense.date.toDate(),
-        createdAt: existingExpense.createdAt.toDate(),
-      };
-
-      this.updateCachedTrip(tripId, (trip) => ({
-        ...trip,
-        expenses: trip.expenses.map((currentExpense) =>
-          currentExpense.id === expenseId ? expense : currentExpense
-        ),
-        updatedAt: new Date(),
-      }));
+      this.invalidateTripCache(tripId);
 
       return expense;
     } catch (error) {
@@ -539,27 +501,26 @@ export class FirebaseService {
   static async deleteExpense(tripId: string, expenseId: string): Promise<void> {
     try {
       const tripRef = doc(db, "trips", tripId);
-      const tripSnap = await getDoc(tripRef);
+      const updatedAt = new Date();
 
-      if (!tripSnap.exists()) {
-        throw new Error("Trip not found");
-      }
+      await runTransaction(db, async (transaction) => {
+        const tripSnap = await transaction.get(tripRef);
+        if (!tripSnap.exists()) throw new Error("Trip not found");
 
-      const tripData = tripSnap.data() as FirestoreTripData;
-      const updatedExpenses = tripData.expenses.filter(
-        (expense) => expense.id !== expenseId
-      );
+        const tripData = tripSnap.data() as FirestoreTripData;
+        if (!tripData.expenses.some((expense) => expense.id === expenseId)) {
+          throw new Error("Expense not found");
+        }
 
-      await updateDoc(tripRef, {
-        expenses: updatedExpenses,
-        updatedAt: Timestamp.fromDate(new Date()),
+        transaction.update(tripRef, {
+          expenses: tripData.expenses.filter(
+            (expense) => expense.id !== expenseId
+          ),
+          updatedAt: Timestamp.fromDate(updatedAt),
+        });
       });
 
-      this.updateCachedTrip(tripId, (trip) => ({
-        ...trip,
-        expenses: trip.expenses.filter((expense) => expense.id !== expenseId),
-        updatedAt: new Date(),
-      }));
+      this.invalidateTripCache(tripId);
     } catch (error) {
       console.error("Error deleting expense:", error);
       throw new Error("Failed to delete expense");

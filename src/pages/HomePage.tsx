@@ -10,6 +10,7 @@ import { timeAgo } from "../utils";
 import { Avatar } from "../components/Avatar";
 import { AVATARS } from "../utils/avatars";
 import { useToast } from "../components/ui/useToast";
+import { currentTripSession } from "../services/currentTripSession";
 
 const showcaseUsers = AVATARS.map((avatar, index) => ({
   id: `showcase-${avatar.id}`,
@@ -38,14 +39,15 @@ const HomePage = () => {
     // Update last accessed time
     GroupHistoryService.updateLastAccessed(group.id);
 
-    // Set current user context in localStorage
-    localStorage.setItem("currentTripId", group.id);
-    localStorage.setItem("currentUserId", group.userIdInGroup);
-    localStorage.setItem("currentUserName", group.userNameInGroup);
-    localStorage.setItem("roomCode", group.roomCode);
+    currentTripSession.set({
+      tripId: group.id,
+      userId: group.userIdInGroup,
+      userName: group.userNameInGroup,
+      roomCode: group.roomCode,
+    });
 
     // Navigate to group dashboard
-    navigate(`/group/${group.id}`);
+    void navigate(`/group/${group.id}`);
   };
 
   const handleRemoveGroup = (groupId: string, e: React.MouseEvent) => {

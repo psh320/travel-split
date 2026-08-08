@@ -12,6 +12,7 @@ import {
   MAX_TRIP_PARTICIPANTS,
   TripParticipantLimitError,
 } from "../config/trip";
+import { currentTripSession } from "../services/currentTripSession";
 
 const AddMemberPage = () => {
   const { groupId } = useParams<{ groupId: string }>();
@@ -30,7 +31,7 @@ const AddMemberPage = () => {
 
   useEffect(() => {
     if (!groupId) {
-      navigate("/");
+      void navigate("/");
       return;
     }
 
@@ -42,16 +43,16 @@ const AddMemberPage = () => {
         });
         if (cancelled) return;
 
-        const currentUserId = localStorage.getItem("currentUserId");
+        const currentUserId = currentTripSession.get().userId;
         if (!tripData || tripData.createdBy !== currentUserId) {
           showToast(t("noMatches"), "error");
-          navigate(`/group/${groupId}`, { replace: true });
+          void navigate(`/group/${groupId}`, { replace: true });
           return;
         }
 
         if (tripData.participants.length >= MAX_TRIP_PARTICIPANTS) {
           showToast(t("memberLimitReached"), "error");
-          navigate(`/group/${groupId}`, { replace: true });
+          void navigate(`/group/${groupId}`, { replace: true });
           return;
         }
 
@@ -59,7 +60,7 @@ const AddMemberPage = () => {
       } catch (loadError) {
         console.error("Error loading trip for member creation:", loadError);
         showToast(t("noMatches"), "error");
-        navigate(`/group/${groupId}`, { replace: true });
+        void navigate(`/group/${groupId}`, { replace: true });
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -92,7 +93,7 @@ const AddMemberPage = () => {
     try {
       await FirebaseService.addUserToTrip(trip.id, trimmedName, avatarConfig);
       showToast(t("memberAdded").replace("{name}", trimmedName), "success");
-      navigate(`/group/${trip.id}`, { replace: true });
+      void navigate(`/group/${trip.id}`, { replace: true });
     } catch (saveError) {
       console.error("Error adding member:", saveError);
       setError(

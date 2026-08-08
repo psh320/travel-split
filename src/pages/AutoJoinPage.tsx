@@ -15,6 +15,7 @@ import {
   MAX_TRIP_PARTICIPANTS,
   TripParticipantLimitError,
 } from "../config/trip";
+import { currentTripSession } from "../services/currentTripSession";
 
 const AutoJoinPage = () => {
   const { roomCode } = useParams<{ roomCode: string }>();
@@ -32,7 +33,7 @@ const AutoJoinPage = () => {
 
   useEffect(() => {
     if (roomCode && isValidRoomCode(roomCode)) {
-      loadTrip(roomCode);
+      void loadTrip(roomCode);
     } else {
       setLoadError(t("invalidRoomCode"));
       setLoading(false);
@@ -90,10 +91,12 @@ const AutoJoinPage = () => {
         avatarConfig
       );
 
-      localStorage.setItem("currentTripId", trip.id);
-      localStorage.setItem("currentUserId", newUser.id);
-      localStorage.setItem("currentUserName", newUser.name);
-      localStorage.setItem("roomCode", trip.roomCode);
+      currentTripSession.set({
+        tripId: trip.id,
+        userId: newUser.id,
+        userName: newUser.name,
+        roomCode: trip.roomCode,
+      });
 
       // Add group to history
       GroupHistoryService.addGroupToHistory(
@@ -108,7 +111,7 @@ const AutoJoinPage = () => {
       );
 
       showToast(t("joinedGroup"), "success");
-      navigate(`/group/${trip.id}`);
+      void navigate(`/group/${trip.id}`);
     } catch (error: unknown) {
       console.error("Error joining trip:", error);
       setFormError(
@@ -122,16 +125,19 @@ const AutoJoinPage = () => {
   };
 
   const handleExistingUserJoin = (user: User) => {
-    localStorage.setItem("currentTripId", trip!.id);
-    localStorage.setItem("currentUserId", user.id);
-    localStorage.setItem("currentUserName", user.name);
-    localStorage.setItem("roomCode", trip!.roomCode);
+    if (!trip) return;
+    currentTripSession.set({
+      tripId: trip.id,
+      userId: user.id,
+      userName: user.name,
+      roomCode: trip.roomCode,
+    });
 
     // Add group to history
     GroupHistoryService.addGroupToHistory(
-      trip!.id,
-      trip!.name,
-      trip!.roomCode,
+      trip.id,
+      trip.name,
+      trip.roomCode,
       "participant",
       user.id,
       user.name,
@@ -140,7 +146,7 @@ const AutoJoinPage = () => {
     );
 
     showToast(t("joinedGroup"), "success");
-    navigate(`/group/${trip!.id}`);
+    void navigate(`/group/${trip.id}`);
   };
 
   const handleParticipantClick = (participant: User) => {
