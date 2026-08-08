@@ -28,7 +28,6 @@ describe("ExpenseListItem", () => {
     const markup = renderToStaticMarkup(
       <MemoryRouter>
         <ExpenseListItem
-          dateLabel="26/08/09"
           editTo="/expenses/expense-a/edit"
           expense={expense}
           onDelete={() => undefined}
@@ -43,5 +42,6 @@ describe("ExpenseListItem", () => {
     expect(markup).toContain("expense-list-participant-count");
     expect(markup).toContain('aria-label="2 people"');
     expect(markup).not.toContain(">Split</span>");
+    expect(markup).not.toContain("26/08/09");
   });
 });

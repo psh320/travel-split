@@ -11,7 +11,6 @@ import {
 import { Avatar } from "./Avatar";
 
 type ExpenseListItemProps = {
-  dateLabel: string;
   editTo: string;
   expense: Expense;
   onDelete: () => void;
@@ -19,7 +18,6 @@ type ExpenseListItemProps = {
 };
 
 export function ExpenseListItem({
-  dateLabel,
   editTo,
   expense,
   onDelete,
@@ -40,41 +38,33 @@ export function ExpenseListItem({
           <strong className="expense-list-item-amount">
             {formatAmount(expense.amount)}
           </strong>
-          <time
-            className="expense-list-item-date"
-            dateTime={expense.date.toISOString()}
+          <span
+            className="expense-list-participant-count"
+            aria-label={`${countLabel("person", expense.participants.length)}${
+              expense.splitMode === "custom" ? ` · ${t("splitCustom")}` : ""
+            }`}
+            title={countLabel("person", expense.participants.length)}
           >
-            {dateLabel}
-          </time>
+            <strong>{expense.participants.length}</strong>
+            <PersonFilledIcon />
+          </span>
         </div>
       </div>
-      <div className="expense-list-item-side">
-        <div className="list-item-actions">
-          <IconLink
-            to={editTo}
-            className="list-item-icon-action"
-            label={t("editExpense")}
-          >
-            <EditIcon />
-          </IconLink>
-          <IconButton
-            onClick={onDelete}
-            className="list-item-icon-action list-item-delete-action"
-            label={t("remove")}
-          >
-            <TrashIcon />
-          </IconButton>
-        </div>
-        <span
-          className="expense-list-participant-count"
-          aria-label={`${countLabel("person", expense.participants.length)}${
-            expense.splitMode === "custom" ? ` · ${t("splitCustom")}` : ""
-          }`}
-          title={countLabel("person", expense.participants.length)}
+      <div className="list-item-actions">
+        <IconLink
+          to={editTo}
+          className="list-item-icon-action"
+          label={t("editExpense")}
         >
-          <strong>{expense.participants.length}</strong>
-          <PersonFilledIcon />
-        </span>
+          <EditIcon />
+        </IconLink>
+        <IconButton
+          onClick={onDelete}
+          className="list-item-icon-action list-item-delete-action"
+          label={t("remove")}
+        >
+          <TrashIcon />
+        </IconButton>
       </div>
     </div>
   );

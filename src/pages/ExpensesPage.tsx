@@ -14,7 +14,7 @@ import { useToast } from "../components/ui/useToast";
 import { t, countLabel } from "../i18n";
 import { FirebaseService } from "../services/firebase";
 import type { ExpenseCategory } from "../types";
-import { formatAmount, formatExpenseDate } from "../utils";
+import { formatAmount } from "../utils";
 import { EXPENSE_CATEGORIES } from "../utils/expenses";
 import { PageErrorState, PageSkeleton } from "../components/ui/PageState";
 import { useDialogLifecycle } from "../hooks/useDialogLifecycle";
@@ -248,7 +248,6 @@ const ExpensesPage = () => {
               {filteredAndSortedExpenses.map((expense) => (
                 <ExpenseListItem
                   key={expense.id}
-                  dateLabel={formatExpenseDate(expense.date)}
                   editTo={
                     "/group/" + groupId + "/edit-expense/" + expense.id
                   }

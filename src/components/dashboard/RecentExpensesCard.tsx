@@ -1,7 +1,6 @@
 import { Link } from "react-router-dom";
 import { countLabel, t } from "../../i18n";
 import type { Trip } from "../../types";
-import { formatExpenseDate } from "../../utils";
 import { ExpenseListItem } from "../ExpenseListItem";
 
 interface RecentExpensesCardProps {
@@ -57,7 +56,6 @@ export const RecentExpensesCard = ({
             {recentExpenses.map((expense) => (
               <ExpenseListItem
                 key={expense.id}
-                dateLabel={formatExpenseDate(expense.date)}
                 editTo={`/group/${trip.id}/edit-expense/${expense.id}`}
                 expense={expense}
                 onDelete={() => onDelete(expense.id)}

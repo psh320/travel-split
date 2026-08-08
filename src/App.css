@@ -2802,8 +2802,8 @@ html[data-keyboard-open] .add-member-submit-bar {
 .expense-list-item-content .list-item-title {
   margin-bottom: var(--ease-space-xs);
   color: var(--ease-color-text-muted);
-  font-size: 0.8125rem;
-  font-weight: 600;
+  font-size: 0.75rem;
+  font-weight: 500;
   line-height: 1.25;
   overflow-wrap: anywhere;
 }
@@ -2817,19 +2817,11 @@ html[data-keyboard-open] .add-member-submit-bar {
 
 .expense-list-item-amount {
   color: var(--ease-color-text);
-  font-size: 0.9375rem;
+  font-size: 0.875rem;
   font-variant-numeric: tabular-nums;
-  font-weight: 600;
+  font-weight: 400;
   letter-spacing: var(--ease-tracking-tight);
   line-height: 1.25;
-}
-
-.expense-list-item-date {
-  flex-shrink: 0;
-  color: var(--ease-color-text-soft);
-  font-size: 0.6875rem;
-  line-height: inherit;
-  white-space: nowrap;
 }
 
 .expense-list-participant-count {
@@ -2845,16 +2837,7 @@ html[data-keyboard-open] .add-member-submit-bar {
   font-weight: 600;
 }
 
-.expense-list-item-side {
-  display: flex;
-  min-height: 58px;
-  align-self: stretch;
-  align-items: flex-end;
-  flex-direction: column;
-  justify-content: space-between;
-}
-
-.expense-list-item-side .list-item-actions {
+.expense-list-item > .list-item-actions {
   justify-content: flex-end;
 }
 
