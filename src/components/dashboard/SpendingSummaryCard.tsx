@@ -150,48 +150,80 @@ export const SpendingSummaryCard = ({
             )}
           </div>
         )}
+      </div>
 
-        {categorySummary.length > 0 && (
-          <div className="category-spending-section is-personal">
-            <span className="summary-eyebrow">
-              {t("mySpendingByCategory")}
-            </span>
-            <div className="category-bar-list">
-              {categorySummary.map((item, index) => (
-                <div className="category-bar-row" key={item.category}>
-                  <div className="category-bar-heading">
-                    <span>
-                      <span
-                        className={`expense-category-dot category-${item.category}`}
-                      />
-                      {t(item.category)}
-                    </span>
-                    <strong>
-                      <AnimatedAmount amount={item.amount} />
-                    </strong>
-                  </div>
-                  <div
-                    className="category-bar-track"
-                    role="img"
-                    aria-label={`${t("mySpendingByCategory")}: ${t(
-                      item.category
-                    )} ${formatAmount(item.amount)}`}
-                  >
-                    <span
-                      className={`category-bar-fill category-${item.category}`}
-                      style={
-                        {
-                          width: `${(item.amount / maxCategoryAmount) * 100}%`,
-                          "--bar-delay": `${160 + index * 80}ms`,
-                        } as CSSProperties
-                      }
-                    />
-                  </div>
-                </div>
-              ))}
-            </div>
+      <div className="spending-breakdown-heading">
+        <span className="summary-eyebrow">{t("spendingByPerson")}</span>
+      </div>
+
+      <div className="spending-summary-body">
+        <div
+          className="spending-chart"
+          role="img"
+          aria-label={`${t("totalSpent")} ${formatAmount(totalExpenses)}`}
+        >
+          <div className="spending-chart-canvas" aria-hidden="true">
+            <ResponsiveContainer width="100%" height="100%" minWidth={0}>
+              <PieChart accessibilityLayer={false}>
+                <Pie
+                  data={chartData}
+                  dataKey="amount"
+                  nameKey="name"
+                  rootTabIndex={-1}
+                  cx="50%"
+                  cy="50%"
+                  innerRadius="60%"
+                  outerRadius="92%"
+                  paddingAngle={paidSummary.length > 1 ? 2 : 0}
+                  cornerRadius={4}
+                  stroke="var(--ease-color-surface-raised)"
+                  strokeWidth={2}
+                  animationBegin={80}
+                  animationDuration={720}
+                  animationEasing="ease-out"
+                  isAnimationActive={!prefersReducedMotion}
+                >
+                  {chartData.map((participant) => (
+                    <Cell key={participant.id} fill={participant.color} />
+                  ))}
+                </Pie>
+              </PieChart>
+            </ResponsiveContainer>
           </div>
-        )}
+          <div className="spending-chart-hole">
+            <span>{t("totalSpent")}</span>
+            <strong>
+              <AnimatedAmount amount={totalExpenses} compact duration={720} />
+            </strong>
+          </div>
+        </div>
+
+        <div className="spending-legend">
+          {paidSummary.length ? (
+            paidSummary.map((participant) => (
+              <div key={participant.id} className="spending-legend-item">
+                <Avatar
+                  user={participant}
+                  size="xs"
+                  decorative
+                  memberAccent
+                  className="spending-legend-avatar"
+                />
+                <div className="spending-legend-copy">
+                  <span
+                    className="spending-legend-name"
+                    title={participant.name}
+                  >
+                    {participant.name}
+                  </span>
+                  <strong>{formatAmount(participant.amount)}</strong>
+                </div>
+              </div>
+            ))
+          ) : (
+            <p className="muted">{t("noExpenses")}</p>
+          )}
+        </div>
       </div>
 
       <button
@@ -207,79 +239,47 @@ export const SpendingSummaryCard = ({
 
       {detailsOpen && (
         <div className="budget-details" id={detailsId}>
-          <div className="spending-breakdown-heading">
-            <span className="summary-eyebrow">{t("spendingByPerson")}</span>
-          </div>
-
-          <div className="spending-summary-body">
-            <div
-              className="spending-chart"
-              role="img"
-              aria-label={`${t("totalSpent")} ${formatAmount(totalExpenses)}`}
-            >
-              <div className="spending-chart-canvas" aria-hidden="true">
-                <ResponsiveContainer width="100%" height="100%" minWidth={0}>
-                  <PieChart accessibilityLayer={false}>
-                    <Pie
-                      data={chartData}
-                      dataKey="amount"
-                      nameKey="name"
-                      rootTabIndex={-1}
-                      cx="50%"
-                      cy="50%"
-                      innerRadius="60%"
-                      outerRadius="92%"
-                      paddingAngle={paidSummary.length > 1 ? 2 : 0}
-                      cornerRadius={4}
-                      stroke="var(--ease-color-surface-raised)"
-                      strokeWidth={2}
-                      animationBegin={80}
-                      animationDuration={720}
-                      animationEasing="ease-out"
-                      isAnimationActive={!prefersReducedMotion}
-                    >
-                      {chartData.map((participant) => (
-                        <Cell key={participant.id} fill={participant.color} />
-                      ))}
-                    </Pie>
-                  </PieChart>
-                </ResponsiveContainer>
-              </div>
-              <div className="spending-chart-hole">
-                <span>{t("totalSpent")}</span>
-                <strong>
-                  <AnimatedAmount amount={totalExpenses} compact duration={720} />
-                </strong>
-              </div>
-            </div>
-
-            <div className="spending-legend">
-              {paidSummary.length ? (
-                paidSummary.map((participant) => (
-                  <div key={participant.id} className="spending-legend-item">
-                    <Avatar
-                      user={participant}
-                      size="xs"
-                      decorative
-                      memberAccent
-                      className="spending-legend-avatar"
-                    />
-                    <div className="spending-legend-copy">
-                      <span
-                        className="spending-legend-name"
-                        title={participant.name}
-                      >
-                        {participant.name}
+          {categorySummary.length > 0 && (
+            <div className="category-spending-section is-personal">
+              <span className="summary-eyebrow">
+                {t("mySpendingByCategory")}
+              </span>
+              <div className="category-bar-list">
+                {categorySummary.map((item, index) => (
+                  <div className="category-bar-row" key={item.category}>
+                    <div className="category-bar-heading">
+                      <span>
+                        <span
+                          className={`expense-category-dot category-${item.category}`}
+                        />
+                        {t(item.category)}
                       </span>
-                      <strong>{formatAmount(participant.amount)}</strong>
+                      <strong>
+                        <AnimatedAmount amount={item.amount} />
+                      </strong>
+                    </div>
+                    <div
+                      className="category-bar-track"
+                      role="img"
+                      aria-label={`${t("mySpendingByCategory")}: ${t(
+                        item.category
+                      )} ${formatAmount(item.amount)}`}
+                    >
+                      <span
+                        className={`category-bar-fill category-${item.category}`}
+                        style={
+                          {
+                            width: `${(item.amount / maxCategoryAmount) * 100}%`,
+                            "--bar-delay": `${160 + index * 80}ms`,
+                          } as CSSProperties
+                        }
+                      />
                     </div>
                   </div>
-                ))
-              ) : (
-                <p className="muted">{t("noExpenses")}</p>
-              )}
+                ))}
+              </div>
             </div>
-          </div>
+          )}
 
           <div className="summary-metrics">
             <div>
@@ -297,7 +297,6 @@ export const SpendingSummaryCard = ({
           </div>
         </div>
       )}
-
     </div>
   );
 };
