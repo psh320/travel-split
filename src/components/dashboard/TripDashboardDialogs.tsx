@@ -17,6 +17,7 @@ export const TripDashboardDialogs = ({
   onClose,
   onCopyRoomCode,
   onCopyShareLink,
+  onEditBudget,
   removal,
   trip,
 }: TripDashboardDialogsProps) => (
@@ -31,6 +32,7 @@ export const TripDashboardDialogs = ({
         onClose={onClose}
         onCopyRoomCode={onCopyRoomCode}
         onCopyShareLink={onCopyShareLink}
+        onEditBudget={onEditBudget}
         removal={removal}
         trip={trip}
       />

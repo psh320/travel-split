@@ -19,6 +19,7 @@ import { PageErrorState, PageSkeleton } from "../components/ui/PageState";
 import { useDialogLifecycle } from "../hooks/useDialogLifecycle";
 import { SpendingSummaryCard } from "../components/dashboard/SpendingSummaryCard";
 import { RecentExpensesCard } from "../components/dashboard/RecentExpensesCard";
+import { PaidByPersonCard } from "../components/dashboard/PaidByPersonCard";
 import {
   TripDashboardDialogs,
   type DashboardModal,
@@ -281,36 +282,30 @@ const TripDashboard = () => {
       <div className="content dashboard-content">
         <SpendingSummaryCard
           currentUserId={currentUserId}
-          onEditBudget={openBudgetModal}
-          prefersReducedMotion={prefersReducedMotion}
           totalExpenses={totalExpenses}
           trip={trip}
         />
 
-        {/* Quick Actions */}
-        <div
-          className="dashboard-actions"
-          style={{
-            display: "flex",
-            gap: "0.75rem",
-            flexWrap: "wrap",
-          }}
-        >
+        <div className="dashboard-actions">
           <Link
             to={`/group/${trip.id}/add-expense`}
-            className="btn btn-primary"
-            style={{ flex: 1, minWidth: "120px" }}
+            className="btn btn-primary dashboard-action-primary"
           >
             {t("addExpense")}
           </Link>
           <Link
             to={`/group/${trip.id}/balance`}
-            className="btn btn-secondary"
-            style={{ flex: 1, minWidth: "120px" }}
+            className="btn btn-secondary dashboard-action-secondary"
           >
             {t("viewBalance")}
           </Link>
         </div>
+
+        <PaidByPersonCard
+          prefersReducedMotion={prefersReducedMotion}
+          totalExpenses={totalExpenses}
+          trip={trip}
+        />
 
         <RecentExpensesCard trip={trip} onDelete={handleDeleteExpense} />
       </div>
@@ -341,6 +336,7 @@ const TripDashboard = () => {
         onClose={closeModal}
         onCopyRoomCode={copyRoomCode}
         onCopyShareLink={copyShareableLink}
+        onEditBudget={openBudgetModal}
         removal={{
           onCancel: () => setPendingRemoval(null),
           onConfirm: () => void confirmRemoveUser(),

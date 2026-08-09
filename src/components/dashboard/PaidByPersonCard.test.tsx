@@ -1,7 +1,7 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import type { Trip } from "../../types";
-import { SpendingSummaryCard } from "./SpendingSummaryCard";
+import { PaidByPersonCard } from "./PaidByPersonCard";
 
 const now = new Date("2026-08-09T00:00:00Z");
 const trip: Trip = {
@@ -31,33 +31,31 @@ const trip: Trip = {
   updatedAt: now,
 };
 
-describe("SpendingSummaryCard", () => {
-  it("keeps personal category bars collapsed and excludes group spending", () => {
+describe("PaidByPersonCard", () => {
+  it("shows group payment distribution and group metrics", () => {
     const markup = renderToStaticMarkup(
-      <SpendingSummaryCard
-        currentUserId="member-a"
+      <PaidByPersonCard
+        prefersReducedMotion
         totalExpenses={300}
         trip={trip}
       />
     );
 
-    expect(markup).toContain('aria-expanded="false"');
-    expect(markup).not.toContain("category-bar-list");
-    expect(markup).not.toContain("spending-summary-body");
+    expect(markup).toContain("spending-summary-body");
+    expect(markup).toContain("summary-metrics");
+    expect(markup).toContain("Andrew");
   });
 
-  it("becomes a plain spending summary when no budget is set", () => {
+  it("does not repeat group totals when no budget is set", () => {
     const markup = renderToStaticMarkup(
-      <SpendingSummaryCard
-        currentUserId="member-a"
+      <PaidByPersonCard
+        prefersReducedMotion
         totalExpenses={300}
         trip={{ ...trip, perPersonBudget: undefined }}
       />
     );
 
-    expect(markup).toContain("spending-amount-only");
-    expect(markup).not.toContain('role="progressbar"');
-    expect(markup).not.toContain("budget-empty-state");
-    expect(markup).not.toContain("budget-edit-trigger");
+    expect(markup).toContain("spending-summary-body");
+    expect(markup).not.toContain("summary-metrics");
   });
 });

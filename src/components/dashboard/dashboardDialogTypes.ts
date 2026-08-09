@@ -43,6 +43,7 @@ export interface TripDashboardDialogsProps {
   onClose: () => void;
   onCopyRoomCode: () => void;
   onCopyShareLink: () => void;
+  onEditBudget: () => void;
   removal: RemovalDialogState;
   trip: Trip;
 }

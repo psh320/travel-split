@@ -4,7 +4,12 @@ import type { Trip } from "../../types";
 import { formatAmount, formatDate } from "../../utils";
 import { Avatar } from "../Avatar";
 import { FieldError } from "../ui/FieldError";
-import { CloseIcon, IconButton, TrashIcon } from "../ui/IconButton";
+import {
+  ChevronRightIcon,
+  CloseIcon,
+  IconButton,
+  TrashIcon,
+} from "../ui/IconButton";
 import type {
   AvatarDialogState,
   BudgetDialogState,
@@ -20,6 +25,7 @@ export const DashboardMainDialog = ({
   onClose,
   onCopyRoomCode,
   onCopyShareLink,
+  onEditBudget,
   removal,
   trip,
 }: TripDashboardDialogsProps) => (
@@ -57,8 +63,10 @@ export const DashboardMainDialog = ({
       {activeModal === "details" ? (
         <TripDetails
           trip={trip}
+          currentUserId={currentUserId}
           onCopyRoomCode={onCopyRoomCode}
           onCopyShareLink={onCopyShareLink}
+          onEditBudget={onEditBudget}
         />
       ) : activeModal === "budget" ? (
         <BudgetForm budget={budget} onClose={onClose} />
@@ -76,12 +84,18 @@ export const DashboardMainDialog = ({
 );
 
 const TripDetails = ({
+  currentUserId,
   onCopyRoomCode,
   onCopyShareLink,
+  onEditBudget,
   trip,
 }: Pick<
   TripDashboardDialogsProps,
-  "onCopyRoomCode" | "onCopyShareLink" | "trip"
+  | "currentUserId"
+  | "onCopyRoomCode"
+  | "onCopyShareLink"
+  | "onEditBudget"
+  | "trip"
 >) => (
   <>
     <div className="dashboard-detail-list">
@@ -93,14 +107,31 @@ const TripDetails = ({
         <span>{t("created")}</span>
         <strong>{formatDate(trip.createdAt)}</strong>
       </div>
-      <div>
-        <span>{t("budgetTarget")}</span>
-        <strong>
-          {trip.perPersonBudget
-            ? formatAmount(trip.perPersonBudget)
-            : t("budgetNotSet")}
-        </strong>
-      </div>
+      {trip.createdBy === currentUserId ? (
+        <button
+          type="button"
+          className="dashboard-budget-setting"
+          aria-label={trip.perPersonBudget ? t("editBudget") : t("setBudget")}
+          onClick={onEditBudget}
+        >
+          <span>{t("budgetTarget")}</span>
+          <strong>
+            {trip.perPersonBudget
+              ? formatAmount(trip.perPersonBudget)
+              : t("budgetNotSet")}
+          </strong>
+          <ChevronRightIcon />
+        </button>
+      ) : (
+        <div>
+          <span>{t("budgetTarget")}</span>
+          <strong>
+            {trip.perPersonBudget
+              ? formatAmount(trip.perPersonBudget)
+              : t("budgetNotSet")}
+          </strong>
+        </div>
+      )}
       {trip.description && (
         <div>
           <span>{t("description")}</span>
