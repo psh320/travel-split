@@ -11,6 +11,15 @@ import { Avatar } from "../components/Avatar";
 import { AVATARS } from "../utils/avatars";
 import { useToast } from "../components/ui/useToast";
 import { currentTripSession } from "../services/currentTripSession";
+import {
+  ChevronRightIcon,
+  IconButton,
+  IconLink,
+  InfoIcon,
+  PlusIcon,
+  TrashIcon,
+  UsersIcon,
+} from "../components/ui/IconButton";
 
 const showcaseUsers = AVATARS.map((avatar, index) => ({
   id: `showcase-${avatar.id}`,
@@ -50,10 +59,17 @@ const HomePage = () => {
     void navigate(`/group/${group.id}`);
   };
 
-  const handleRemoveGroup = (groupId: string, e: React.MouseEvent) => {
+  const handleRemoveGroup = (
+    group: GroupHistoryItem,
+    e: React.MouseEvent<HTMLButtonElement>
+  ) => {
     e.stopPropagation();
-    if (window.confirm(t("remove"))) {
-      GroupHistoryService.removeGroupFromHistory(groupId);
+    const confirmation = t("removeGroupHistoryConfirm").replace(
+      "{name}",
+      group.name
+    );
+    if (window.confirm(confirmation)) {
+      GroupHistoryService.removeGroupFromHistory(group.id);
       const updatedHistory = GroupHistoryService.getGroupHistory();
       setGroupHistory(updatedHistory);
       showToast(t("historyRemoved"), "success");
@@ -65,19 +81,30 @@ const HomePage = () => {
     }
   };
 
-  const HomeTopBar = () => (
-    <div className="home-app-bar">
+  const HomeTopBar = ({ appMode = false }: { appMode?: boolean }) => (
+    <div className={`home-app-bar${appMode ? " is-app-mode" : ""}`}>
       <Link to="/" className="home-app-brand" data-google-vignette="false">
         {t("appName")}
       </Link>
-      <nav className="home-nav" aria-label={isKorean ? "주요 메뉴" : "Main navigation"}>
-        <Link to="/guides" data-google-vignette="false">
-          {isKorean ? "가이드" : "Guides"}
-        </Link>
-        <Link to="/about" data-google-vignette="false">
-          {isKorean ? "소개" : "About"}
-        </Link>
-      </nav>
+      {appMode ? (
+        <IconLink
+          to="/guides"
+          className="home-help-link"
+          label={isKorean ? "정산 가이드" : "Open guides"}
+          data-google-vignette="false"
+        >
+          <InfoIcon />
+        </IconLink>
+      ) : (
+        <nav className="home-nav" aria-label={isKorean ? "주요 메뉴" : "Main navigation"}>
+          <Link to="/guides" data-google-vignette="false">
+            {isKorean ? "가이드" : "Guides"}
+          </Link>
+          <Link to="/about" data-google-vignette="false">
+            {isKorean ? "소개" : "About"}
+          </Link>
+        </nav>
+      )}
     </div>
   );
 
@@ -155,180 +182,121 @@ const HomePage = () => {
 
   const GroupListContent = () => (
     <>
-      <HomeTopBar />
+      <HomeTopBar appMode />
       <AppHeader
-        title={t("welcomeBack")}
-        subtitle={t("pickAGroup")}
+        className="home-dashboard-header"
+        title={t("homeDashboardTitle")}
+        subtitle={t("homeDashboardSubtitle")}
       />
 
-      <div className="content">
-        {/* Storage Warning */}
+      <main className="content home-dashboard-content">
         {storageWarning && (
-          <div
-            className="callout callout-warning"
-            style={{ marginBottom: "1rem" }}
-          >
-            <div
-              style={{
-                display: "flex",
-                alignItems: "flex-start",
-                gap: "0.75rem",
-              }}
-            >
-              <div>
-                <h4
-                  style={{
-                    margin: 0,
-                    marginBottom: "0.5rem",
-                    color: "var(--ease-color-warning)",
-                    fontSize: "0.9rem",
-                    fontWeight: "600",
-                  }}
-                >
-                  {t("notes")}
-                </h4>
-                <p
-                  style={{
-                    margin: 0,
-                    fontSize: "0.875rem",
-                    color: "var(--ease-color-warning)",
-                    lineHeight: "1.4",
-                  }}
-                >
-                  {storageWarning}
-                </p>
-              </div>
-            </div>
+          <div className="callout callout-warning home-storage-warning">
+            <strong>{t("notes")}</strong>
+            <p>{storageWarning}</p>
           </div>
         )}
 
-        {/* Quick Actions */}
-        <div className="card">
-          <h3>{t("actions")}</h3>
-          <div className="button-stack">
-            <Link to="/create-group" className="btn btn-primary btn-full">
-              {t("createGroup")}
-            </Link>
-
-            <Link to="/join-group" className="btn btn-secondary btn-full">
-              {t("joinGroup")}
-            </Link>
-          </div>
-        </div>
-
-        {/* Recent Groups */}
-        <div className="card">
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              marginBottom: "1rem",
-            }}
-          >
-            <h3 style={{ margin: 0 }}>{t("groups")}</h3>
-            <span style={{ fontSize: "0.875rem", color: "var(--ease-color-text-muted)" }}>
+        <section className="home-groups-section" aria-labelledby="home-groups-heading">
+          <div className="home-section-heading">
+            <h2 id="home-groups-heading">{t("groups")}</h2>
+            <span>
               {countLabel("group", groupHistory.length)}
             </span>
           </div>
 
           {groupHistory.length === 0 ? (
-            <div
-              className="muted"
-              style={{ textAlign: "center", padding: "2rem" }}
-            >
+            <div className="home-groups-empty">
               <p>{t("noGroups")}</p>
-              <button
-                onClick={() => setIsNewUser(true)}
-                style={{
-                  background: "none",
-                  border: "none",
-                  color: "var(--ease-color-brand)",
-                  textDecoration: "underline",
-                  cursor: "pointer",
-                  fontSize: "0.875rem",
-                }}
-              >
+              <button type="button" onClick={() => setIsNewUser(true)}>
                 {t("startSplit")}
               </button>
             </div>
           ) : (
-            <div className="list">
+            <div className="home-group-list">
               {groupHistory.map((group) => (
-                <div
+                <article
                   key={group.id}
-                  className="list-item home-group-item"
-                  onClick={() => handleGroupClick(group)}
-                  style={{
-                    cursor: "pointer",
-                    transition: "background 0.2s, border-color 0.2s",
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor =
-                      "var(--ease-color-brand-soft)";
-                    e.currentTarget.style.borderColor =
-                      "var(--ease-color-border-strong)";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor =
-                      "var(--ease-color-surface-raised)";
-                    e.currentTarget.style.borderColor =
-                      "var(--ease-color-border)";
-                  }}
+                  className="home-group-card"
                 >
-                  <Avatar
-                    user={{
-                      id: group.userIdInGroup,
-                      name: group.userNameInGroup,
-                      avatarId: group.avatarId,
-                      avatarConfig: group.avatarConfig,
-                    }}
-                    size="md"
-                    decorative
-                  />
-                  <div className="home-group-copy">
-                    <div
-                      style={{
-                        fontWeight: "600",
-                        marginBottom: "0.25rem",
-                        fontSize: "1rem",
-                      }}
-                    >
-                      {group.name}
-                    </div>
-                    <div
-                      style={{
-                        fontSize: "0.875rem",
-                        color: "var(--ease-color-text-muted)",
-                        marginBottom: "0.25rem",
-                      }}
-                    >
-                      {t("room")}: {group.roomCode} • {t("joinedAs")}{" "}
-                      {group.userNameInGroup}
-                    </div>
-                    <div style={{ fontSize: "0.75rem", color: "var(--ease-color-text-soft)" }}>
-                      {group.role === "creator" ? t("creator") : t("member")} •{" "}
-                      {timeAgo(group.lastAccessed)}
-                    </div>
-                  </div>
                   <button
-                    onClick={(e) => handleRemoveGroup(group.id, e)}
-                    className="list-item-action icon-action"
-                    style={{
-                      color: "var(--ease-color-danger)",
-                    }}
-                    title={t("removeHistory")}
+                    type="button"
+                    className="home-group-main"
+                    aria-label={t("openGroup").replace("{name}", group.name)}
+                    onClick={() => handleGroupClick(group)}
                   >
-                    ×
+                    <Avatar
+                      user={{
+                        id: group.userIdInGroup,
+                        name: group.userNameInGroup,
+                        avatarId: group.avatarId,
+                        avatarConfig: group.avatarConfig,
+                      }}
+                      size="md"
+                      decorative
+                    />
+                    <div className="home-group-copy">
+                      <strong>{group.name}</strong>
+                      <div className="home-group-meta">
+                        <span>{group.userNameInGroup}</span>
+                        <span aria-hidden="true">·</span>
+                        <span>
+                          {group.role === "creator" ? t("creator") : t("member")}
+                        </span>
+                        <span aria-hidden="true">·</span>
+                        <time dateTime={group.lastAccessed.toISOString()}>
+                          {timeAgo(group.lastAccessed)}
+                        </time>
+                      </div>
+                      <span className="home-room-code">
+                        {t("room")} {group.roomCode}
+                      </span>
+                    </div>
+                    <span className="home-group-chevron">
+                      <ChevronRightIcon />
+                    </span>
                   </button>
-                </div>
+                  <IconButton
+                    className="home-group-remove"
+                    label={`${group.name} · ${t("removeHistory")}`}
+                    onClick={(event) => handleRemoveGroup(group, event)}
+                  >
+                    <TrashIcon />
+                  </IconButton>
+                </article>
               ))}
             </div>
           )}
-        </div>
-        <SEOContent />
-      </div>
-      <SiteFooter />
+        </section>
+
+        <section className="home-quick-actions" aria-labelledby="quick-actions-heading">
+          <div className="home-section-heading">
+            <h2 id="quick-actions-heading">{t("quickActions")}</h2>
+          </div>
+          <div className="home-action-grid">
+            <Link to="/create-group" className="home-action-card">
+              <span className="home-action-icon">
+                <PlusIcon />
+              </span>
+              <span className="home-action-copy">
+                <strong>{t("createGroup")}</strong>
+                <span>{t("createGroupHint")}</span>
+              </span>
+              <ChevronRightIcon />
+            </Link>
+            <Link to="/join-group" className="home-action-card">
+              <span className="home-action-icon">
+                <UsersIcon />
+              </span>
+              <span className="home-action-copy">
+                <strong>{t("joinGroup")}</strong>
+                <span>{t("joinGroupHint")}</span>
+              </span>
+              <ChevronRightIcon />
+            </Link>
+          </div>
+        </section>
+      </main>
     </>
   );
 
