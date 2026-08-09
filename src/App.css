@@ -3204,10 +3204,6 @@ html[data-keyboard-open] .add-member-submit-bar {
   animation: list-item-arrive 340ms var(--ease-ease-out) both;
 }
 
-.expense-list-item:hover {
-  background: var(--ease-color-surface-subtle);
-}
-
 .expense-list-details-trigger {
   display: grid;
   min-width: 0;
@@ -3221,6 +3217,13 @@ html[data-keyboard-open] .add-member-submit-bar {
   cursor: pointer;
   font: inherit;
   text-align: left;
+}
+
+.expense-list-details-trigger:hover .list-item-title {
+  color: var(--ease-color-text);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
 }
 
 .expense-list-details-trigger:focus-visible {
@@ -3247,6 +3250,7 @@ html[data-keyboard-open] .add-member-submit-bar {
   font-weight: 600;
   line-height: 1.25;
   overflow-wrap: anywhere;
+  transition: color var(--ease-motion-fast) ease;
 }
 
 .expense-list-item-summary {
